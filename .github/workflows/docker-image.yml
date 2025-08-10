@@ -1,9 +1,9 @@
-name: Build Docker Image
+name: Build & Publish Docker Image
 on:
   push:
     branches: [ main ]
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -12,27 +12,34 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}  # 自动获取仓库权限
+
+      - name: Build & Push to GHCR
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
-          tags: bmcpxt:latest
+          push: true  # 推送到镜像仓库
+          tags: ghcr.io/${{ github.repository_owner }}/cpxt:latest  # 自动拼接镜像路径
           no-cache: true
-          load: true  # 关键：让镜像可被本地 docker 命令访问
+          load: true  # 同时加载到本地用于调试
 
-      - name: List Docker images (debug)
+      - name: List Local Docker images (debug)
         run: |
-          echo "=== 构建后镜像列表 ==="
+          echo "=== 本地镜像列表 ==="
           docker images
           echo "======================"
 
-      - name: Save Docker image
+      - name: Save Docker image (debug)
         run: |
-          docker save -o docker-image.tar bmcpxt:latest
+          docker save -o docker-image.tar ghcr.io/${{ github.repository_owner }}/cpxt:latest
 
-      - name: Upload image artifact
+      - name: Upload Debug Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image
+          name: docker-image-debug
           path: docker-image.tar
