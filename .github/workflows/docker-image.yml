@@ -1,23 +1,30 @@
 name: Build Docker Image
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      
     - name: Build Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: false
         tags: bmcpxt:latest
+        
+    # 新增步骤1：保存Docker镜像为tar文件
+    - name: Save Docker image
+      run: |
+        docker save -o docker-image.tar bmcpxt:latest
+        
+    # 新增步骤2：上传tar文件为GitHub Artifact
+    - name: Upload image artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker-image
+        path: docker-image.tar
