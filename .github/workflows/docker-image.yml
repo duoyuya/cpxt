@@ -24,7 +24,7 @@ jobs:
         
     # 新增步骤2：上传tar文件为GitHub Artifact
     - name: Upload image artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docker-image
         path: docker-image.tar
