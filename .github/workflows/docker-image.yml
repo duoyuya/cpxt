@@ -1,7 +1,7 @@
-name: 构建并推送 Docker 镜像（个人仓库版）
+name: 构建并推送 Docker 镜像（无需手动装 CLI）
 on:
   push:
-    branches: [ main ]  # 推送 main 分支触发
+    branches: [ main ]  # 推送到 main 分支触发构建
 
 jobs:
   build-and-publish:
@@ -11,29 +11,23 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      # 2. 配置 Docker 环境（基础版，避免复杂依赖）
-      - name: 安装 Docker CLI
-        run: |
-          sudo apt update
-          sudo apt install -y docker.io
-
-      # 3. 登录 GitHub 容器仓库（GHCR），使用个人访问令牌
+      # 2. 登录 GitHub 容器仓库（GHCR），使用个人访问令牌
       - name: 登录 GHCR
         env:
           DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  # 从 Secrets 读取令牌
         run: |
           echo "$DOCKER_PAT" | docker login ghcr.io --username ${{ github.actor }} --password-stdin
 
-      # 4. 构建 Docker 镜像（强制使用当前目录）
+      # 3. 构建 Docker 镜像（直接使用环境内置的 Docker）
       - name: 构建镜像
         run: |
-          docker build -t ghcr.io/${{ github.actor }}/cpxt:latest .
+          docker build -t ghcr.io/${{ github.actor }}/cpxt:latest .  
 
-      # 5. 推送镜像到 GHCR
+      # 4. 推送镜像到 GHCR
       - name: 推送镜像
         run: |
-          docker push ghcr.io/${{ github.actor }}/cpxt:latest
+          docker push ghcr.io/${{ github.actor }}/cpxt:latest  
 
-      # 6. （可选）调试：查看镜像信息
+      # 5. （可选）调试：查看本地镜像列表
       - name: 查看本地镜像
         run: docker images
