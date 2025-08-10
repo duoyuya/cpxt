@@ -1,0 +1,37 @@
+[
+  {
+    "plate": "云M12345",
+    "uids": [
+      "UID_mz9JWwuddvB3xjdiDmV9lEaRNv8v"
+    ],
+    "remark": "面包"
+  },
+  {
+    "plate": "云M22334",
+    "uids": [
+      "UID_mz9JWwuddvB3xjdiDmV9lEaRNv8v"
+    ],
+    "remark": "测试"
+  },
+  {
+    "plate": "云M22335",
+    "uids": [
+      "UID_mz9JWwuddvB3xjdiDmV9lEaRNv8v"
+    ],
+    "remark": "测试1"
+  },
+  {
+    "plate": "云M22335",
+    "uids": [
+      "UID_mz9JWwuddvB3xjdiDmV9lEaRNv8v"
+    ],
+    "remark": "测试1"
+  },
+  {
+    "plate": "云M22335",
+    "uids": [
+      "UID_mz9JWwuddvB3xjdiDmV9lEaRNv8v"
+    ],
+    "remark": "测试1"
+  }
+]

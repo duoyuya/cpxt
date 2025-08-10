@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>车辆通知系统 - 发送通知</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-light: #e6f0ff;
+      --primary-dark: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text: #333;
+      --text-secondary: #6c757d;
+      --bg: #f8f9fa;
+      --card-bg: #fff;
+      --border: #dee2e6;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --radius: 12px;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      transition: var(--transition);
+    }
+    
+    .card-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .card-header h2 {
+      color: var(--primary);
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .plate-input-group {
+      display: flex;
+      align-items: center;
+    }
+    
+    .plate-prefix {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 0 8px 8px 0;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn i {
+      font-size: 18px;
+    }
+    
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success);
+      display: block;
+    }
+    
+    .error {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
+      display: block;
+    }
+    
+    .info {
+      background-color: rgba(255, 193, 7, 0.1);
+      color: #856404;
+      display: block;
+    }
+    
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .btn-loading .text {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <h2>车辆挪车通知</h2>
+    </div>
+    
+    <div class="form-group">
+      <div class="plate-input-group">
+        <span class="plate-prefix">云M</span>
+        <input type="text" id="plateNumber" placeholder="请输入5-6位字母或数字" maxlength="6" autocomplete="off">
+      </div>
+    </div>
+    
+    <button class="btn" id="sendBtn" onclick="sendNotification()">
+      <span class="loading" style="display: none;"></span>
+      <span class="text">发送挪车通知</span>
+    </button>
+    
+    <div class="message" id="message"></div>
+    
+    <div class="footer">
+      车辆通知系统 © 2025 | 便捷 · 高效
+    </div>
+  </div>
+
+  <script>
+    const plateInput = document.getElementById('plateNumber');
+    const sendBtn = document.getElementById('sendBtn');
+    const messageEl = document.getElementById('message');
+    const loadingEl = sendBtn.querySelector('.loading');
+    const textEl = sendBtn.querySelector('.text');
+    
+    // 输入处理：仅允许字母和数字，自动转为大写
+    plateInput.addEventListener('input', function(e) {
+      // 移除非字母数字字符
+      this.value = this.value.replace(/[^A-Z0-9]/gi, '');
+      // 转为大写
+      this.value = this.value.toUpperCase();
+      
+      // 验证长度
+      if (this.value.length > 6) {
+        this.value = this.value.slice(0, 6);
+      }
+      
+      // 显示输入提示
+      updateMessage(`请输入${5-this.value.length}位字符（共5-6位）`, 'info');
+    });
+    
+    // 发送通知
+    async function sendNotification() {
+      const plateNumber = plateInput.value.trim();
+      
+      // 验证输入
+      if (!plateNumber) {
+        updateMessage('请输入车牌号后再发送', 'error');
+        return;
+      }
+      
+      if (plateNumber.length < 5 || plateNumber.length > 6) {
+        updateMessage('车牌号必须为5-6位字母或数字', 'error');
+        return;
+      }
+      
+      // 准备发送
+      sendBtn.disabled = true;
+      loadingEl.style.display = 'inline-block';
+      textEl.textContent = '发送中...';
+      updateMessage('', '');
+      
+      try {
+        const response = await fetch('/api/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            plate: plateNumber
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
+          plateInput.value = ''; // 清空输入
+        } else {
+          updateMessage(data.msg || '发送失败，请稍后重试', 'error');
+        }
+      } catch (error) {
+        updateMessage('网络错误，请检查网络连接', 'error');
+      } finally {
+        // 恢复按钮状态
+        sendBtn.disabled = false;
+        loadingEl.style.display = 'none';
+        textEl.textContent = '发送挪车通知';
+      }
+    }
+    
+    // 更新消息显示
+    function updateMessage(text, type) {
+      messageEl.textContent = text;
+      messageEl.className = 'message';
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+    
+    // 回车发送
+    plateInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendNotification();
+      }
+    });
+  </script>
+</body>
+</html>

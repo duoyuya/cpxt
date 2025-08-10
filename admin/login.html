@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>管理员登录 - 车牌管理系统</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-dark: #0056b3;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+      --text-secondary: #6c757d;
+      --border: #dcdfe6;
+      --shadow: 0 10px 30px rgba(0,0,0,0.1);
+      --radius: 12px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .logo {
+      font-size: 40px;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    
+    .login-box {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 40px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    h2 {
+      color: var(--text);
+      margin-bottom: 30px;
+      font-size: 24px;
+      font-weight: 500;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background: var(--primary-dark);
+    }
+    
+    .error {
+      color: #dc3545;
+      font-size: 14px;
+      margin: 15px 0;
+      height: 16px;
+    }
+    
+    .footer {
+      margin-top: 20px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .btn-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">🚗</div>
+    <div class="login-box">
+      <h2>管理员登录</h2>
+      <div class="form-group">
+        <label for="username">账号</label>
+        <input type="text" id="username" placeholder="请输入用户名" autofocus />
+      </div>
+      <div class="form-group">
+        <label for="password">密码</label>
+        <input type="password" id="password" placeholder="请输入密码" onkeypress="if(event.key==='Enter')login()" />
+      </div>
+      <div class="error" id="error"></div>
+      <button id="loginBtn" onclick="login()">登录</button>
+    </div>
+    <div class="footer">
+      车辆通知系统 © 2025
+    </div>
+  </div>
+
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('error');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      // 验证输入
+      if (!username || !password) {
+        errorEl.textContent = '请输入账号和密码';
+        return;
+      }
+      
+      // 显示加载状态
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<div class="loading"></div>登录中...';
+      errorEl.textContent = '';
+      
+      try {
+        const response = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // 登录成功，保存token并跳转到后台管理页面
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', username);
+          window.location.href = '/admin/plate-management.html';
+        } else {
+          // 登录失败
+          errorEl.textContent = data.msg || '登录失败，请重试';
+          loginBtn.disabled = false;
+          loginBtn.textContent = '登录';
+        }
+      } catch (error) {
+        errorEl.textContent = '网络错误，请检查网络连接';
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录';
+      }
+    }
+  </script>
+</body>
+</html>
