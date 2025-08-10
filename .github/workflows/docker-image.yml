@@ -1,7 +1,7 @@
-name: 稳定构建并推送 Docker 镜像
+name: 构建并推送 Docker 镜像（个人仓库版）
 on:
   push:
-    branches: [ main ]  # 推送到 main 分支触发
+    branches: [ main ]  # 推送 main 分支触发
 
 jobs:
   build-and-publish:
@@ -11,24 +11,29 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      # 2. 登录 GitHub 镜像仓库（GHCR）
-      - name: 登录 GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io          # GitHub 镜像仓库地址
-          username: ${{ github.actor }}  # 自动填充你的用户名（duoyuya）
-          password: ${{ secrets.GITHUB_TOKEN }}  # 自动获取权限
-
-      # 3. 本地构建镜像（用最基础的 docker build）
-      - name: 构建 Docker 镜像
+      # 2. 配置 Docker 环境（基础版，避免复杂依赖）
+      - name: 安装 Docker CLI
         run: |
-          docker build -t ghcr.io/duoyuya/cpxt:latest .  # 镜像名固定
+          sudo apt update
+          sudo apt install -y docker.io
 
-      # 4. 推送镜像到 GHCR
+      # 3. 登录 GitHub 容器仓库（GHCR），使用个人访问令牌
+      - name: 登录 GHCR
+        env:
+          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  # 从 Secrets 读取令牌
+        run: |
+          echo "$DOCKER_PAT" | docker login ghcr.io --username ${{ github.actor }} --password-stdin
+
+      # 4. 构建 Docker 镜像（强制使用当前目录）
+      - name: 构建镜像
+        run: |
+          docker build -t ghcr.io/${{ github.actor }}/cpxt:latest .
+
+      # 5. 推送镜像到 GHCR
       - name: 推送镜像
         run: |
-          docker push ghcr.io/duoyuya/cpxt:latest
+          docker push ghcr.io/${{ github.actor }}/cpxt:latest
 
-      # 5. （可选）调试：查看本地镜像
+      # 6. （可选）调试：查看镜像信息
       - name: 查看本地镜像
         run: docker images
