@@ -1,7 +1,7 @@
-name: 构建并公开 Docker 镜像
+name: 稳定构建并推送 Docker 镜像
 on:
   push:
-    branches: [ main ]  # 推送到 main 分支时触发构建
+    branches: [ main ]  # 推送到 main 分支触发
 
 jobs:
   build-and-publish:
@@ -11,40 +11,24 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      # 2. 初始化 Docker 构建工具（Buildx）
-      - name: 配置 Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # 3. 登录 GitHub 镜像仓库（GHCR）
-      - name: 登录 GHCR（自动授权）
+      # 2. 登录 GitHub 镜像仓库（GHCR）
+      - name: 登录 GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io          # GitHub 镜像仓库地址
           username: ${{ github.actor }}  # 自动填充你的用户名（duoyuya）
-          password: ${{ secrets.GITHUB_TOKEN }}  # 自动获取权限，无需手动设置
+          password: ${{ secrets.GITHUB_TOKEN }}  # 自动获取权限
 
-      # 4. 构建镜像并推送到 GHCR
-      - name: 构建 & 推送镜像
-        uses: docker/build-push-action@v5
-        with:
-          context: .  # 构建上下文（整个仓库目录）
-          push: true  # 推送到镜像仓库
-          # 镜像路径：ghcr.io/duoyuya/cpxt:latest（固定你的用户名和仓库名）
-          tags: ghcr.io/duoyuya/cpxt:latest  
-          no-cache: true  # 禁用缓存，确保完整构建
-          load: true  # 同时加载到本地（方便调试）
+      # 3. 本地构建镜像（用最基础的 docker build）
+      - name: 构建 Docker 镜像
+        run: |
+          docker build -t ghcr.io/duoyuya/cpxt:latest .  # 镜像名固定
 
-      # 5. 调试：查看本地镜像（可选，可删除）
-      - name: 查看本地镜像列表
+      # 4. 推送镜像到 GHCR
+      - name: 推送镜像
+        run: |
+          docker push ghcr.io/duoyuya/cpxt:latest
+
+      # 5. （可选）调试：查看本地镜像
+      - name: 查看本地镜像
         run: docker images
-
-      # 6. 保存镜像为 tar 包（可选，可删除）
-      - name: 保存镜像到本地文件
-        run: docker save -o docker-image.tar ghcr.io/duoyuya/cpxt:latest
-
-      # 7. 上传镜像文件（给你手动下载调试，可选）
-      - name: 上传调试用镜像包
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image-debug
-          path: docker-image.tar
