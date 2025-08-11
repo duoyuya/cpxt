@@ -16,7 +16,7 @@
     "jsonwebtoken": "^9.0.2",
     "sqlite3": "^5.1.7",
     "uuid": "^9.0.1",
-    "node-fetch": "^2.7.0"  // 已添加node-fetch依赖
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
