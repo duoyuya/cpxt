@@ -1,7 +1,20 @@
-FROM node:14  # 不使用-alpine后缀
+# 不使用-alpine后缀
+FROM node:14
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm config set registry https://registry.npmmirror.com/ && npm install --production
+
+# 切换npm镜像源
+RUN npm config set registry https://registry.npmmirror.com/
+
+# 复制依赖文件
+COPY "package.json" "package-lock.json" ./
+
+# 安装依赖
+RUN npm install --production --verbose
+
+# 复制项目文件
 COPY . .
+
 EXPOSE 3000
+
 CMD ["npm", "start"]
