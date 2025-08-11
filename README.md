@@ -37,7 +37,7 @@ JWT_EXPIRES_IN=24h
 version: '3.8'
 services:
   car-system:
-    image: 3d3d3bdd04b15a163d9a0c26ea2b1657.d.1ms.run/duoyuya/cpxt:latest
+    image: ghcr.io/duoyuya/cpxt:latest
     container_name: car-system
     restart: always
     ports:
