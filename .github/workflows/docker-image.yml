@@ -1,7 +1,6 @@
-name: 构建并推送 Docker 镜像（无需手动装 CLI）
+name: 构建并推送 Docker 镜像
 on:
-  push:
-    branches: [ main ]  # 推送到 main 分支触发构建
+  workflow_dispatch:  # 改为手动触发，需在 GitHub 仓库页面手动点击运行
 
 jobs:
   build-and-publish:
