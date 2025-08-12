@@ -54,22 +54,6 @@
       transition: var(--transition);
       min-height: 100vh;
       padding: 20px;
-      position: relative;
-    }
-    
-    /* 错误提示 */
-    .error-toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--danger);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      z-index: 9999;
-      box-shadow: var(--shadow);
-      display: none;
     }
     
     .container {
@@ -171,8 +155,6 @@
       overflow: hidden;
       margin-bottom: 24px;
       transition: var(--transition);
-      position: relative;
-      z-index: 1;
     }
     
     .card-header {
@@ -438,19 +420,6 @@
       margin-top: 40px;
     }
     
-    /* 二维码样式 */
-    .qrcode-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .qrcode-tooltip {
-      font-size: 12px;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-    
     /* 响应式设计 */
     @media (max-width: 768px) {
       .form-grid {
@@ -491,16 +460,13 @@
   </style>
 </head>
 <body>
-  <!-- 错误提示 -->
-  <div class="error-toast" id="errorToast">错误提示</div>
-  
   <div class="container">
     <div class="header">
       <div class="logo">🚗 车牌管理系统</div>
+      <div class="welcome">欢迎，管理员</div>
       <div class="controls">
-        <button class="btn btn-primary" onclick="openAddPlateModal()"><i>+</i> 添加车牌</button>
-        <button class="btn btn-danger" onclick="logout()"><i>🚪</i> 退出</button>
         <button class="btn btn-theme" onclick="toggleTheme()"><i>🌓</i></button>
+        <button class="btn btn-danger" onclick="logout()"><i>🚪</i> 退出</button>
       </div>
     </div>
     
@@ -515,6 +481,7 @@
       <div class="card">
         <div class="card-header">
           <h2>车牌列表</h2>
+          <button class="btn btn-primary" onclick="openAddPlateModal()"><i>+</i> 添加车牌</button>
         </div>
         <div class="card-body">
           <div class="search-container">
@@ -530,7 +497,6 @@
               <thead>
                 <tr>
                   <th>车牌号</th>
-                  <th>二维码</th>
                   <th>用户UID</th>
                   <th>备注</th>
                   <th>添加时间</th>
@@ -562,6 +528,7 @@
     <!-- 系统设置标签页 -->
     <div id="system-settings" class="tab-content">
       <div class="card">
+        
         <div class="card-header">
           <h2>系统设置</h2>
         </div>
@@ -639,24 +606,27 @@
         </div>
       </div>
     </div>
+    
+    <div class="footer">
+      车辆通知系统 © 2025 | 安全 · 稳定 · 高效
+    </div>
   </div>
   
   <!-- 添加/编辑车牌模态框 -->
   <div id="plateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-    <div class="card" style="max-width: 500px; width: 100%;">
+    <div class="card" style="max-width: ５00px; width: 100%;">
       <div class="card-header">
         <h2 id="plateModalTitle">添加车牌</h2>
-        <button class="btn btn-danger" style="padding: 6px 10px; font-size: 14px;" onclick="closePlateModal()"><i>✕</i></button>
+        <button class="btn btn-danger" style="padding: 6px 10px;" onclick="closePlateModal()"><i>✕</i></button>
       </div>
       <div class="card-body">
         <input type="hidden" id="editPlateId">
         <div class="form-group">
           <label for="modalPlateNumber">车牌号</label>
           <div style="display: flex;">
-            <input type="text" id="platePrefix" placeholder="省份简称" maxlength="2" style="width: 80px; padding: 10px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px;">
+            <span style="padding: 10px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px;">云M</span>
             <input type="text" id="modalPlateNumber" placeholder="输入5-6位字母或数字" maxlength="6">
           </div>
-          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：云A、川B、京A等</small>
         </div>
         <div class="form-group">
           <label for="modalPlateUid">用户UID</label>
@@ -672,159 +642,79 @@
     </div>
   </div>
 
-  <!-- 引入qrcode.js库 -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
   <script>
-    // 错误提示显示函数
-    function showError(message) {
-      const toast = document.getElementById('errorToast');
-      toast.textContent = message;
-      toast.style.display = 'block';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 3000);
-    }
-    
-    // 检查QRCode库是否加载成功
-    if (typeof QRCode === 'undefined') {
-      showError('二维码功能加载失败，请刷新页面重试');
-      // 尝试动态加载备用CDN
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.0.0/qrcode.min.js';
-      script.onload = function() {
-        if (typeof QRCode !== 'undefined') {
-          showError('二维码功能已恢复');
-          // 重新加载车牌数据
-          if (typeof loadPlates === 'function') loadPlates();
-        } else {
-          showError('二维码功能加载失败，请检查网络');
-        }
-      };
-      document.head.appendChild(script);
-    }
-    
-    // 页面加载完成后执行
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        // 检查登录状态
-        if (!localStorage.getItem('token')) {
-          // 显示友好提示而非直接跳转
-          showError('请先登录系统');
-          // 3秒后跳转登录页
-          setTimeout(() => {
-            window.location.href = '/admin/login.html';
-          }, 3000);
-          return;
-        }
-        
-        // 应用保存的主题
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        // 加载车牌数据
-        loadPlates();
-        
-        // 加载系统设置
-        loadSystemSettings();
-        
-        // 加载日志数据
-        loadLogs();
-        
-        // 车牌号输入自动转为大写
-        document.getElementById('modalPlateNumber').addEventListener('input', function(e) {
-          this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        });
-        
-        // 前缀输入处理
-        document.getElementById('platePrefix').addEventListener('input', function(e) {
-          // 只允许汉字和字母
-          this.value = this.value.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '');
-          // 限制最大长度为2
-          if (this.value.length > 2) {
-            this.value = this.value.slice(0, 2);
-          }
-        });
-        
-        // 日志全选复选框事件
-        document.getElementById('selectAllLogs').addEventListener('change', function(e) {
-          const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
-          checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-        });
-        
-        // 表头全选复选框同步
-        document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
-          document.getElementById('selectAllLogs').checked = this.checked;
-          const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
-          checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-        });
-      } catch (error) {
-        showError('页面加载失败: ' + error.message);
-        console.error('初始化错误:', error);
-      }
-    });
-    
     // 当前页码和搜索条件
     let currentPlatesPage = 1;
     let currentLogsPage = 1;
     let currentSearchTerm = '';
     
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 检查登录状态
+      if (!localStorage.getItem('token')) {
+        window.location.href = '/admin/login.html';
+        return;
+      }
+      
+      // 应用保存的主题
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      // 加载车牌数据
+      loadPlates();
+      
+      // 加载系统设置
+      loadSystemSettings();
+      
+      // 车牌号输入自动转为大写
+      document.getElementById('modalPlateNumber').addEventListener('input', function(e) {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      });
+      
+      // 日志全选复选框事件
+      document.getElementById('selectAllLogs').addEventListener('change', function(e) {
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+      
+      // 表头全选复选框同步
+      document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
+        document.getElementById('selectAllLogs').checked = this.checked;
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+    });
+    
     // 切换标签页
     function switchTab(tabId) {
-      try {
-        // 更新标签激活状态
-        document.querySelectorAll('.tab').forEach(tab => {
-          tab.classList.remove('active');
-        });
-        document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
-        
-        // 更新内容显示
-        document.querySelectorAll('.tab-content').forEach(content => {
-          content.classList.remove('active');
-        });
-        document.getElementById(tabId).classList.add('active');
-        
-        // 如果切换到日志标签页，加载日志数据
-        if (tabId === 'operation-logs') {
-          loadLogs();
-        }
-      } catch (error) {
-        showError('切换标签失败: ' + error.message);
+      // 更新标签激活状态
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      
+      // 更新内容显示
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+      
+      // 如果切换到日志标签页，加载日志数据
+      if (tabId === 'operation-logs') {
+        loadLogs();
       }
     }
     
     // 切换主题
     function toggleTheme() {
-      try {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-      } catch (error) {
-        showError('切换主题失败: ' + error.message);
-      }
-    }
-    
-    // 生成带令牌的二维码URL
-    async function generatePlateToken(plate) {
-      try {
-        const response = await fetch(`/api/generate-token?plate=${encodeURIComponent(plate)}`, {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-        });
-        
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.msg || '生成令牌失败');
-        
-        return data.url;
-      } catch (error) {
-        console.error('令牌生成失败:', error);
-        showError('生成二维码失败: ' + error.message);
-        // 降级方案：使用普通链接
-        return `${window.location.origin}/admin/index.html?plate=${encodeURIComponent(plate)}`;
-      }
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
     }
     
     // 加载车牌数据
@@ -854,12 +744,9 @@
         
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
-            // 处理token无效情况
+            // 未授权，跳转到登录页
             localStorage.removeItem('token');
-            showError('登录已过期，请重新登录');
-            setTimeout(() => {
-              window.location.href = '/admin/login.html';
-            }, 3000);
+            window.location.href = '/admin/login.html';
             return;
           }
           throw new Error('加载车牌数据失败');
@@ -877,7 +764,7 @@
         }
         
         // 渲染车牌列表
-        for (const plate of data.plates) {
+        data.plates.forEach(plate => {
           // 处理UID显示，隐藏中间部分字符
           const maskedUids = plate.uids.map(uid => {
             if (uid.length <= 7) {
@@ -887,18 +774,9 @@
             return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
           }).join(', ');
           
-          // 生成二维码URL
-          const qrUrl = await generatePlateToken(plate.plate);
-          
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${plate.plate}</td>
-            <td>
-              <div class="qrcode-container">
-                <div class="qrcode" data-plate="${plate.plate}"></div>
-                <span class="qrcode-tooltip">扫码通知</span>
-              </div>
-            </td>
             <td>${maskedUids}</td>
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
@@ -908,112 +786,60 @@
             </td>
           `;
           tableBody.appendChild(row);
-          
-          // 生成二维码
-          try {
-            if (typeof QRCode !== 'undefined') {
-              const qrcodeContainer = row.querySelector(`.qrcode[data-plate="${plate.plate}"]`);
-              new QRCode(qrcodeContainer, {
-                text: qrUrl,
-                width: 64,
-                height: 64,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-              });
-            } else {
-              row.querySelector('.qrcode-container').innerHTML = '<span style="color:var(--danger)">二维码功能不可用</span>';
-            }
-          } catch (error) {
-            console.error(`生成二维码失败: ${error.message}`);
-            row.querySelector('.qrcode-container').innerHTML = '<span style="color:var(--danger)">生成失败</span>';
-          }
-        }
+        });
         
         // 渲染分页
         renderPagination('platesPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
-        showError('加载车牌数据失败: ' + error.message);
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
       }
     }
     
     // 渲染分页控件
     function renderPagination(containerId, totalPages, currentPage) {
-      try {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        
-        // 如果只有一页，不显示分页
-        if (totalPages <= 1) {
-          return;
-        }
-        
-        // 添加首页按钮
-        if (currentPage > 1) {
-          addPaginationButton(container, 1, currentPage === 1, '首页');
-          addPaginationButton(container, currentPage - 1, false, '上一页');
-        }
-        
-        // 添加中间页码按钮
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, currentPage + 2);
-        
-        // 如果前面有省略号
-        if (startPage > 1) {
-          if (startPage > 2) {
-            addEllipsis(container);
-          } else {
-            addPaginationButton(container, 1, false);
-          }
-        }
-        
-        for (let i = startPage; i <= endPage; i++) {
-          addPaginationButton(container, i, currentPage === i);
-        }
-        
-        // 如果后面有省略号
-        if (endPage < totalPages) {
-          if (endPage < totalPages - 1) {
-            addEllipsis(container);
-          } else {
-            addPaginationButton(container, totalPages, false);
-          }
-        }
-        
-        // 添加末页按钮
-        if (currentPage < totalPages) {
-          addPaginationButton(container, currentPage + 1, false, '下一页');
-          addPaginationButton(container, totalPages, currentPage === totalPages, '末页');
-        }
-      } catch (error) {
-        showError('渲染分页失败: ' + error.message);
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      
+      // 如果只有一页，不显示分页
+      if (totalPages <= 1) {
+        return;
+      }
+      
+      // 添加首页按钮
+      if (currentPage > 1) {
+        addPaginationButton(container, 1, '首页');
+        addPaginationButton(container, currentPage - 1, '上一页');
+      }
+      
+      // 添加页码按钮（显示当前页前后2页）
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, currentPage + 2);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        addPaginationButton(container, i, i, i === currentPage);
+      }
+      
+      // 添加末页按钮
+      if (currentPage < totalPages) {
+        addPaginationButton(container, currentPage + 1, '下一页');
+        addPaginationButton(container, totalPages, '末页');
       }
     }
     
     // 添加分页按钮
-    function addPaginationButton(container, pageNum, isActive, text = pageNum) {
+    function addPaginationButton(container, page, text, isActive = false) {
       const button = document.createElement('button');
       button.className = `pagination-btn ${isActive ? 'active' : ''}`;
       button.textContent = text;
       button.onclick = function() {
         if (container.id === 'platesPagination') {
-          loadPlates(pageNum, currentSearchTerm);
+          loadPlates(page, currentSearchTerm);
         } else {
-          loadLogs(pageNum);
+          loadLogs(page);
         }
       };
       container.appendChild(button);
-    }
-    
-    // 添加省略号
-    function addEllipsis(container) {
-      const ellipsis = document.createElement('span');
-      ellipsis.className = 'pagination-ellipsis';
-      ellipsis.textContent = '...';
-      ellipsis.style.padding = '0 8px';
-      container.appendChild(ellipsis);
     }
     
     // 搜索车牌
@@ -1034,13 +860,13 @@
     function openAddPlateModal() {
       document.getElementById('plateModalTitle').textContent = '添加车牌';
       document.getElementById('editPlateId').value = '';
-      document.getElementById('platePrefix').value = '';
       document.getElementById('modalPlateNumber').value = '';
       document.getElementById('modalPlateUid').value = '';
       document.getElementById('modalPlateRemark').value = '';
       document.getElementById('modalMessage').textContent = '';
-      document.getElementById('modalMessage').style.display = 'none';
+      document.getElementById('modalMessage').className = 'message';
       
+      // 显示模态框
       document.getElementById('plateModal').style.display = 'flex';
     }
     
@@ -1048,40 +874,14 @@
     function openEditPlateModal(id, plate, uids, remark) {
       document.getElementById('plateModalTitle').textContent = '编辑车牌';
       document.getElementById('editPlateId').value = id;
-      
-      // 拆分省份前缀和号码
-      if (plate.length >= 2) {
-        // 尝试识别省份前缀（1-2个字符）
-        let prefix = '';
-        let number = plate;
-        
-        // 检查前2个字符是否是中文
-        if (/[\u4e00-\u9fa5]/.test(plate.charAt(0))) {
-          // 中文省份简称（1个字符）
-          prefix = plate.charAt(0);
-          number = plate.substring(1);
-        } else if (/^[A-Za-z]{2}/.test(plate)) {
-          // 字母省份简称（2个字符）
-          prefix = plate.substring(0, 2);
-          number = plate.substring(2);
-        } else if (/^[A-Za-z]/.test(plate)) {
-          // 字母省份简称（1个字符）
-          prefix = plate.charAt(0);
-          number = plate.substring(1);
-        }
-        
-        document.getElementById('platePrefix').value = prefix;
-        document.getElementById('modalPlateNumber').value = number;
-      } else {
-        document.getElementById('platePrefix').value = '';
-        document.getElementById('modalPlateNumber').value = plate;
-      }
-      
+      // 去除"云M"前缀后显示
+      document.getElementById('modalPlateNumber').value = plate.replace('云M', '');
       document.getElementById('modalPlateUid').value = uids;
       document.getElementById('modalPlateRemark').value = remark;
       document.getElementById('modalMessage').textContent = '';
-      document.getElementById('modalMessage').style.display = 'none';
+      document.getElementById('modalMessage').className = 'message';
       
+      // 显示模态框
       document.getElementById('plateModal').style.display = 'flex';
     }
     
@@ -1090,80 +890,83 @@
       document.getElementById('plateModal').style.display = 'none';
     }
     
-    // 保存车牌
+    // 保存车牌（添加或编辑）
     async function savePlate() {
+      const plateId = document.getElementById('editPlateId').value;
+      const plateNumber = document.getElementById('modalPlateNumber').value.trim();
+      const uids = document.getElementById('modalPlateUid').value.trim();
+      const remark = document.getElementById('modalPlateRemark').value.trim();
+      const messageEl = document.getElementById('modalMessage');
+      
+      // 验证输入
+      if (!plateNumber) {
+        messageEl.textContent = '请输入车牌号';
+        messageEl.className = 'message error';
+        return;
+      }
+      
+      if (plateNumber.length < 5 || plateNumber.length > 6) {
+        messageEl.textContent = '车牌号必须为5-6位字母或数字';
+        messageEl.className = 'message error';
+        return;
+      }
+      
+      if (!uids) {
+        messageEl.textContent = '请输入用户UID';
+        messageEl.className = 'message error';
+        return;
+      }
+      
+      // 处理UIDs
+      const uidsArray = uids.split(',').map(uid => uid.trim()).filter(uid => uid);
+      if (uidsArray.length === 0) {
+        messageEl.textContent = '请输入有效的用户UID';
+        messageEl.className = 'message error';
+        return;
+      }
+      
       try {
-        const id = document.getElementById('editPlateId').value;
-        const prefix = document.getElementById('platePrefix').value.trim();
-        const number = document.getElementById('modalPlateNumber').value.trim();
-        const uids = document.getElementById('modalPlateUid').value.trim();
-        const remark = document.getElementById('modalPlateRemark').value.trim();
-        const modalMessage = document.getElementById('modalMessage');
-        
-        // 验证输入
-        if (!prefix || !number) {
-          modalMessage.textContent = '省份简称和车牌号必填';
-          modalMessage.className = 'message error';
-          return;
-        }
-        
-        if (!uids) {
-          modalMessage.textContent = '用户UID必填';
-          modalMessage.className = 'message error';
-          return;
-        }
-        
-        const plate = prefix + number;
-        
-        // 构建请求数据
-        const plateData = {
-          plate,
-          uids: uids.split(',').map(uid => uid.trim()),
-          remark
-        };
-        
-        // 发送请求
-        let url = '/api/plates';
-        let method = 'POST';
-        
-        if (id) {
-          url += `/${id}`;
-          method = 'PUT';
-        }
+        const fullPlateNumber = `云M${plateNumber}`;
+        const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
+        const method = plateId ? 'PUT' : 'POST';
         
         const response = await fetch(url, {
-          method,
+          method: method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
-          body: JSON.stringify(plateData)
+          body: JSON.stringify({
+            plate: fullPlateNumber,
+            uids: uidsArray,
+            remark: remark
+          })
         });
         
         const data = await response.json();
         
-        if (!response.ok) {
-          throw new Error(data.msg || '保存车牌失败');
+        if (response.ok) {
+          messageEl.textContent = plateId ? '车牌更新成功' : '车牌添加成功';
+          messageEl.className = 'message success';
+          
+          // 关闭模态框并重新加载车牌数据
+          setTimeout(() => {
+            closePlateModal();
+            loadPlates(currentPlatesPage, currentSearchTerm);
+          }, 1000);
+        } else {
+          messageEl.textContent = data.msg || (plateId ? '更新失败' : '添加失败');
+          messageEl.className = 'message error';
         }
-        
-        // 关闭模态框并刷新列表
-        closePlateModal();
-        loadPlates(currentPlatesPage, currentSearchTerm);
-        
-        // 显示成功消息
-        modalMessage.textContent = id ? '车牌更新成功' : '车牌添加成功';
-        modalMessage.className = 'message success';
       } catch (error) {
-        const modalMessage = document.getElementById('modalMessage');
-        modalMessage.textContent = error.message;
-        modalMessage.className = 'message error';
-        showError('保存车牌失败: ' + error.message);
+        messageEl.textContent = '网络错误: ' + error.message;
+        messageEl.className = 'message error';
       }
     }
     
     // 删除车牌
-    async function deletePlate(id, plate) {
-      if (!confirm(`确定要删除车牌 ${plate} 吗？`)) {
+    async function deletePlate(id, plateNumber) {
+      if (!confirm(`确定要删除车牌号 ${plateNumber} 吗？`)) {
         return;
       }
       
@@ -1175,16 +978,15 @@
           }
         });
         
-        if (!response.ok) {
+        if (response.ok) {
+          // 删除成功，重新加载车牌数据
+          loadPlates(currentPlatesPage, currentSearchTerm);
+        } else {
           const data = await response.json();
-          throw new Error(data.msg || '删除车牌失败');
+          alert('删除失败: ' + data.msg);
         }
-        
-        // 刷新列表
-        loadPlates(currentPlatesPage, currentSearchTerm);
-        showError('车牌删除成功');
       } catch (error) {
-        showError('删除车牌失败: ' + error.message);
+        alert('删除失败: ' + error.message);
       }
     }
     
@@ -1198,29 +1000,27 @@
           }
         });
         
-        if (!tokenResponse.ok) {
-          throw new Error('加载系统设置失败');
+        if (tokenResponse.ok) {
+          const tokenData = await tokenResponse.json();
+          document.getElementById('appToken').value = tokenData.token || '';
         }
-        
-        const tokenData = await tokenResponse.json();
-        document.getElementById('appToken').value = tokenData.token || '';
       } catch (error) {
-        showError('加载系统设置失败: ' + error.message);
+        console.error('加载系统设置失败:', error);
       }
     }
     
     // 更新APP Token
     async function updateAppToken() {
+      const token = document.getElementById('appToken').value.trim();
+      const messageEl = document.getElementById('tokenMessage');
+      
+      if (!token) {
+        messageEl.textContent = 'APP Token不能为空';
+        messageEl.className = 'message error';
+        return;
+      }
+      
       try {
-        const token = document.getElementById('appToken').value.trim();
-        const messageElement = document.getElementById('tokenMessage');
-        
-        if (!token) {
-          messageElement.textContent = 'APP Token不能为空';
-          messageElement.className = 'message error';
-          return;
-        }
-        
         const response = await fetch('/api/app-token', {
           method: 'POST',
           headers: {
@@ -1232,46 +1032,43 @@
         
         const data = await response.json();
         
-        if (!response.ok) {
-          throw new Error(data.msg || '更新APP Token失败');
+        if (response.ok) {
+          messageEl.textContent = 'APP Token更新成功';
+          messageEl.className = 'message success';
+        } else {
+          messageEl.textContent = data.msg || '更新失败';
+          messageEl.className = 'message error';
         }
-        
-        messageElement.textContent = 'APP Token更新成功';
-        messageElement.className = 'message success';
       } catch (error) {
-        const messageElement = document.getElementById('tokenMessage');
-        messageElement.textContent = error.message;
-        messageElement.className = 'message error';
-        showError('更新APP Token失败: ' + error.message);
+        messageEl.textContent = '网络错误: ' + error.message;
+        messageEl.className = 'message error';
       }
     }
     
     // 更新管理员密码
     async function updateAdminPassword() {
-      try {
-        const newPassword = document.getElementById('adminPassword').value.trim();
-        const messageElement = document.getElementById('passwordMessage');
-        
-        if (!newPassword || newPassword.length < 6) {
-          messageElement.textContent = '密码长度不能少于6位';
-          messageElement.className = 'message error';
-          return;
-        }
-        
-        // 这里应该有一个真实的API调用来更新密码
-        // 为了演示，我们只显示成功消息
-        messageElement.textContent = '密码更新功能在演示环境中不可用';
-        messageElement.className = 'message info';
-      } catch (error) {
-        const messageElement = document.getElementById('passwordMessage');
-        messageElement.textContent = error.message;
-        messageElement.className = 'message error';
-        showError('更新密码失败: ' + error.message);
+      const newPassword = document.getElementById('adminPassword').value;
+      const messageEl = document.getElementById('passwordMessage');
+      
+      if (!newPassword) {
+        messageEl.textContent = '请输入新密码';
+        messageEl.className = 'message error';
+        return;
       }
+      
+      if (newPassword.length < 6) {
+        messageEl.textContent = '密码长度不能少于6位';
+        messageEl.className = 'message error';
+        return;
+      }
+      
+      // 这里应该调用密码更新API，当前系统未实现该功能
+      messageEl.textContent = '密码更新功能暂未实现';
+      messageEl.className = 'message info';
     }
     
-    // 加载日志数据
-    async function loadLogs(page = 1) {
+    // 加载操作日志
+    async function loadLogs(page = 1, search = '') {
       currentLogsPage = page;
       const tableBody = document.getElementById('logsTableBody');
       const loading = document.getElementById('logsLoading');
@@ -1283,7 +1080,13 @@
       emptyState.style.display = 'none';
       
       try {
-        const response = await fetch(`/api/logs?page=${page}&limit=20`, {
+        // 构建请求URL
+        let url = `/api/logs?page=${page}&limit=10`;
+        if (search) {
+          url += `&action=${encodeURIComponent(search)}`;
+        }
+        
+        const response = await fetch(url, {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           }
@@ -1291,11 +1094,9 @@
         
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
+            // 未授权，跳转到登录页
             localStorage.removeItem('token');
-            showError('登录已过期，请重新登录');
-            setTimeout(() => {
-              window.location.href = '/admin/login.html';
-            }, 3000);
+            window.location.href = '/admin/login.html';
             return;
           }
           throw new Error('加载日志数据失败');
@@ -1313,56 +1114,50 @@
         }
         
         // 渲染日志列表
-        for (const log of data.logs) {
-          try {
-            const details = JSON.parse(log.details || '{}');
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td><input type="checkbox" value="${log.id}"></td>
-              <td>${log.action}</td>
-              <td>${new Date(log.created_at).toLocaleString()}</td>
-              <td>${log.ip}</td>
-              <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${JSON.stringify(details, null, 2)}">
-                ${JSON.stringify(details, null, 2).substring(0, 50)}${details.length > 50 ? '...' : ''}
-              </td>
-            `;
-            tableBody.appendChild(row);
-          } catch (parseError) {
-            // 处理JSON解析错误
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td><input type="checkbox" value="${log.id}"></td>
-              <td>${log.action}</td>
-              <td>${new Date(log.created_at).toLocaleString()}</td>
-              <td>${log.ip}</td>
-              <td>日志格式错误</td>
-            `;
-            tableBody.appendChild(row);
-          }
-        }
+        data.logs.forEach(log => {
+          const details = JSON.parse(log.details || '{}');
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><input type="checkbox" class="log-checkbox" value="${log.id}"></td>
+            <td>${log.action}</td>
+            <td>${new Date(log.created_at).toLocaleString()}</td>
+            <td>${log.ip}</td>
+            <td>${details.body || '无详细信息'}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+        
+        // 更新全选复选框状态
+        document.getElementById('selectAllLogs').checked = false;
+        document.getElementById('headerLogCheckbox').checked = false;
         
         // 渲染分页
         renderPagination('logsPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
-        showError('加载日志数据失败: ' + error.message);
       }
     }
     
     // 搜索日志
     function searchLogs() {
-      // 在实际应用中实现日志搜索功能
-      showError('日志搜索功能正在开发中');
+      const searchTerm = document.getElementById('logSearch').value.trim();
+      loadLogs(1, searchTerm);
     }
     
     // 删除选中日志
     async function deleteSelectedLogs() {
       const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
       const logIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+      const messageEl = document.getElementById('logMessage');
       
       if (logIds.length === 0) {
-        showError('请先选择要删除的日志');
+        messageEl.textContent = '请先选择要删除的日志';
+        messageEl.className = 'message error';
+        setTimeout(() => {
+          messageEl.textContent = '';
+          messageEl.className = 'message';
+        }, 3000);
         return;
       }
       
@@ -1382,22 +1177,41 @@
         
         const data = await response.json();
         
-        if (!response.ok) {
-          throw new Error(data.msg || '删除日志失败');
+        if (response.ok) {
+          messageEl.textContent = data.msg;
+          messageEl.className = 'message success';
+          
+          // 重新加载日志列表
+          loadLogs(currentLogsPage);
+        } else {
+          messageEl.textContent = data.msg || '删除失败';
+          messageEl.className = 'message error';
         }
         
-        // 刷新日志列表
-        loadLogs(currentLogsPage);
-        showError(`成功删除 ${logIds.length} 条日志`);
+        // 3秒后清除消息
+        setTimeout(() => {
+          messageEl.textContent = '';
+          messageEl.className = 'message';
+        }, 3000);
       } catch (error) {
-        showError('删除日志失败: ' + error.message);
+        messageEl.textContent = '网络错误: ' + error.message;
+        messageEl.className = 'message error';
+        
+        // 3秒后清除消息
+        setTimeout(() => {
+          messageEl.textContent = '';
+          messageEl.className = 'message';
+        }, 3000);
       }
     }
     
     // 退出登录
     function logout() {
-      localStorage.removeItem('token');
-      window.location.href = '/admin/login.html';
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        window.location.href = '/admin/login.html';
+      }
     }
   </script>
 </body>
