@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>车牌管理系统 - 后台管理
+  <title>车牌管理系统 - 后台管理</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -52,8 +52,96 @@
       color: var(--text);
       line-height: 1.6;
       transition: var(--transition);
-      min-height: 90vh;
+      min-height: 100vh;
       padding: 20px;
+      position: relative; /* 添加相对定位 */
+    }
+    
+    /* 欢迎弹窗样式 */
+    .welcome-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      padding: 30px;
+      width: 90%;
+      max-width: 350px;
+      z-index: 1001; /* 确保弹窗在最上层 */
+      text-align: center;
+      animation: modalShow 0.3s ease-out;
+    }
+    
+    @keyframes modalShow {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+    
+    .welcome-modal h3 {
+      color: #007bff;
+      font-size: 22px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .welcome-modal .user-info {
+      margin: 20px 0;
+    }
+    
+    .welcome-modal .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #666;
+    }
+    
+    .welcome-modal .username {
+      font-size: 16px;
+      color: #333;
+    }
+    
+    .welcome-modal .logout-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    
+    /* 遮罩层 */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
     }
     
     .container {
@@ -155,6 +243,8 @@
       overflow: hidden;
       margin-bottom: 24px;
       transition: var(--transition);
+      position: relative;
+      z-index: 1; /* 确保卡片在弹窗之下 */
     }
     
     .card-header {
@@ -433,6 +523,36 @@
       white-space: nowrap;
     }
     
+    /* 底部导航栏 */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 12px 0;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-top: 20px;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 12px;
+      gap: 4px;
+    }
+    
+    .nav-item.active {
+      color: var(--primary);
+    }
+    
+    .nav-icon {
+      font-size: 20px;
+    }
+    
     /* 响应式设计 */
     @media (max-width: 768px) {
       .form-grid {
@@ -470,181 +590,228 @@
         align-items: flex-start;
       }
     }
- 
+  </style>
+</head>
 <body>
+  <!-- 欢迎弹窗 -->
+  <div class="welcome-modal" id="welcomeModal">
+    <h3>🚗 车牌管理系统</h3>
+    <div class="user-info">
+      <div class="avatar">👤</div>
+      <div class="username">欢迎，管理员</div>
+    </div>
+    <button class="logout-btn" onclick="logout()"><i>🚪</i> 退出</button>
+  </div>
+  
+  <!-- 遮罩层 -->
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  
   <div class="container">
     <div class="header">
-      <div class="logo">🚗 车牌管理系统
-      <div class="welcome">欢迎，管理员
+      <div class="logo">🚗 车牌管理系统</div>
       <div class="controls">
-        <button class="btn btn-theme" onclick="toggleTheme()"><i>🌓
-        <button class="btn btn-danger" onclick="logout()"><i>🚪 退出
+        <button class="btn btn-primary" onclick="openAddPlateModal()"><i>+</i> 添加车牌</button>
+        <button class="btn btn-theme" onclick="toggleTheme()"><i>🌓</i></button>
+      </div>
+    </div>
     
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('plate-management')">车牌管理
-      <div class="tab" onclick="switchTab('system-settings')">系统设置
-      <div class="tab" onclick="switchTab('operation-logs')">操作日志
+      <div class="tab active" onclick="switchTab('plate-management')">车牌管理</div>
+      <div class="tab" onclick="switchTab('system-settings')">系统设置</div>
+      <div class="tab" onclick="switchTab('operation-logs')">操作日志</div>
+    </div>
     
     <!-- 车牌管理标签页 -->
     <div id="plate-management" class="tab-content active">
       <div class="card">
         <div class="card-header">
-          <h2>车牌列表
-          <button class="btn btn-primary" onclick="openAddPlateModal()"><i>+ 添加车牌
+          <h2>车牌列表</h2>
+        </div>
         <div class="card-body">
           <div class="search-container">
             <div class="search-input-group">
               <input type="text" id="plateSearch" placeholder="搜索车牌...">
-              <button class="btn btn-primary" onclick="searchPlates()"><i>🔍 搜索
-              <button class="btn btn-primary" onclick="resetSearch()"><i>↺ 重置
-           
-         
+              <button class="btn btn-primary" onclick="searchPlates()"><i>🔍</i> 搜索</button>
+              <button class="btn btn-primary" onclick="resetSearch()"><i>↺</i> 重置</button>
+            </div>
+          </div>
           
           <div class="table-container">
             <table id="platesTable">
               <thead>
                 <tr>
-                  <th>车牌号
-                  <th>二维码
-                  <th>用户UID
-                  <th>备注
-                  <th>添加时间
-                  <th>操作
-               
-             
+                  <th>车牌号</th>
+                  <th>二维码</th>
+                  <th>用户UID</th>
+                  <th>备注</th>
+                  <th>添加时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
               <tbody id="platesTableBody">
                 <!-- 车牌数据将通过JavaScript动态加载 -->
-             
-           
-         
+              </tbody>
+            </table>
+          </div>
           
           <div class="loading-container" id="platesLoading" style="display: none;">
-            <div class="loading">
-            <span>加载中...
-         
+            <div class="loading"></div>
+            <span>加载中...</span>
+          </div>
           
           <div class="empty-state" id="platesEmptyState" style="display: none;">
             暂无车牌数据，请添加车牌
-         
+          </div>
           
           <div class="pagination" id="platesPagination">
             <!-- 分页按钮将通过JavaScript动态加载 -->
-         
+          </div>
+        </div>
+      </div>
+    </div>
     
     <!-- 系统设置标签页 -->
     <div id="system-settings" class="tab-content">
       <div class="card">
-        
         <div class="card-header">
-          <h2>系统设置
+          <h2>系统设置</h2>
+        </div>
         <div class="card-body">
           <div class="form-group">
-            <label for="appToken">APP Token
+            <label for="appToken">APP Token</label>
             <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
-            <div class="message" id="tokenMessage">
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAppToken()"><i>💾 保存设置
-         
+            <div class="message" id="tokenMessage"></div>
+            <button class="btn btn-primary" style="margin-top: 1０px;" onclick="updateAppToken()"><i>💾</i> 保存设置</button>
+          </div>
           
           <div class="form-group">
-            <label for="adminPassword">管理员密码修改
+            <label for="adminPassword">管理员密码修改</label>
             <input type="password" id="adminPassword" placeholder="输入新密码">
-            <div class="message" id="passwordMessage">
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAdminPassword()"><i>🔒 修改密码
-         
+            <div class="message" id="passwordMessage"></div>
+            <button class="btn btn-primary" style="margin-top: 1０px;" onclick="updateAdminPassword()"><i>🔒</i> 修改密码</button>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <!-- 操作日志标签页 -->
     <div id="operation-logs" class="tab-content">
       <div class="card">
         <div class="card-header">
-          <h2>操作日志
+          <h2>操作日志</h2>
+        </div>
         
         <div class="card-body">
           <div class="search-container">
             <div class="search-input-group">
               <input type="text" id="logSearch" placeholder="搜索操作...">
-              <button class="btn btn-primary" onclick="searchLogs()"><i>🔍 搜索
-           
-         
+              <button class="btn btn-primary" onclick="searchLogs()"><i>🔍</i> 搜索</button>
+            </div>
+          </div>
           
           <!-- 日志操作按钮 -->
           <div class="log-actions">
             <label>
               <input type="checkbox" id="selectAllLogs"> 全选
-           
-            <button class="btn btn-danger" onclick="deleteSelectedLogs()"><span style="margin-right: 5px;">🗑️ 删除选中日志
-            <div class="message" id="logMessage">
-         
+            </label>
+            <button class="btn btn-danger" onclick="deleteSelectedLogs()"><span style="margin-right: 5px;">🗑️</span> 删除选中日志</button>
+            <div class="message" id="logMessage"></div>
+          </div>
           
           <div class="table-container">
             <table id="logsTable">
               <thead>
                 <tr>
-                  <th><input type="checkbox" id="headerLogCheckbox">
-                  <th>操作                  
-                  <th>时间
-                  <th>IP地址
-                  <th>详情
-               
-             
+                  <th><input type="checkbox" id="headerLogCheckbox"></th>
+                  <th>操作</th>                  
+                  <th>时间</th>
+                  <th>IP地址</th>
+                  <th>详情</th>
+                </tr>
+              </thead>
               <tbody id="logsTableBody">
                 <!-- 日志数据将通过JavaScript动态加载 -->
-             
-           
-         
+              </tbody>
+            </table>
+          </div>
           
           <div class="loading-container" id="logsLoading" style="display: none;">
-            <div class="loading">
-            <span>加载中...
-         
+            <div class="loading"></div>
+            <span>加载中...</span>
+          </div>
           
           <div class="empty-state" id="logsEmptyState" style="display: none;">
             暂无日志数据
-         
+          </div>
           
           <div class="pagination" id="logsPagination">
             <!-- 分页按钮将通过JavaScript动态加载 -->
-                   
-
-    
-    <div class="footer">
-      车辆通知系统 © 2025 | 安全 · 稳定 · 高效
-   
+          </div>          
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 底部导航栏 -->
+  <div class="bottom-nav">
+    <a href="#" class="nav-item">
+      <div class="nav-icon">←</div>
+    </a>
+    <a href="#" class="nav-item">
+      <div class="nav-icon">→</div>
+    </a>
+    <a href="#" class="nav-item active">
+      <div class="nav-icon">4</div>
+    </a>
+    <a href="#" class="nav-item">
+      <div class="nav-icon">☰</div>
+    </a>
+    <a href="#" class="nav-item">
+      <div class="nav-icon">⌂</div>
+    </a>
+  </div>
   
   <!-- 添加/编辑车牌模态框 -->
   <div id="plateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
     <div class="card" style="max-width: 500px; width: 100%;">
       <div class="card-header">
-        <h2 id="plateModalTitle">添加车牌
-        <button class="btn btn-danger" style="padding: 6px 10px; font-size: 14px;" onclick="closePlateModal()"><i>✕
+        <h2 id="plateModalTitle">添加车牌</h2>
+        <button class="btn btn-danger" style="padding: 6px 10px; font-size: 14px;" onclick="closePlateModal()"><i>✕</i></button>
+      </div>
       <div class="card-body">
         <input type="hidden" id="editPlateId">
         <div class="form-group">
-          <label for="modalPlateNumber">车牌号
+          <label for="modalPlateNumber">车牌号</label>
           <div style="display: flex;">
             <input type="text" id="platePrefix" placeholder="省份简称" maxlength="2" style="width: 80px; padding: 10px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px;">
             <input type="text" id="modalPlateNumber" placeholder="输入5-6位字母或数字" maxlength="6">
-         
-          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：云A、川B、京A等
+          </div>
+          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：云A、川B、京A等</small>
+        </div>
         <div class="form-group">
-          <label for="modalPlateUid">用户UID
+          <label for="modalPlateUid">用户UID</label>
           <input type="text" id="modalPlateUid" placeholder="多个UID用逗号分隔">
-       
+        </div>
         <div class="form-group">
-          <label for="modalPlateRemark">备注
+          <label for="modalPlateRemark">备注</label>
           <input type="text" id="modalPlateRemark" placeholder="输入备注信息">
-       
-        <div class="message" id="modalMessage">
-        <button class="btn btn-primary" id="savePlateBtn" onclick="savePlate()"><i>💾 保存
+        </div>
+        <div class="message" id="modalMessage"></div>
+        <button class="btn btn-primary" id="savePlateBtn" onclick="savePlate()"><i>💾</i> 保存</button>
+      </div>
+    </div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
   <script>
-    // 当前页码和搜索条件
-    let currentPlatesPage = 1;
-    let currentLogsPage = 1;
-    let currentSearchTerm = '';
-    
-    // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', () => {
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      // 3秒后自动关闭弹窗
+      setTimeout(function() {
+        document.getElementById('welcomeModal').style.display = 'none';
+        document.getElementById('modalBackdrop').style.display = 'none';
+      }, 3000);
+      
       // 检查登录状态
       if (!localStorage.getItem('token')) {
         window.location.href = '/admin/login.html';
@@ -693,6 +860,11 @@
         });
       });
     });
+    
+    // 当前页码和搜索条件
+    let currentPlatesPage = 1;
+    let currentLogsPage = 1;
+    let currentSearchTerm = '';
     
     // 切换标签页
     function switchTab(tabId) {
@@ -802,20 +974,20 @@
           
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td>${plate.plate}
+            <td>${plate.plate}</td>
             <td>
               <div class="qrcode-container">
-                <div class="qrcode" data-plate="${plate.plate}">
-                <span class="qrcode-tooltip">扫码通知
-             
-           
-            <td>${maskedUids}
-            <td>${plate.remark || '-'}
-            <td>${new Date(plate.created_at).toLocaleString()}
+                <div class="qrcode" data-plate="${plate.plate}"></div>
+                <span class="qrcode-tooltip">扫码通知</span>
+              </div>
+            </td>
+            <td>${maskedUids}</td>
+            <td>${plate.remark || '-'}</td>
+            <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑
-              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除
-           
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑</button>
+              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
+            </td>
           `;
           tableBody.appendChild(row);
           
@@ -835,7 +1007,7 @@
         renderPagination('platesPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}`;
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
       }
     }
     
@@ -844,7 +1016,7 @@
       const container = document.getElementById(containerId);
       container.innerHTML = '';
       
-      // 如果只有一页页，不显示分页
+      // 如果只有一页，不显示分页
       if (totalPages <= 1) {
         return;
       }
@@ -852,6 +1024,8 @@
       // 添加首页按钮
       if (currentPage > 1) {
         addPaginationButton(container, 1, '首页');
+        
+        // 添加前一页按钮
         addPaginationButton(container, currentPage - 1, '上一页');
       }
       
@@ -863,9 +1037,11 @@
         addPaginationButton(container, i, i, i === currentPage);
       }
       
-      // 添加末页按钮
+      // 添加下一页按钮
       if (currentPage < totalPages) {
         addPaginationButton(container, currentPage + 1, '下一页');
+        
+        // 添加末页按钮
         addPaginationButton(container, totalPages, '末页');
       }
     }
@@ -1200,7 +1376,7 @@
           return;
         }
         
-        // 渲染日志列表 (简化版)
+        // 渲染日志列表
         data.logs.forEach(log => {
           try {
             const details = JSON.parse(log.details || '{}');
@@ -1215,13 +1391,13 @@
             
             const row = document.createElement('tr');
             row.innerHTML = `
-              <td><input type="checkbox" data-id="${log.id}">
-              <td>${log.action}
-              <td>${new Date(log.created_at).toLocaleString()}
-              <td>${log.ip}
+              <td><input type="checkbox" data-id="${log.id}"></td>
+              <td>${log.action}</td>
+              <td>${new Date(log.created_at).toLocaleString()}</td>
+              <td>${log.ip}</td>
               <td title="${JSON.stringify(details, null, 2)}">
                 ${simplifiedDetails || '查看详情'}
-             
+              </td>
             `;
             tableBody.appendChild(row);
           } catch (e) {
@@ -1233,7 +1409,7 @@
         renderPagination('logsPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}`;
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
       }
     }
     
@@ -1284,10 +1460,13 @@
       }
     }
     
-    // 退出登录
+    // 用户退出登录
     function logout() {
       if (confirm('确定要退出登录吗？')) {
         localStorage.removeItem('token');
         window.location.href = '/admin/login.html';
       }
     }
+  </script>
+</body>
+</html>
