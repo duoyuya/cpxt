@@ -81,6 +81,7 @@ setInterval(() => {
 // 中间件
 app.use(express.json());
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
+app.use(express.static(path.join(__dirname, 'public'))); // 添加公共目录
 
 // 登录限流
 const loginLimiter = rateLimit({
@@ -225,7 +226,7 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
           
           res.json({
             token,
-            url: `${BASE_URL}/admin/index.html?token=${token}`,
+            url: `${BASE_URL}/index.html?token=${token}`, // 更新URL为根路径
             expiresIn: Math.floor(expiresIn / 60000) // 分钟数
           });
         }
@@ -638,9 +639,9 @@ app.delete('/api/logs', authenticateJWT, logAction('删除日志'), (req, res) =
   }
 });
 
-// 根路径重定向到发送通知页面
+// 根路径重定向到普通用户发送页面
 app.get('/', (req, res) => {
-  res.redirect('/admin/index.html');
+  res.redirect('/index.html');
 });
 
 // 404 处理
