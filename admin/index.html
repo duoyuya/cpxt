@@ -80,7 +80,7 @@
       text-align: center;
     }
     
-    input[type="text"] {
+    input[type="text"], textarea {
       flex: 1;
       padding: 12px 15px;
       border: 1px solid var(--border);
@@ -89,7 +89,14 @@
       transition: var(--transition);
     }
     
-    input[type="text"]:focus {
+    textarea {
+      border-radius: 8px;
+      resize: none;
+      min-height: 100px;
+      width: 100%;
+    }
+    
+    input[type="text"]:focus, textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
@@ -171,6 +178,13 @@
     .btn-loading .text {
       display: none;
     }
+    
+    .redirect-message {
+      margin-top: 15px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -186,12 +200,19 @@
       </div>
     </div>
     
+    <div class="form-group">
+      <textarea id="messageInput" placeholder="请输入留言（可选）" rows="3" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:16px; resize:none;"></textarea>
+    </div>
+    
     <button class="btn" id="sendBtn" onclick="sendNotification()">
       <span class="loading" style="display: none;"></span>
       <span class="text">发送挪车通知</span>
     </button>
     
     <div class="message" id="message"></div>
+    <div class="redirect-message" id="redirectMessage" style="display: none;">
+      3秒后将跳转到普通输入页面...
+    </div>
     
     <div class="footer">
       车辆通知系统 © 2025 | 便捷 · 高效
@@ -200,8 +221,10 @@
 
   <script>
     const plateInput = document.getElementById('plateNumber');
+    const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const messageEl = document.getElementById('message');
+    const redirectMessageEl = document.getElementById('redirectMessage');
     const loadingEl = sendBtn.querySelector('.loading');
     const textEl = sendBtn.querySelector('.text');
     
@@ -221,9 +244,82 @@
       updateMessage(`请输入${5-this.value.length}位字符（共5-6位）`, 'info');
     });
     
+    // 页面加载时处理URL参数
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const plateParam = urlParams.get('plate');
+      
+      // 优先处理token参数
+      if (token) {
+        validateTokenAndLoadPlate(token);
+      } else if (plateParam) {
+        // 兼容旧模式
+        handlePlateParam(plateParam);
+      }
+    });
+    
+    // 令牌验证函数
+    async function validateTokenAndLoadPlate(token) {
+      try {
+        const response = await fetch(`/api/validate-token?token=${token}`);
+        const data = await response.json();
+        
+        if (!response.ok || !data.valid) {
+          showMessage(data.msg || '无效的访问链接', 'error');
+          // 3秒后重定向到普通输入页面
+          redirectMessageEl.style.display = 'block';
+          setTimeout(() => {
+            window.location.href = '/admin/index.html';
+          }, 3000);
+          return;
+        }
+        
+        // 验证成功，加载车牌信息
+        const plate = data.plate;
+        const prefixMatch = plate.match(/^([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2})/);
+        
+        if (prefixMatch && prefixMatch[1]) {
+          const prefix = prefixMatch[1];
+          const number = plate.slice(prefix.length);
+          
+          // 更新前缀显示
+          document.querySelector('.plate-prefix').textContent = prefix;
+          // 更新输入框
+          plateInput.value = number;
+          plateInput.disabled = true; // 禁止修改车牌
+          
+          // 自动聚焦到留言框
+          messageInput.focus();
+        }
+      } catch (error) {
+        showMessage('链接验证失败', 'error');
+        redirectMessageEl.style.display = 'block';
+        setTimeout(() => {
+          window.location.href = '/admin/index.html';
+        }, 3000);
+      }
+    }
+    
+    // 处理传统plate参数
+    function handlePlateParam(plateParam) {
+      // 提取前缀和号码部分（假设格式为"云X12345"）
+      const prefixMatch = plateParam.match(/^([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z0-9]{0,1})/);
+      if (prefixMatch && prefixMatch[1]) {
+        const prefix = prefixMatch[1];
+        const number = plateParam.slice(prefix.length);
+        
+        // 更新前缀显示
+        document.querySelector('.plate-prefix').textContent = prefix;
+        // 更新输入框
+        plateInput.value = number;
+      }
+    }
+    
     // 发送通知
     async function sendNotification() {
       const plateNumber = plateInput.value.trim();
+      const message = messageInput.value.trim() || '';
       
       // 验证输入
       if (!plateNumber) {
@@ -249,7 +345,8 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            plate: plateNumber
+            plate: plateNumber,
+            message: message
           })
         });
         
@@ -258,6 +355,7 @@
         if (response.ok) {
           updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
           plateInput.value = ''; // 清空输入
+          messageInput.value = '';
         } else {
           updateMessage(data.msg || '发送失败，请稍后重试', 'error');
         }
@@ -280,10 +378,27 @@
       }
     }
     
+    // 显示消息
+    function showMessage(text, type) {
+      updateMessage(text, type);
+      // 禁用输入和按钮
+      plateInput.disabled = true;
+      messageInput.disabled = true;
+      sendBtn.disabled = true;
+    }
+    
     // 回车发送
     plateInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         sendNotification();
+      }
+    });
+    
+    messageInput.addEventListener('keypress', function(e) {
+      // Ctrl+Enter发送
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        sendNotification();
+        e.preventDefault();
       }
     });
   </script>
