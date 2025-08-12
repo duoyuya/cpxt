@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');
+const fetch = require('node-fetch');  // 已添加fetch导入
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
@@ -15,23 +15,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-
-// 确保数据目录存在
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
 
 // 初始化数据库
-const dbPath = path.join(dataDir, 'car_notify.db');
-const db = new sqlite3.Database(dbPath, (err) => {
+const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (err) => {
   if (err) {
     console.error('数据库连接错误:', err.message);
-    console.error('无法启动服务器，数据库连接失败');
-    process.exit(1); // 数据库连接失败时退出进程
   } else {
-    console.log(`✅ SQLite 数据库连接成功: ${dbPath}`);
+    console.log('✅ SQLite 数据库连接成功');
     // 创建表结构
     db.run(`CREATE TABLE IF NOT EXISTS plates (
       id TEXT PRIMARY KEY,
@@ -56,15 +46,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     
-    // 创建访问令牌表
-    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
-      id TEXT PRIMARY KEY,
-      plate TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      expires_at TIMESTAMP NOT NULL,
-      used INTEGER DEFAULT 0
-    )`);
-    
     // 初始化默认设置
     db.get("SELECT * FROM settings WHERE key = 'app_token'", (err, row) => {
       if (!row) {
@@ -72,56 +53,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
           ['app_token', 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs']);
       }
     });
-    
-    // 从JSON文件导入初始车牌数据
-    const platesJsonPath = path.join(dataDir, 'plates.json');
-    if (fs.existsSync(platesJsonPath)) {
-      try {
-        const platesData = JSON.parse(fs.readFileSync(platesJsonPath, 'utf8'));
-        db.get("SELECT COUNT(*) as count FROM plates", (err, row) => {
-          if (!err && row && row.count == 0 && platesData.length > 0) {
-            console.log("从JSON文件导入初始车牌数据...");
-            const stmt = db.prepare("INSERT INTO plates (id, plate, uids, remark) VALUES (?, ?, ?, ?)");
-            platesData.forEach(plate => {
-              stmt.run(uuidv4(), plate.plate, Array.isArray(plate.uids) ? plate.uids.join(',') : plate.uids, plate.remark || '');
-            });
-            stmt.finalize();
-            console.log(`成功导入 ${platesData.length} 条车牌数据`);
-          }
-        });
-      } catch (jsonErr) {
-        console.error("导入车牌数据失败:", jsonErr.message);
-      }
-    }
   }
 });
-
-// 未捕获异常处理
-process.on('uncaughtException', (err) => {
-  console.error('未捕获异常:', err);
-  // 尝试优雅关闭数据库连接
-  db.close((closeErr) => {
-    if (closeErr) console.error('关闭数据库失败:', closeErr);
-    process.exit(1);
-  });
-});
-
-// 未处理的Promise拒绝处理
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('未处理的Promise拒绝:', reason);
-});
-
-// 每小时清理过期令牌
-setInterval(() => {
-  const now = new Date().toISOString();
-  db.run("DELETE FROM access_tokens WHERE expires_at < ?", [now], function(err) {
-    if (err) {
-      console.error('清理过期令牌失败:', err.message);
-    } else {
-      console.log(`清理过期令牌: ${this.changes} 条`);
-    }
-  });
-}, 3600000); // 3600000ms = 1小时
 
 // 中间件
 app.use(express.json());
@@ -189,10 +122,6 @@ app.post('/admin/login', loginLimiter, async (req, res) => {
     const { username, password } = req.body;
     const { ADMIN_USER, ADMIN_PASSWORD_HASH } = process.env;
     
-    if (!ADMIN_USER || !ADMIN_PASSWORD_HASH) {
-      return res.status(500).json({ msg: '管理员账户未配置' });
-    }
-    
     if (!username || !password) {
       return res.status(400).json({ msg: '用户名和密码必填' });
     }
@@ -218,99 +147,7 @@ app.post('/admin/login', loginLimiter, async (req, res) => {
   }
 });
 
-// 生成临时访问令牌 API
-app.get('/api/generate-token', authenticateJWT, (req, res) => {
-  try {
-    const { plate } = req.query;
-    
-    if (!plate) {
-      return res.status(400).json({ msg: '车牌号必填' });
-    }
-    
-    // 验证车牌是否存在
-    db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
-      if (err) {
-        console.error('查询车牌失败:', err.message);
-        return res.status(500).json({ msg: '查询车牌失败: ' + err.message });
-      }
-      
-      if (!plateInfo) {
-        return res.status(404).json({ msg: '车牌不存在' });
-      }
-      
-      // 生成令牌（UUID+时间戳）
-      const token = uuidv4();
-      const expiresIn = 15 * 60 * 1000; // 15分钟有效期
-      const expiresAt = new Date(Date.now() + expiresIn).toISOString();
-      
-      // 保存令牌
-      db.run(
-        "INSERT INTO access_tokens (id, plate, expires_at) VALUES (?, ?, ?)",
-        [token, plate, expiresAt],
-        function(err) {
-          if (err) {
-            console.error('生成令牌失败:', err.message);
-            return res.status(500).json({ msg: '生成令牌失败: ' + err.message });
-          }
-          
-          res.json({
-            token,
-            url: `${BASE_URL}/admin/index.html?token=${token}`,
-            expiresIn: Math.floor(expiresIn / 60000) // 分钟数
-          });
-        }
-      );
-    });
-  } catch (error) {
-    console.error('服务器错误:', error);
-    res.status(500).json({ msg: '服务器错误: ' + error.message });
-  }
-});
-
-// 验证临时令牌 API
-app.get('/api/validate-token', (req, res) => {
-  try {
-    const { token } = req.query;
-    
-    if (!token) {
-      return res.status(400).json({ msg: '令牌必填' });
-    }
-    
-    // 查询令牌
-    db.get("SELECT * FROM access_tokens WHERE id = ?", [token], (err, tokenInfo) => {
-      if (err) {
-        return res.status(500).json({ msg: '验证令牌失败', error: err.message });
-      }
-      
-      if (!tokenInfo) {
-        return res.status(404).json({ msg: '无效的令牌' });
-      }
-      
-      // 检查是否过期
-      if (new Date(tokenInfo.expires_at) < new Date()) {
-        return res.status(403).json({ msg: '令牌已过期' });
-      }
-      
-      // 检查是否已使用
-      if (tokenInfo.used) {
-        return res.status(403).json({ msg: '令牌已失效' });
-      }
-      
-      // 标记令牌为已使用（单次有效）
-      db.run("UPDATE access_tokens SET used = 1 WHERE id = ?", [token]);
-      
-      res.json({
-        valid: true,
-        plate: tokenInfo.plate,
-        msg: '令牌验证成功'
-      });
-    });
-  } catch (error) {
-    res.status(500).json({ msg: '服务器错误', error: error.message });
-  }
-});
-
-// 车牌管理 API - 支持多省份车牌
+// 车牌管理 API
 app.get('/api/plates', authenticateJWT, (req, res) => {
   const { search, page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
@@ -381,15 +218,13 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式 - 支持多省份
-  const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
+  // 验证车牌格式
+  const plateRegex = /^[云京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼渝川黔滇藏陕甘青宁新][A-Z0-9]{5,7}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
+    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称+5-7位字母或数字' });
   }
   
   const plateId = uuidv4();
-  
-  // 确保uids是数组
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
   
   db.run(
@@ -416,12 +251,6 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
   
   if (!plate || !uids || !uids.length) {
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
-  }
-  
-  // 验证车牌格式 - 支持多省份
-  const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
-  if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
   }
   
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
@@ -494,14 +323,14 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
 // 通知发送 API - 无需认证
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
-    const { plate, message } = req.body;
+    const { plate } = req.body;
     
     if (!plate) {
       return res.status(400).json({ msg: '车牌号必填' });
     }
     
-    // 查询车牌信息（完整匹配）
-    db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
+    // 查询车牌信息
+    db.get("SELECT * FROM plates WHERE plate = ?", [`云M${plate}`], (err, plateInfo) => {
       if (err) {
         return res.status(500).json({ msg: '查询车牌失败', error: err.message });
       }      
@@ -529,8 +358,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
           return res.status(400).json({ msg: '该车牌尚未配置有效的接收用户' });
         }
         
-        // 构造通知内容，包含可选留言
-        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。${message ? '留言：' + message : ''} 请及时处理！`;
+        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}，请及时处理！`;
         
         try {
           // 调用 WxPusher API
