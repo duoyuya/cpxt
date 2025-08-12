@@ -81,7 +81,6 @@ setInterval(() => {
 // 中间件
 app.use(express.json());
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
-app.use(express.static(path.join(__dirname, 'public'))); // 添加公共目录
 
 // 登录限流
 const loginLimiter = rateLimit({
@@ -126,9 +125,7 @@ const logAction = (action) => {
       };
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
-        [logId, action, JSON.stringify(details), req.ip],
-        (err) => {
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",[logId, action, JSON.stringify(details), req.ip],(err) => {
           if (err) console.error('日志记录失败:', err.message);
         }
       );
@@ -137,20 +134,12 @@ const logAction = (action) => {
     };
     
     // 捕获未处理的Promise错误
-    process.on('unhandledRejection', (reason, promise) => {
+    process.on('unhandledRejection', (reason) => {
       const logId = uuidv4();
-      const details = {
-        path: req.path,
-        method: req.method,
-        error: reason.toString(),
-        stack: reason.stack,
-        promise: promise.toString()
-      };
+      const details = {path: req.path,method: req.method,error: reason.toString(),stack: reason.stack};
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
-        [logId, 'error', JSON.stringify(details), req.ip],
-        (err) => {
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",[logId, 'error', JSON.stringify(details), req.ip],(err) => {
           if (err) console.error('错误日志记录失败:', err.message);
         }
       );
@@ -226,7 +215,7 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
           
           res.json({
             token,
-            url: `${BASE_URL}/index.html?token=${token}`, // 更新URL为根路径
+            url: `${BASE_URL}/admin/index.html?token=${token}`,
             expiresIn: Math.floor(expiresIn / 60000) // 分钟数
           });
         }
@@ -639,9 +628,9 @@ app.delete('/api/logs', authenticateJWT, logAction('删除日志'), (req, res) =
   }
 });
 
-// 根路径重定向到普通用户发送页面
+// 根路径重定向到发送通知页面
 app.get('/', (req, res) => {
-  res.redirect('/index.html');
+  res.redirect('/admin/index.html');
 });
 
 // 404 处理
