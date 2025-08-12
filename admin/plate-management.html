@@ -897,10 +897,33 @@
         
         // 渲染分页
         renderPagination('logsPagination', data.pagination.pages, page);
+        
+        // 重新绑定全选事件
+        bindSelectAllEvent();
       } catch (error) {
         console.error('加载日志错误:', error);
         showError('加载日志失败: ' + error.message);
       }
+    }
+    
+    // 绑定全选事件
+    function bindSelectAllEvent() {
+      // 全选复选框事件
+      document.getElementById('selectAllLogs').addEventListener('change', function(e) {
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+      
+      // 表头全选复选框同步
+      document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
+        document.getElementById('selectAllLogs').checked = this.checked;
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
     }
     
     // 页面加载完成后执行
@@ -935,6 +958,9 @@
         // 前缀输入框设置为只读
         document.getElementById('platePrefix').readOnly = true;
         document.getElementById('platePrefix').value = '云M';
+        
+        // 绑定全选事件
+        bindSelectAllEvent();
       } catch (error) {
         showError('页面加载失败: ' + error.message);
         console.error('初始化错误:', error);
