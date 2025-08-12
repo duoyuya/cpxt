@@ -350,10 +350,10 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式 - 固定前缀为云M
-  const plateRegex = /^云M[A-Z0-9]{5,6}$/;
+  // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
+  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，必须以"云M"开头，后跟5-6位字母或数字' });
+    return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
   
   const plateId = uuidv4();
@@ -387,10 +387,10 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式 - 固定前缀为云M
-  const plateRegex = /^云M[A-Z0-9]{5,6}$/;
+  // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
+  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，必须以"云M"开头，后跟5-6位字母或数字' });
+    return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
   
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
@@ -598,7 +598,7 @@ app.get('/api/logs', authenticateJWT, (req, res) => {
   });
 });
 
-// 批量删除日志 API - 修复删除功能
+// 删除选中日志 API - 修复删除功能
 app.delete('/api/logs', authenticateJWT, logAction('删除日志'), (req, res) => {
   try {
     const { ids } = req.body;
