@@ -345,7 +345,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            plate: plateNumber,
+            plate: document.querySelector('.plate-prefix').textContent + plateNumber,
             message: message
           })
         });
