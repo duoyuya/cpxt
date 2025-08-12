@@ -57,6 +57,44 @@
       position: relative;
     }
     
+    /* 系统标题 */
+    .system-title {
+      display: flex;
+      align-items: center;
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    
+    .system-title i {
+      margin-right: 10px;
+      font-size: 28px;
+    }
+    
+    /* 页面导航标题 */
+    .page-title {
+      font-size: 20px;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    
+    /* 功能区块标题 */
+    .section-title {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      padding: 12px 15px;
+      border-radius: var(--radius);
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    
     /* 错误提示 */
     .error-toast {
       position: fixed;
@@ -385,10 +423,17 @@
     }
     
     .tab {
-      padding: a10px 20px;
+      padding: 10px 20px;
       cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .tab i {
+      font-size: 16px;
     }
     
     .tab.active {
@@ -525,6 +570,17 @@
   </style>
 </head>
 <body>
+  <!-- 系统标题 -->
+  <div class="system-title">
+    <i>🚗</i> 车牌管理系统
+  </div>
+  
+  <!-- 页面导航标题 -->
+  <h1 class="page-title">车牌管理系统设置操作日志</h1>
+  
+  <!-- 功能区块标题 -->
+  <div class="section-title">车牌列表</div>
+  
   <!-- 错误提示 -->
   <div class="error-toast" id="errorToast">错误提示</div>
   
@@ -539,9 +595,15 @@
     </div>
     
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('plate-management')">车牌管理</div>
-      <div class="tab" onclick="switchTab('system-settings')">系统设置</div>
-      <div class="tab" onclick="switchTab('operation-logs')">操作日志</div>
+      <div class="tab active" onclick="switchTab('plate-management')">
+        <i>📋</i> 车牌管理
+      </div>
+      <div class="tab" onclick="switchTab('system-settings')">
+        <i>⚙️</i> 系统设置
+      </div>
+      <div class="tab" onclick="switchTab('operation-logs')">
+        <i>📝</i> 操作日志
+      </div>
     </div>
     
     <!-- 车牌管理标签页 -->
@@ -686,10 +748,10 @@
         <div class="form-group">
           <label for="modalPlateNumber">车牌号</label>
           <div style="display: flex;">
-            <input type="text" id="platePrefix" placeholder="省份简称" maxlength="2" style="width: 80px; padding: 10px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px;">
+            <input type="text" id="platePrefix" value="云M" readonly style="width: 80px; padding: 10px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px;">
             <input type="text" id="modalPlateNumber" placeholder="输入5-6位字母或数字" maxlength="6">
           </div>
-          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：云A、川B、京A等</small>
+          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：云A12345、云B67890等</small>
         </div>
         <div class="form-group">
           <label for="modalPlateUid">用户UID</label>
@@ -870,32 +932,9 @@
           this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         });
         
-        // 前缀输入处理
-        document.getElementById('platePrefix').addEventListener('input', function(e) {
-          // 只允许汉字和字母
-          this.value = this.value.replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '');
-          // 限制最大长度为2
-          if (this.value.length > 2) {
-            this.value = this.value.slice(0, 2);
-          }
-        });
-        
-        // 日志全选复选框事件
-        document.getElementById('selectAllLogs').addEventListener('change', function(e) {
-          const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
-          checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-        });
-        
-        // 表头全选复选框同步
-        document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
-          document.getElementById('selectAllLogs').checked = this.checked;
-          const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
-          checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-        });
+        // 前缀输入框设置为只读
+        document.getElementById('platePrefix').readOnly = true;
+        document.getElementById('platePrefix').value = '云M';
       } catch (error) {
         showError('页面加载失败: ' + error.message);
         console.error('初始化错误:', error);
@@ -1102,7 +1141,7 @@
       try {
         document.getElementById('plateModalTitle').textContent = '添加车牌';
         document.getElementById('editPlateId').value = '';
-        document.getElementById('platePrefix').value = '';
+        document.getElementById('platePrefix').value = '云M';
         document.getElementById('modalPlateNumber').value = '';
         document.getElementById('modalPlateUid').value = '';
         document.getElementById('modalPlateRemark').value = '';
