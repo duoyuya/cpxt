@@ -63,37 +63,18 @@
       margin-bottom: 20px;
     }
     
-    .plate-input-group {
-      display: flex;
-      align-items: center;
-    }
-    
-    .plate-prefix {
-      background-color: var(--primary-light);
-      color: var(--primary-dark);
-      padding: 12px 15px;
-      border: 1px solid var(--border);
-      border-right: none;
-      border-radius: 8px 0 0 8px;
-      font-weight: 500;
-      min-width: 60px;
-      text-align: center;
-    }
-    
     input[type="text"], textarea {
-      flex: 1;
+      width: 100%;
       padding: 12px 15px;
       border: 1px solid var(--border);
-      border-radius: 0 8px 8px 0;
+      border-radius: 8px;
       font-size: 16px;
       transition: var(--transition);
     }
     
     textarea {
-      border-radius: 8px;
       resize: none;
       min-height: 100px;
-      width: 100%;
     }
     
     input[type="text"]:focus, textarea:focus {
@@ -194,14 +175,11 @@
     </div>
     
     <div class="form-group">
-      <div class="plate-input-group">
-        <span class="plate-prefix">云M</span>
-        <input type="text" id="plateNumber" placeholder="请输入5-6位字母或数字" maxlength="6" autocomplete="off">
-      </div>
+      <input type="text" id="plateNumber" placeholder="请输入车牌号（第一位为汉字，共7-8位）" maxlength="8" autocomplete="off">
     </div>
     
     <div class="form-group">
-      <textarea id="messageInput" placeholder="请输入留言（可选）" rows="3" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:16px; resize:none;"></textarea>
+      <textarea id="messageInput" placeholder="请输入留言（可选）" rows="3"></textarea>
     </div>
     
     <button class="btn" id="sendBtn" onclick="sendNotification()">
@@ -228,20 +206,30 @@
     const loadingEl = sendBtn.querySelector('.loading');
     const textEl = sendBtn.querySelector('.text');
     
-    // 输入处理：仅允许字母和数字，自动转为大写
+    // 输入处理：第一位保留汉字，后续字母数字转大写
     plateInput.addEventListener('input', function(e) {
-      // 移除非字母数字字符
-      this.value = this.value.replace(/[^A-Z0-9]/gi, '');
-      // 转为大写
-      this.value = this.value.toUpperCase();
+      if (this.value.length > 0) {
+        const firstChar = this.value.charAt(0);
+        const restChars = this.value.slice(1).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        this.value = firstChar + restChars;
+      }
       
       // 验证长度
-      if (this.value.length > 6) {
-        this.value = this.value.slice(0, 6);
+      if (this.value.length > 8) {
+        this.value = this.value.slice(0, 8);
       }
       
       // 显示输入提示
-      updateMessage(`请输入${5-this.value.length}位字符（共5-6位）`, 'info');
+      if (this.value.length > 0) {
+        const remaining = 7 - this.value.length;
+        if (remaining > 0) {
+          updateMessage(`请继续输入${remaining}位字符（共7-8位）`, 'info');
+        } else if (this.value.length === 7 || this.value.length === 8) {
+          updateMessage('格式正确', 'success');
+        }
+      } else {
+        updateMessage('', '');
+      }
     });
     
     // 页面加载时处理URL参数
@@ -255,7 +243,7 @@
         validateTokenAndLoadPlate(token);
       } else if (plateParam) {
         // 兼容旧模式
-        handlePlateParam(plateParam);
+        plateInput.value = plateParam;
       }
     });
     
@@ -276,43 +264,15 @@
         }
         
         // 验证成功，加载车牌信息
-        const plate = data.plate;
-        const prefixMatch = plate.match(/^([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2})/);
-        
-        if (prefixMatch && prefixMatch[1]) {
-          const prefix = prefixMatch[1];
-          const number = plate.slice(prefix.length);
-          
-          // 更新前缀显示
-          document.querySelector('.plate-prefix').textContent = prefix;
-          // 更新输入框
-          plateInput.value = number;
-          plateInput.disabled = true; // 禁止修改车牌
-          
-          // 自动聚焦到留言框
-          messageInput.focus();
-        }
+        plateInput.value = data.plate;
+        plateInput.disabled = true; // 禁止修改车牌
+        messageInput.focus();
       } catch (error) {
         showMessage('链接验证失败', 'error');
         redirectMessageEl.style.display = 'block';
         setTimeout(() => {
           window.location.href = '/admin/index.html';
         }, 3000);
-      }
-    }
-    
-    // 处理传统plate参数
-    function handlePlateParam(plateParam) {
-      // 提取前缀和号码部分（假设格式为"云X12345"）
-      const prefixMatch = plateParam.match(/^([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z0-9]{0,1})/);
-      if (prefixMatch && prefixMatch[1]) {
-        const prefix = prefixMatch[1];
-        const number = plateParam.slice(prefix.length);
-        
-        // 更新前缀显示
-        document.querySelector('.plate-prefix').textContent = prefix;
-        // 更新输入框
-        plateInput.value = number;
       }
     }
     
@@ -327,8 +287,10 @@
         return;
       }
       
-      if (plateNumber.length < 5 || plateNumber.length > 6) {
-        updateMessage('车牌号必须为5-6位字母或数字', 'error');
+      // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
+      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+      if (!plateRegex.test(plateNumber)) {
+        updateMessage('车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字', 'error');
         return;
       }
       
@@ -345,7 +307,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            plate: document.querySelector('.plate-prefix').textContent + plateNumber,
+            plate: plateNumber,
             message: message
           })
         });
