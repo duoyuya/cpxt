@@ -17,12 +17,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
+// 确保数据目录存在
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
 // 初始化数据库
-const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (err) => {
+const dbPath = path.join(dataDir, 'car_notify.db');
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('数据库连接错误:', err.message);
+    console.error('无法启动服务器，数据库连接失败');
+    process.exit(1); // 数据库连接失败时退出进程
   } else {
-    console.log('✅ SQLite 数据库连接成功');
+    console.log(`✅ SQLite 数据库连接成功: ${dbPath}`);
     // 创建表结构
     db.run(`CREATE TABLE IF NOT EXISTS plates (
       id TEXT PRIMARY KEY,
@@ -65,7 +74,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
     });
     
     // 从JSON文件导入初始车牌数据
-    const platesJsonPath = path.join(__dirname, 'data', 'plates.json');
+    const platesJsonPath = path.join(dataDir, 'plates.json');
     if (fs.existsSync(platesJsonPath)) {
       try {
         const platesData = JSON.parse(fs.readFileSync(platesJsonPath, 'utf8'));
@@ -85,6 +94,21 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
       }
     }
   }
+});
+
+// 未捕获异常处理
+process.on('uncaughtException', (err) => {
+  console.error('未捕获异常:', err);
+  // 尝试优雅关闭数据库连接
+  db.close((closeErr) => {
+    if (closeErr) console.error('关闭数据库失败:', closeErr);
+    process.exit(1);
+  });
+});
+
+// 未处理的Promise拒绝处理
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('未处理的Promise拒绝:', reason);
 });
 
 // 每小时清理过期令牌
@@ -131,7 +155,7 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// 日志记录中间件 - 修复日志功能
+// 日志记录中间件
 const logAction = (action) => {
   return (req, res, next) => {
     const originalSend = res.send;
@@ -165,6 +189,10 @@ app.post('/admin/login', loginLimiter, async (req, res) => {
     const { username, password } = req.body;
     const { ADMIN_USER, ADMIN_PASSWORD_HASH } = process.env;
     
+    if (!ADMIN_USER || !ADMIN_PASSWORD_HASH) {
+      return res.status(500).json({ msg: '管理员账户未配置' });
+    }
+    
     if (!username || !password) {
       return res.status(400).json({ msg: '用户名和密码必填' });
     }
@@ -190,7 +218,7 @@ app.post('/admin/login', loginLimiter, async (req, res) => {
   }
 });
 
-// 生成临时访问令牌 API - 修复二维码功能
+// 生成临时访问令牌 API
 app.get('/api/generate-token', authenticateJWT, (req, res) => {
   try {
     const { plate } = req.query;
@@ -202,7 +230,8 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
     // 验证车牌是否存在
     db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
       if (err) {
-        return res.status(500).json({ msg: '查询车牌失败', error: err.message });
+        console.error('查询车牌失败:', err.message);
+        return res.status(500).json({ msg: '查询车牌失败: ' + err.message });
       }
       
       if (!plateInfo) {
@@ -220,7 +249,8 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
         [token, plate, expiresAt],
         function(err) {
           if (err) {
-            return res.status(500).json({ msg: '生成令牌失败', error: err.message });
+            console.error('生成令牌失败:', err.message);
+            return res.status(500).json({ msg: '生成令牌失败: ' + err.message });
           }
           
           res.json({
@@ -232,7 +262,8 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
       );
     });
   } catch (error) {
-    res.status(500).json({ msg: '服务器错误', error: error.message });
+    console.error('服务器错误:', error);
+    res.status(500).json({ msg: '服务器错误: ' + error.message });
   }
 });
 
@@ -531,7 +562,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   }
 });
 
-// 日志查询 API - 修复日志功能
+// 日志查询 API
 app.get('/api/logs', authenticateJWT, (req, res) => {
   const { page = 1, limit = 20, action } = req.query;
   const offset = (page - 1) * limit;
@@ -618,4 +649,4 @@ process.on('SIGINT', () => {
     }
     process.exit(0);
   });
-});                                                                                                                                                                        
+});
