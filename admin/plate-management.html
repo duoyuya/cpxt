@@ -279,10 +279,6 @@
       font-weight: 500;
     }
     
-    thead th:first-child {
-      width: 30px;
-    }
-    
     tbody td {
       padding: 12px 15px;
       border-bottom: 1px solid var(--border);
@@ -389,7 +385,7 @@
     }
     
     .tab {
-      padding: 10px 20px;
+      padding: a10px 20px;
       cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: var(--transition);
@@ -436,19 +432,6 @@
       color: var(--text-secondary);
       font-size: 13px;
       margin-top: 40px;
-    }
-    
-    /* 二维码样式 */
-    .qrcode-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .qrcode-tooltip {
-      font-size: 12px;
-      color: var(--text-secondary);
-      white-space: nowrap;
     }
     
     /* 详情气泡样式 */
@@ -581,7 +564,6 @@
               <thead>
                 <tr>
                   <th>车牌号</th>
-                  <th>二维码</th>
                   <th>用户UID</th>
                   <th>备注</th>
                   <th>添加时间</th>
@@ -723,8 +705,6 @@
     </div>
   </div>
 
-  <!-- 引入qrcode.js库 -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
   <script>
     // 错误提示显示函数
     function showError(message) {
@@ -861,24 +841,6 @@
       }
     }
     
-    // 检查QRCode库是否加载成功
-    if (typeof QRCode === 'undefined') {
-      showError('二维码功能加载失败，请刷新页面重试');
-      // 尝试动态加载备用CDN
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.0.0/qrcode.min.js';
-      script.onload = function() {
-        if (typeof QRCode !== 'undefined') {
-          showError('二维码功能已恢复');
-          // 重新加载车牌数据
-          if (typeof loadPlates === 'function') loadPlates();
-        } else {
-          showError('二维码功能加载失败，请检查网络');
-        }
-      };
-      document.head.appendChild(script);
-    }
-    
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', function() {
       try {
@@ -976,25 +938,6 @@
       }
     }
     
-    // 生成带令牌的二维码URL
-    async function generatePlateToken(plate) {
-      try {
-        const response = await fetch(`/api/generate-token?plate=${encodeURIComponent(plate)}`, {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-        });
-        
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.msg || '生成令牌失败');
-        
-        return data.url;
-      } catch (error) {
-        console.error('令牌生成失败:', error);
-        showError('生成二维码失败: ' + error.message);
-        // 降级方案：使用普通链接
-        return `${window.location.origin}/admin/index.html?plate=${encodeURIComponent(plate)}`;
-      }
-    }
-    
     // 加载车牌数据
     async function loadPlates(page = 1, search = '') {
       currentPlatesPage = page;
@@ -1055,54 +998,25 @@
             return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
           }).join(', ');
           
-          // 生成二维码URL
-          const qrUrl = await generatePlateToken(plate.plate);
-          
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${plate.plate}</td>
-            <td>
-              <div class="qrcode-container">
-                <div class="qrcode" data-plate="${plate.plate}"></div>
-                <span class="qrcode-tooltip">扫码通知</span>
-              </div>
-            </td>
             <td>${maskedUids}</td>
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️</button>
-              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️</button>
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑</button>
+              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
             </td>
           `;
           tableBody.appendChild(row);
-          
-          // 生成二维码
-          try {
-            if (typeof QRCode !== 'undefined') {
-              const qrcodeContainer = row.querySelector(`.qrcode[data-plate="${plate.plate}"]`);
-              new QRCode(qrcodeContainer, {
-                text: qrUrl,
-                width: 64,
-                height: 64,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-              });
-            } else {
-              row.querySelector('.qrcode-container').innerHTML = '<span style="color:var(--danger)">二维码功能不可用</span>';
-            }
-          } catch (error) {
-            console.error(`生成二维码失败: ${error.message}`);
-            row.querySelector('.qrcode-container').innerHTML = '<span style="color:var(--danger)">生成失败</span>';
-          }
         }
         
         // 渲染分页
         renderPagination('platesPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
         showError('加载车牌数据失败: ' + error.message);
       }
     }
@@ -1437,28 +1351,6 @@
         // 目前只是模拟成功
         messageEl.textContent = '密码更新功能尚未实现';
         messageEl.className = 'message info';
-        
-        /* 真实实现应该类似:
-        const response = await fetch('/api/admin-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-          },
-          body: JSON.stringify({ password: password })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          messageEl.textContent = '密码更新成功';
-          messageEl.className = 'message success';
-          document.getElementById('adminPassword').value = '';
-        } else {
-          messageEl.textContent = data.msg || '更新失败';
-          messageEl.className = 'message error';
-        }
-        */
       } catch (error) {
         showError('更新密码失败: ' + error.message);
       }
