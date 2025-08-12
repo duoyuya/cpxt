@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env.example
+*.md
+.vscode
+.idea
+data/*.db
+data/*.log
+data/*.json.bak
