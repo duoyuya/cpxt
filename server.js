@@ -350,10 +350,10 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式
-  const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
+  // 验证车牌格式 - 固定前缀为云M
+  const plateRegex = /^云M[A-Z0-9]{5,6}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
+    return res.status(400).json({ msg: '车牌号格式不正确，必须以"云M"开头，后跟5-6位字母或数字' });
   }
   
   const plateId = uuidv4();
@@ -387,10 +387,10 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式
-  const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
+  // 验证车牌格式 - 固定前缀为云M
+  const plateRegex = /^云M[A-Z0-9]{5,6}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
+    return res.status(400).json({ msg: '车牌号格式不正确，必须以"云M"开头，后跟5-6位字母或数字' });
   }
   
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
@@ -460,7 +460,7 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
   );
 });
 
-// 通知发送 API - 修复留言为可选
+// 通知发送 API - 修复留言可选问题
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
     const { plate, message } = req.body;
