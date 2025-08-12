@@ -460,7 +460,7 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
   );
 });
 
-// 通知发送 API - 增强版（修复留言发送问题）
+// 通知发送 API - 修复留言为可选
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
     const { plate, message } = req.body;
@@ -468,10 +468,6 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
     // 验证必填参数
     if (!plate) {
       return res.status(400).json({ msg: '车牌号必填' });
-    }
-    
-    if (!message) {
-      return res.status(400).json({ msg: '留言内容必填' });
     }
     
     // 查询车牌信息（完整匹配）
@@ -503,8 +499,10 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
           return res.status(400).json({ msg: '该车牌尚未配置有效的接收用户' });
         }
         
-        // 构造通知内容，确保包含留言
-        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。留言：${message} 请及时处理！`;
+        // 构造通知内容，留言为可选
+        const content = message 
+          ? `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。留言：${message} 请及时处理！`
+          : `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。请及时处理！`;
         
         try {
           const response = await fetch("https://wxpusher.zjiecode.com/api/send/message", {
@@ -546,7 +544,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   }
 });
 
-// 日志查询 API
+// 日志查询 API - 修复日志详情显示错误
 app.get('/api/logs', authenticateJWT, (req, res) => {
   const { page = 1, limit = 20, action } = req.query;
   const offset = (page - 1) * limit;
@@ -570,9 +568,25 @@ app.get('/api/logs', authenticateJWT, (req, res) => {
       return res.status(500).json({ msg: '获取日志失败', error: err.message });
     }
     
+    // 解析details字段的JSON数据
+    const logsWithDetails = rows.map(row => {
+      try {
+        return {
+          ...row,
+          details: row.details ? JSON.parse(row.details) : null
+        };
+      } catch (e) {
+        console.error('解析日志详情失败:', e);
+        return {
+          ...row,
+          details: { error: '日志详情解析失败', raw: row.details }
+        };
+      }
+    });
+    
     db.get(countQuery, countParams, (err, countRow) => {
       res.json({
-        logs: rows,
+        logs: logsWithDetails,
         pagination: {
           total: countRow ? countRow.total : 0,
           page: parseInt(page),
@@ -584,27 +598,44 @@ app.get('/api/logs', authenticateJWT, (req, res) => {
   });
 });
 
-// 批量删除日志 API
+// 批量删除日志 API - 修复删除功能
 app.delete('/api/logs', authenticateJWT, logAction('删除日志'), (req, res) => {
-  const { ids } = req.body;
-  
-  if (!ids || !ids.length) {
-    return res.status(400).json({ msg: '请选择要删除的日志' });
-  }
-  
-  const placeholders = ids.map(() => '?').join(',');
-  
-  db.run(
-    `DELETE FROM logs WHERE id IN (${placeholders})`,
-    ids,
-    function(err) {
-      if (err) {
-        return res.status(500).json({ msg: '删除日志失败', error: err.message });
-      }
-      
-      res.json({ msg: `成功删除 ${this.changes} 条日志` });
+  try {
+    const { ids } = req.body;
+    
+    // 验证ids参数是否为数组且不为空
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ msg: '请提供有效的日志ID数组' });
     }
-  );
+    
+    // 过滤并验证ID格式（UUID格式简单验证）
+    const validIds = ids.filter(id => /^[0-9a-fA-F-]{36}$/.test(id));
+    if (validIds.length === 0) {
+      return res.status(400).json({ msg: '未提供有效的日志ID' });
+    }
+    
+    const placeholders = validIds.map(() => '?').join(',');
+    
+    db.run(
+      `DELETE FROM logs WHERE id IN (${placeholders})`,
+      validIds,
+      function(err) {
+        if (err) {
+          console.error('删除日志数据库错误:', err);
+          return res.status(500).json({ msg: '删除日志失败', error: err.message });
+        }
+        
+        res.json({ 
+          msg: `成功删除 ${this.changes} 条日志`,
+          deletedCount: this.changes,
+          requestedCount: validIds.length
+        });
+      }
+    );
+  } catch (error) {
+    console.error('删除日志请求处理错误:', error);
+    res.status(500).json({ msg: '服务器处理删除请求时出错', error: error.message });
+  }
 });
 
 // 根路径重定向到发送通知页面
