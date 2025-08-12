@@ -747,11 +747,8 @@
         <input type="hidden" id="editPlateId">
         <div class="form-group">
           <label for="modalPlateNumber">车牌号</label>
-          <div style="display: flex;">
-            <input type="text" id="platePrefix" value="云M" readonly style="width: 80px; padding: 10px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px;">
-            <input type="text" id="modalPlateNumber" placeholder="输入5-6位字母或数字" maxlength="6">
-          </div>
-          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：云A12345、云B67890等</small>
+          <input type="text" id="modalPlateNumber" placeholder="输入7-8位车牌号，第一位为汉字，其余为字母或数字">
+          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：京A12345、沪B678901等</small>
         </div>
         <div class="form-group">
           <label for="modalPlateUid">用户UID</label>
@@ -952,12 +949,13 @@
         
         // 车牌号输入自动转为大写
         document.getElementById('modalPlateNumber').addEventListener('input', function(e) {
-          this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+          // 保留第一个字符，后续字符转大写并过滤非字母数字
+          if (this.value.length > 0) {
+            const firstChar = this.value.charAt(0);
+            const restChars = this.value.slice(1).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            this.value = firstChar + restChars;
+          }
         });
-        
-        // 前缀输入框设置为只读
-        document.getElementById('platePrefix').readOnly = true;
-        document.getElementById('platePrefix').value = '云M';
         
         // 绑定全选事件
         bindSelectAllEvent();
@@ -1167,7 +1165,6 @@
       try {
         document.getElementById('plateModalTitle').textContent = '添加车牌';
         document.getElementById('editPlateId').value = '';
-        document.getElementById('platePrefix').value = '云M';
         document.getElementById('modalPlateNumber').value = '';
         document.getElementById('modalPlateUid').value = '';
         document.getElementById('modalPlateRemark').value = '';
@@ -1186,19 +1183,7 @@
       try {
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = id;
-        
-        // 提取前缀和号码部分
-        const prefixMatch = plate.match(/^([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2})/);
-        if (prefixMatch && prefixMatch[1]) {
-          const prefix = prefixMatch[1];
-          const number = plate.slice(prefix.length);
-          document.getElementById('platePrefix').value = prefix;
-          document.getElementById('modalPlateNumber').value = number;
-        } else {
-          document.getElementById('platePrefix').value = '';
-          document.getElementById('modalPlateNumber').value = plate;  
-        }
-        
+        document.getElementById('modalPlateNumber').value = plate;
         document.getElementById('modalPlateUid').value = uids;
         document.getElementById('modalPlateRemark').value = remark;
         document.getElementById('modalMessage').textContent = '';
@@ -1224,27 +1209,22 @@
     async function savePlate() {
       try {
         const plateId = document.getElementById('editPlateId').value;
-        const platePrefix = document.getElementById('platePrefix').value.trim();
         const plateNumber = document.getElementById('modalPlateNumber').value.trim();
         const uids = document.getElementById('modalPlateUid').value.trim();
         const remark = document.getElementById('modalPlateRemark').value.trim();
         const messageEl = document.getElementById('modalMessage');
         
         // 验证输入
-        if (!platePrefix) {
-          messageEl.textContent = '请输入省份简称前缀';
-          messageEl.className = 'message error';
-          return;
-        }
-        
         if (!plateNumber) {
           messageEl.textContent = '请输入车牌号';
           messageEl.className = 'message error';
           return;
         }
         
-        if (plateNumber.length < 5 || plateNumber.length > 6) {
-          messageEl.textContent = '车牌号必须为5-6位字母或数字';
+        // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
+        const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+        if (!plateRegex.test(plateNumber)) {
+          messageEl.textContent = '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字';
           messageEl.className = 'message error';
           return;
         }
@@ -1263,7 +1243,6 @@
           return;
         }
         
-        const fullPlateNumber = `${platePrefix}${plateNumber}`;
         const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
         const method = plateId ? 'PUT' : 'POST';
         
@@ -1274,7 +1253,7 @@
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
           body: JSON.stringify({
-            plate: fullPlateNumber,
+            plate: plateNumber,
             uids: uidsArray,
             remark: remark
           })
@@ -1431,7 +1410,7 @@
       }
     }
     
-    // 删除选中的日志
+    // 删除选中日志
     async function deleteSelectedLogs() {
       try {
         const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
@@ -1440,11 +1419,7 @@
           return;
         }
         
-        if (!confirm(`确定要删除选中的 ${checkboxes.length} 条日志吗？`)) {
-          return;
-        }
-        
-        const ids = Array.from(checkboxes).map(checkbox => checkbox.getAttribute('data-id'));
+        const logIds = Array.from(checkboxes).map(checkbox => checkbox.getAttribute('data-id'));
         
         const response = await fetch('/api/logs', {
           method: 'DELETE',
@@ -1452,24 +1427,24 @@
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
-          body: JSON.stringify({ ids: ids })
+          body: JSON.stringify({ ids: logIds })
         });
         
         const data = await response.json();
         
         if (response.ok) {
-          const messageEl = document.getElementById('logMessage');
-          messageEl.textContent = `成功删除 ${data.deletedCount} 条日志`;
-          messageEl.className = 'message success';
+          document.getElementById('logMessage').textContent = data.msg;
+          document.getElementById('logMessage').className = 'message success';
           
-          // 重新加载日志数据
-          setTimeout(() => {
-            loadLogs(currentLogsPage);
-            messageEl.textContent = '';
-            messageEl.className = 'message';
-          }, 1000);
+          // 重新加载日志
+          loadLogs(currentLogsPage);
+          
+          // 重置全选状态
+          document.getElementById('selectAllLogs').checked = false;
+          document.getElementById('headerLogCheckbox').checked = false;
         } else {
-          showError(data.msg || '删除日志失败');
+          document.getElementById('logMessage').textContent = data.msg || '删除失败';
+          document.getElementById('logMessage').className = 'message error';
         }
       } catch (error) {
         showError('删除日志失败: ' + error.message);
