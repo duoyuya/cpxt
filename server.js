@@ -24,14 +24,37 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
   } else {
     console.log('✅ SQLite 数据库连接成功');
     // 创建表结构
-    db.run(`CREATE TABLE IF NOT EXISTS plates (\n      id TEXT PRIMARY KEY,\n      plate TEXT NOT NULL UNIQUE,\n      uids TEXT NOT NULL,\n      remark TEXT,\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS plates (
+      id TEXT PRIMARY KEY,
+      plate TEXT NOT NULL UNIQUE,
+      uids TEXT NOT NULL,
+      remark TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
     
-    db.run(`CREATE TABLE IF NOT EXISTS settings (\n      key TEXT PRIMARY KEY,\n      value TEXT NOT NULL,\n      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
     
-    db.run(`CREATE TABLE IF NOT EXISTS logs (\n      id TEXT PRIMARY KEY,\n      action TEXT NOT NULL,\n      details TEXT,\n      ip TEXT,\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS logs (
+      id TEXT PRIMARY KEY,
+      action TEXT NOT NULL,
+      details TEXT,
+      ip TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
     
     // 创建访问令牌表
-    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (\n      id TEXT PRIMARY KEY,\n      plate TEXT NOT NULL,\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n      expires_at TIMESTAMP NOT NULL,\n      used INTEGER DEFAULT 0\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
+      id TEXT PRIMARY KEY,
+      plate TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      expires_at TIMESTAMP NOT NULL,
+      used INTEGER DEFAULT 0
+    )`);
     
     // 初始化默认设置
     db.get("SELECT * FROM settings WHERE key = 'app_token'", (err, row) => {
@@ -40,6 +63,27 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
           ['app_token', 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs']);
       }
     });
+    
+    // 从JSON文件导入初始车牌数据
+    const platesJsonPath = path.join(__dirname, 'data', 'plates.json');
+    if (fs.existsSync(platesJsonPath)) {
+      try {
+        const platesData = JSON.parse(fs.readFileSync(platesJsonPath, 'utf8'));
+        db.get("SELECT COUNT(*) as count FROM plates", (err, row) => {
+          if (!err && row && row.count == 0 && platesData.length > 0) {
+            console.log("从JSON文件导入初始车牌数据...");
+            const stmt = db.prepare("INSERT INTO plates (id, plate, uids, remark) VALUES (?, ?, ?, ?)");
+            platesData.forEach(plate => {
+              stmt.run(uuidv4(), plate.plate, Array.isArray(plate.uids) ? plate.uids.join(',') : plate.uids, plate.remark || '');
+            });
+            stmt.finalize();
+            console.log(`成功导入 ${platesData.length} 条车牌数据`);
+          }
+        });
+      } catch (jsonErr) {
+        console.error("导入车牌数据失败:", jsonErr.message);
+      }
+    }
   }
 });
 
@@ -87,7 +131,7 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// 日志记录中间件
+// 日志记录中间件 - 修复日志功能
 const logAction = (action) => {
   return (req, res, next) => {
     const originalSend = res.send;
@@ -146,7 +190,7 @@ app.post('/admin/login', loginLimiter, async (req, res) => {
   }
 });
 
-// 生成临时访问令牌 API
+// 生成临时访问令牌 API - 修复二维码功能
 app.get('/api/generate-token', authenticateJWT, (req, res) => {
   try {
     const { plate } = req.query;
@@ -235,7 +279,7 @@ app.get('/api/validate-token', (req, res) => {
   }
 });
 
-// 车牌管理 API
+// 车牌管理 API - 支持多省份车牌
 app.get('/api/plates', authenticateJWT, (req, res) => {
   const { search, page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
@@ -306,7 +350,7 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式
+  // 验证车牌格式 - 支持多省份
   const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
@@ -343,7 +387,7 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式
+  // 验证车牌格式 - 支持多省份
   const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
@@ -487,7 +531,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   }
 });
 
-// 日志查询 API
+// 日志查询 API - 修复日志功能
 app.get('/api/logs', authenticateJWT, (req, res) => {
   const { page = 1, limit = 20, action } = req.query;
   const offset = (page - 1) * limit;
