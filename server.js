@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');  // 已添加fetch导入
+const fetch = require('node-fetch');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
@@ -15,6 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 // 初始化数据库
 const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (err) => {
@@ -23,28 +24,14 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
   } else {
     console.log('✅ SQLite 数据库连接成功');
     // 创建表结构
-    db.run(`CREATE TABLE IF NOT EXISTS plates (
-      id TEXT PRIMARY KEY,
-      plate TEXT NOT NULL UNIQUE,
-      uids TEXT NOT NULL,
-      remark TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS plates (\\n      id TEXT PRIMARY KEY,\\n      plate TEXT NOT NULL UNIQUE,\\n      uids TEXT NOT NULL,\\n      remark TEXT,\\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\\n      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n    )`);
     
-    db.run(`CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS settings (\\n      key TEXT PRIMARY KEY,\\n      value TEXT NOT NULL,\\n      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n    )`);
     
-    db.run(`CREATE TABLE IF NOT EXISTS logs (
-      id TEXT PRIMARY KEY,
-      action TEXT NOT NULL,
-      details TEXT,
-      ip TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS logs (\\n      id TEXT PRIMARY KEY,\\n      action TEXT NOT NULL,\\n      details TEXT,\\n      ip TEXT,\\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n    )`);
+    
+    // 创建访问令牌表
+    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (\\n      id TEXT PRIMARY KEY,\\n      plate TEXT NOT NULL,\\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\\n      expires_at TIMESTAMP NOT NULL,\\n      used INTEGER DEFAULT 0\\n    )`);
     
     // 初始化默认设置
     db.get("SELECT * FROM settings WHERE key = 'app_token'", (err, row) => {
@@ -55,6 +42,30 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
     });
   }
 });
+
+// 每小时清理过期令牌
+setInterval(() => {
+  const now = new Date().toISOString();
+  db.run("DELETE FROM access_tokens WHERE expires_at < ?", [now], function(err) {
+    if (err) {
+      console.error('清理过期令牌失败:', err.message);
+    } else {
+      console.log(`清理过期令牌: ${this.changes} 条`);
+    }
+  });
+}, 3600000); // 3600000ms = 1小时
+
+// 每天清理30天前的日志
+setInterval(() => {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  db.run("DELETE FROM logs WHERE created_at < ?", [thirtyDaysAgo], function(err) {
+    if (err) {
+      console.error('清理过期日志失败:', err.message);
+    } else {
+      console.log(`清理过期日志: ${this.changes} 条`);
+    }
+  });
+}, 86400000); // 86400000ms = 1天
 
 // 中间件
 app.use(express.json());
@@ -88,30 +99,38 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// 日志记录中间件
+// 日志记录中间件 - 改进版
 const logAction = (action) => {
   return (req, res, next) => {
-    const originalSend = res.send;
-    res.send = function(body) {
-      const logId = uuidv4();
-      const details = {
+    const logId = uuidv4();
+    const logData = {
+      id: logId,
+      action,
+      details: JSON.stringify({
         path: req.path,
         method: req.method,
         body: req.body,
-        statusCode: res.statusCode,
-        response: body
-      };
+        ip: req.ip
+      }),
+      created_at: new Date().toISOString()
+    };
+    
+    // 确保日志始终被记录
+    res.on('finish', () => {
+      logData.details = JSON.stringify({
+        ...JSON.parse(logData.details),
+        statusCode: res.statusCode
+      });
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
-        [logId, action, JSON.stringify(details), req.ip],
+        "INSERT INTO logs (id, action, details, ip, created_at) VALUES (?, ?, ?, ?, ?)",
+        [logData.id, logData.action, logData.details, req.ip, logData.created_at],
         (err) => {
           if (err) console.error('日志记录失败:', err.message);
         }
       );
-      
-      originalSend.call(this, body);
-    };
+    });
+    
     next();
   };
 };
@@ -141,6 +160,95 @@ app.post('/admin/login', loginLimiter, async (req, res) => {
       token,
       expiresIn: JWT_EXPIRES_IN,
       msg: '登录成功'
+    });
+  } catch (error) {
+    res.status(500).json({ msg: '服务器错误', error: error.message });
+  }
+});
+
+// 生成临时访问令牌 API
+app.get('/api/generate-token', authenticateJWT, (req, res) => {
+  try {
+    const { plate } = req.query;
+    
+    if (!plate) {
+      return res.status(400).json({ msg: '车牌号必填' });
+    }
+    
+    // 验证车牌是否存在
+    db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
+      if (err) {
+        return res.status(500).json({ msg: '查询车牌失败', error: err.message });
+      }
+      
+      if (!plateInfo) {
+        return res.status(404).json({ msg: '车牌不存在' });
+      }
+      
+      // 生成令牌（UUID+时间戳）
+      const token = uuidv4();
+      const expiresIn = 15 * 60 * 1000; // 15分钟有效期
+      const expiresAt = new Date(Date.now() + expiresIn).toISOString();
+      
+      // 保存令牌
+      db.run(
+        "INSERT INTO access_tokens (id, plate, expires_at) VALUES (?, ?, ?)",
+        [token, plate, expiresAt],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ msg: '生成令牌失败', error: err.message });
+          }
+          
+          res.json({
+            token,
+            url: `${BASE_URL}/admin/index.html?token=${token}`,
+            expiresIn: Math.floor(expiresIn / 60000) // 分钟数
+          });
+        }
+      );
+    });
+  } catch (error) {
+    res.status(500).json({ msg: '服务器错误', error: error.message });
+  }
+});
+
+// 验证临时令牌 API
+app.get('/api/validate-token', (req, res) => {
+  try {
+    const { token } = req.query;
+    
+    if (!token) {
+      return res.status(400).json({ msg: '令牌必填' });
+    }
+    
+    // 查询令牌
+    db.get("SELECT * FROM access_tokens WHERE id = ?", [token], (err, tokenInfo) => {
+      if (err) {
+        return res.status(500).json({ msg: '验证令牌失败', error: err.message });
+      }
+      
+      if (!tokenInfo) {
+        return res.status(404).json({ msg: '无效的令牌' });
+      }
+      
+      // 检查是否过期
+      if (new Date(tokenInfo.expires_at) < new Date()) {
+        return res.status(403).json({ msg: '令牌已过期' });
+      }
+      
+      // 检查是否已使用
+      if (tokenInfo.used) {
+        return res.status(403).json({ msg: '令牌已失效' });
+      }
+      
+      // 标记令牌为已使用（单次有效）
+      db.run("UPDATE access_tokens SET used = 1 WHERE id = ?", [token]);
+      
+      res.json({
+        valid: true,
+        plate: tokenInfo.plate,
+        msg: '令牌验证成功'
+      });
     });
   } catch (error) {
     res.status(500).json({ msg: '服务器错误', error: error.message });
@@ -219,12 +327,14 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
   }
   
   // 验证车牌格式
-  const plateRegex = /^[云京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼渝川黔滇藏陕甘青宁新][A-Z0-9]{5,7}$/;
+  const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称+5-7位字母或数字' });
+    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
   }
   
   const plateId = uuidv4();
+  
+  // 确保uids是数组
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
   
   db.run(
@@ -251,6 +361,12 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
   
   if (!plate || !uids || !uids.length) {
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
+  }
+  
+  // 验证车牌格式
+  const plateRegex = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2}[A-Z0-9]{5,6}$/;
+  if (!plateRegex.test(plate)) {
+    return res.status(400).json({ msg: '车牌号格式不正确，应为省份简称(1-2位)+5-6位字母或数字' });
   }
   
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
@@ -323,14 +439,14 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
 // 通知发送 API - 无需认证
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
-    const { plate } = req.body;
+    const { plate, message } = req.body;
     
     if (!plate) {
       return res.status(400).json({ msg: '车牌号必填' });
     }
     
-    // 查询车牌信息
-    db.get("SELECT * FROM plates WHERE plate = ?", [`云M${plate}`], (err, plateInfo) => {
+    // 查询车牌信息（完整匹配）
+    db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
       if (err) {
         return res.status(500).json({ msg: '查询车牌失败', error: err.message });
       }      
@@ -358,7 +474,9 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
           return res.status(400).json({ msg: '该车牌尚未配置有效的接收用户' });
         }
         
-        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}，请及时处理！`;
+        // 构造通知内容，包含可选留言
+        const messageText = message ? `\\n\\n留言：${message}` : '';
+        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。${messageText} 请及时处理！`;
         
         try {
           // 调用 WxPusher API
@@ -390,42 +508,47 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   }
 });
 
-// 日志查询 API
+// 日志查询 API - 添加错误处理
 app.get('/api/logs', authenticateJWT, (req, res) => {
-  const { page = 1, limit = 20, action } = req.query;
-  const offset = (page - 1) * limit;
-  let query = "SELECT * FROM logs";
-  let countQuery = "SELECT COUNT(*) as total FROM logs";
-  const params = [];
-  const countParams = [];
-  
-  if (action) {
-    query += " WHERE action = ?";
-    countQuery += " WHERE action = ?";
-    params.push(action);
-    countParams.push(action);
-  }
-  
-  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-  params.push(limit, offset);
-  
-  db.all(query, params, (err, rows) => {
-    if (err) {
-      return res.status(500).json({ msg: '获取日志失败', error: err.message });
+  try {
+    const { page = 1, limit = 20, action } = req.query;
+    const offset = (page - 1) * limit;
+    let query = "SELECT * FROM logs";
+    let countQuery = "SELECT COUNT(*) as total FROM logs";
+    const params = [];
+    const countParams = [];
+    
+    if (action) {
+      query += " WHERE action = ?";
+      countQuery += " WHERE action = ?";
+      params.push(action);
+      countParams.push(action);
     }
     
-    db.get(countQuery, countParams, (err, countRow) => {
-      res.json({
-        logs: rows,
-        pagination: {
-          total: countRow ? countRow.total : 0,
-          page: parseInt(page),
-          limit: parseInt(limit),
-          pages: Math.ceil((countRow ? countRow.total : 0) / limit)
-        }
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+    
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        return res.status(500).json({ msg: '获取日志失败', error: err.message });
+      }
+      
+      db.get(countQuery, countParams, (err, countRow) => {
+        res.json({
+          logs: rows,
+          pagination: {
+            total: countRow ? countRow.total : 0,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            pages: Math.ceil((countRow ? countRow.total : 0) / limit)
+          }
+        });
       });
     });
-  });
+  } catch (error) {
+    console.error('日志查询错误:', error);
+    res.status(500).json({ msg: '获取日志失败', error: error.message });
+  }
 });
 
 // 批量删除日志 API
