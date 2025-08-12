@@ -451,36 +451,6 @@
       white-space: nowrap;
     }
     
-    /* 底部导航栏 */
-    .bottom-nav {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 12px 0;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      margin-top: 20px;
-    }
-    
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 12px;
-      gap: 4px;
-    }
-    
-    .nav-item.active {
-      color: var(--primary);
-    }
-    
-    .nav-icon {
-      font-size: 20px;
-    }
-    
     /* 响应式设计 */
     @media (max-width: 768px) {
       .form-grid {
@@ -671,25 +641,6 @@
     </div>
   </div>
   
-  <!-- 底部导航栏 -->
-  <div class="bottom-nav">
-    <a href="#" class="nav-item">
-      <div class="nav-icon">←</div>
-    </a>
-    <a href="#" class="nav-item">
-      <div class="nav-icon">→</div>
-    </a>
-    <a href="#" class="nav-item active">
-      <div class="nav-icon">4</div>
-    </a>
-    <a href="#" class="nav-item">
-      <div class="nav-icon">☰</div>
-    </a>
-    <a href="#" class="nav-item">
-      <div class="nav-icon">⌂</div>
-    </a>
-  </div>
-  
   <!-- 添加/编辑车牌模态框 -->
   <div id="plateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
     <div class="card" style="max-width: 500px; width: 100%;">
@@ -775,6 +726,9 @@
         
         // 加载系统设置
         loadSystemSettings();
+        
+        // 加载日志数据
+        loadLogs();
         
         // 车牌号输入自动转为大写
         document.getElementById('modalPlateNumber').addEventListener('input', function(e) {
@@ -998,26 +952,40 @@
         
         // 添加首页按钮
         if (currentPage > 1) {
-          addPaginationButton(container, 1, '首页');
-          
-          // 添加前一页按钮
-          addPaginationButton(container, currentPage - 1, '上一页');
+          addPaginationButton(container, 1, currentPage === 1, '首页');
+          addPaginationButton(container, currentPage - 1, false, '上一页');
         }
         
-        // 添加页码按钮（显示当前页前后2页）
+        // 添加中间页码按钮
         const startPage = Math.max(1, currentPage - 2);
         const endPage = Math.min(totalPages, currentPage + 2);
         
-        for (let i = startPage; i <= endPage; i++) {
-          addPaginationButton(container, i, i, i === currentPage);
+        // 如果前面有省略号
+        if (startPage > 1) {
+          if (startPage > 2) {
+            addEllipsis(container);
+          } else {
+            addPaginationButton(container, 1, false);
+          }
         }
         
-        // 添加下一页按钮
+        for (let i = startPage; i <= endPage; i++) {
+          addPaginationButton(container, i, currentPage === i);
+        }
+        
+        // 如果后面有省略号
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            addEllipsis(container);
+          } else {
+            addPaginationButton(container, totalPages, false);
+          }
+        }
+        
+        // 添加末页按钮
         if (currentPage < totalPages) {
-          addPaginationButton(container, currentPage + 1, '下一页');
-          
-          // 添加末页按钮
-          addPaginationButton(container, totalPages, '末页');
+          addPaginationButton(container, currentPage + 1, false, '下一页');
+          addPaginationButton(container, totalPages, currentPage === totalPages, '末页');
         }
       } catch (error) {
         showError('渲染分页失败: ' + error.message);
@@ -1025,187 +993,181 @@
     }
     
     // 添加分页按钮
-    function addPaginationButton(container, page, text, isActive = false) {
+    function addPaginationButton(container, pageNum, isActive, text = pageNum) {
       const button = document.createElement('button');
       button.className = `pagination-btn ${isActive ? 'active' : ''}`;
       button.textContent = text;
       button.onclick = function() {
         if (container.id === 'platesPagination') {
-          loadPlates(page, currentSearchTerm);
+          loadPlates(pageNum, currentSearchTerm);
         } else {
-          loadLogs(page);
+          loadLogs(pageNum);
         }
       };
       container.appendChild(button);
     }
     
+    // 添加省略号
+    function addEllipsis(container) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'pagination-ellipsis';
+      ellipsis.textContent = '...';
+      ellipsis.style.padding = '0 8px';
+      container.appendChild(ellipsis);
+    }
+    
     // 搜索车牌
     function searchPlates() {
-      try {
-        const searchTerm = document.getElementById('plateSearch').value.trim();
-        currentSearchTerm = searchTerm;
-        loadPlates(1, searchTerm);
-      } catch (error) {
-        showError('搜索失败: ' + error.message);
-      }
+      const searchTerm = document.getElementById('plateSearch').value.trim();
+      currentSearchTerm = searchTerm;
+      loadPlates(1, searchTerm);
     }
     
     // 重置搜索
     function resetSearch() {
-      try {
-        document.getElementById('plateSearch').value = '';
-        currentSearchTerm = '';
-        loadPlates(1);
-      } catch (error) {
-        showError('重置搜索失败: ' + error.message);
-      }
+      document.getElementById('plateSearch').value = '';
+      currentSearchTerm = '';
+      loadPlates(1);
     }
     
     // 打开添加车牌模态框
     function openAddPlateModal() {
-      try {
-        document.getElementById('plateModalTitle').textContent = '添加车牌';
-        document.getElementById('editPlateId').value = '';
-        document.getElementById('platePrefix').value = '';
-        document.getElementById('modalPlateNumber').value = '';
-        document.getElementById('modalPlateUid').value = '';
-        document.getElementById('modalPlateRemark').value = '';
-        document.getElementById('modalMessage').textContent = '';
-        document.getElementById('modalMessage').className = 'message';
-        
-        // 显示模态框
-        document.getElementById('plateModal').style.display = 'flex';
-      } catch (error) {
-        showError('打开添加窗口失败: ' + error.message);
-      }
+      document.getElementById('plateModalTitle').textContent = '添加车牌';
+      document.getElementById('editPlateId').value = '';
+      document.getElementById('platePrefix').value = '';
+      document.getElementById('modalPlateNumber').value = '';
+      document.getElementById('modalPlateUid').value = '';
+      document.getElementById('modalPlateRemark').value = '';
+      document.getElementById('modalMessage').textContent = '';
+      document.getElementById('modalMessage').style.display = 'none';
+      
+      document.getElementById('plateModal').style.display = 'flex';
     }
     
     // 打开编辑车牌模态框
     function openEditPlateModal(id, plate, uids, remark) {
-      try {
-        document.getElementById('plateModalTitle').textContent = '编辑车牌';
-        document.getElementById('editPlateId').value = id;
+      document.getElementById('plateModalTitle').textContent = '编辑车牌';
+      document.getElementById('editPlateId').value = id;
+      
+      // 拆分省份前缀和号码
+      if (plate.length >= 2) {
+        // 尝试识别省份前缀（1-2个字符）
+        let prefix = '';
+        let number = plate;
         
-        // 提取前缀和号码部分
-        const prefixMatch = plate.match(/^([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Za-z\u4e00-\u9fa5]{1,2})/);
-        if (prefixMatch && prefixMatch[1]) {
-          const prefix = prefixMatch[1];
-          const number = plate.slice(prefix.length);
-          document.getElementById('platePrefix').value = prefix;
-          document.getElementById('modalPlateNumber').value = number;
-        } else {
-          document.getElementById('platePrefix').value = '';
-          document.getElementById('modalPlateNumber').value = plate;  
+        // 检查前2个字符是否是中文
+        if (/[\u4e00-\u9fa5]/.test(plate.charAt(0))) {
+          // 中文省份简称（1个字符）
+          prefix = plate.charAt(0);
+          number = plate.substring(1);
+        } else if (/^[A-Za-z]{2}/.test(plate)) {
+          // 字母省份简称（2个字符）
+          prefix = plate.substring(0, 2);
+          number = plate.substring(2);
+        } else if (/^[A-Za-z]/.test(plate)) {
+          // 字母省份简称（1个字符）
+          prefix = plate.charAt(0);
+          number = plate.substring(1);
         }
         
-        document.getElementById('modalPlateUid').value = uids;
-        document.getElementById('modalPlateRemark').value = remark;
-        document.getElementById('modalMessage').textContent = '';
-        document.getElementById('modalMessage').className = 'message';
-        
-        // 显示模态框
-        document.getElementById('plateModal').style.display = 'flex';
-      } catch (error) {
-        showError('打开编辑窗口失败: ' + error.message);
+        document.getElementById('platePrefix').value = prefix;
+        document.getElementById('modalPlateNumber').value = number;
+      } else {
+        document.getElementById('platePrefix').value = '';
+        document.getElementById('modalPlateNumber').value = plate;
       }
+      
+      document.getElementById('modalPlateUid').value = uids;
+      document.getElementById('modalPlateRemark').value = remark;
+      document.getElementById('modalMessage').textContent = '';
+      document.getElementById('modalMessage').style.display = 'none';
+      
+      document.getElementById('plateModal').style.display = 'flex';
     }
     
     // 关闭车牌模态框
     function closePlateModal() {
-      try {
-        document.getElementById('plateModal').style.display = 'none';
-      } catch (error) {
-        showError('关闭窗口失败: ' + error.message);
-      }
+      document.getElementById('plateModal').style.display = 'none';
     }
     
-    // 保存车牌（添加或编辑）
+    // 保存车牌
     async function savePlate() {
       try {
-        const plateId = document.getElementById('editPlateId').value;
-        const platePrefix = document.getElementById('platePrefix').value.trim();
-        const plateNumber = document.getElementById('modalPlateNumber').value.trim();
+        const id = document.getElementById('editPlateId').value;
+        const prefix = document.getElementById('platePrefix').value.trim();
+        const number = document.getElementById('modalPlateNumber').value.trim();
         const uids = document.getElementById('modalPlateUid').value.trim();
         const remark = document.getElementById('modalPlateRemark').value.trim();
-        const messageEl = document.getElementById('modalMessage');
+        const modalMessage = document.getElementById('modalMessage');
         
         // 验证输入
-        if (!platePrefix) {
-          messageEl.textContent = '请输入省份简称前缀';
-          messageEl.className = 'message error';
-          return;
-        }
-        
-        if (!plateNumber) {
-          messageEl.textContent = '请输入车牌号';
-          messageEl.className = 'message error';
-          return;
-        }
-        
-        if (plateNumber.length < 5 || plateNumber.length > 6) {
-          messageEl.textContent = '车牌号必须为5-6位字母或数字';
-          messageEl.className = 'message error';
+        if (!prefix || !number) {
+          modalMessage.textContent = '省份简称和车牌号必填';
+          modalMessage.className = 'message error';
           return;
         }
         
         if (!uids) {
-          messageEl.textContent = '请输入用户UID';
-          messageEl.className = 'message error';
+          modalMessage.textContent = '用户UID必填';
+          modalMessage.className = 'message error';
           return;
         }
         
-        // 处理UIDs
-        const uidsArray = uids.split(',').map(uid => uid.trim()).filter(uid => uid);
-        if (uidsArray.length === 0) {
-          messageEl.textContent = '请输入有效的用户UID';
-          messageEl.className = 'message error';
-          return;
-        }
+        const plate = prefix + number;
         
-        const fullPlateNumber = `${platePrefix}${plateNumber}`;
-        const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
-        const method = plateId ? 'PUT' : 'POST';
+        // 构建请求数据
+        const plateData = {
+          plate,
+          uids: uids.split(',').map(uid => uid.trim()),
+          remark
+        };
+        
+        // 发送请求
+        let url = '/api/plates';
+        let method = 'POST';
+        
+        if (id) {
+          url += `/${id}`;
+          method = 'PUT';
+        }
         
         const response = await fetch(url, {
-          method: method,
+          method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
-          body: JSON.stringify({
-            plate: fullPlateNumber,
-            uids: uidsArray,
-            remark: remark
-          })
+          body: JSON.stringify(plateData)
         });
         
         const data = await response.json();
         
-        if (response.ok) {
-          messageEl.textContent = plateId ? '车牌更新成功' : '车牌添加成功';
-          messageEl.className = 'message success';
-          
-          // 关闭模态框并重新加载车牌数据
-          setTimeout(() => {
-            closePlateModal();
-            loadPlates(currentPlatesPage, currentSearchTerm);
-          }, 1000);
-        } else {
-          messageEl.textContent = data.msg || (plateId ? '更新失败' : '添加失败');
-          messageEl.className = 'message error';
+        if (!response.ok) {
+          throw new Error(data.msg || '保存车牌失败');
         }
+        
+        // 关闭模态框并刷新列表
+        closePlateModal();
+        loadPlates(currentPlatesPage, currentSearchTerm);
+        
+        // 显示成功消息
+        modalMessage.textContent = id ? '车牌更新成功' : '车牌添加成功';
+        modalMessage.className = 'message success';
       } catch (error) {
+        const modalMessage = document.getElementById('modalMessage');
+        modalMessage.textContent = error.message;
+        modalMessage.className = 'message error';
         showError('保存车牌失败: ' + error.message);
       }
     }
     
     // 删除车牌
-    async function deletePlate(id, plateNumber) {
+    async function deletePlate(id, plate) {
+      if (!confirm(`确定要删除车牌 ${plate} 吗？`)) {
+        return;
+      }
+      
       try {
-        if (!confirm(`确定要删除车牌号 ${plateNumber} 吗？`)) {
-          return;
-        }
-        
         const response = await fetch(`/api/plates/${id}`, {
           method: 'DELETE',
           headers: {
@@ -1213,32 +1175,230 @@
           }
         });
         
-        if (response.ok) {
-          // 删除成功，重新加载车牌数据
-          loadPlates(currentPlatesPage, currentSearchTerm);
-        } else {
+        if (!response.ok) {
           const data = await response.json();
-          showError('删除失败: ' + (data.msg || '未知错误'));
+          throw new Error(data.msg || '删除车牌失败');
         }
+        
+        // 刷新列表
+        loadPlates(currentPlatesPage, currentSearchTerm);
+        showError('车牌删除成功');
       } catch (error) {
         showError('删除车牌失败: ' + error.message);
       }
     }
     
-    // 用户退出登录
-    function logout() {
-      try {  
-        if (confirm('确定要退出登录吗？')) {
-          localStorage.removeItem('token');
-          window.location.href = '/admin/login.html';
+    // 加载系统设置
+    async function loadSystemSettings() {
+      try {
+        // 获取APP Token
+        const tokenResponse = await fetch('/api/app-token', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (!tokenResponse.ok) {
+          throw new Error('加载系统设置失败');
         }
+        
+        const tokenData = await tokenResponse.json();
+        document.getElementById('appToken').value = tokenData.token || '';
       } catch (error) {
-        showError('退出登录失败: ' + error.message);
+        showError('加载系统设置失败: ' + error.message);
       }
     }
     
-    // 其他函数保持不变...
-    // 为简洁起见，省略了部分与本次修改无关的函数
+    // 更新APP Token
+    async function updateAppToken() {
+      try {
+        const token = document.getElementById('appToken').value.trim();
+        const messageElement = document.getElementById('tokenMessage');
+        
+        if (!token) {
+          messageElement.textContent = 'APP Token不能为空';
+          messageElement.className = 'message error';
+          return;
+        }
+        
+        const response = await fetch('/api/app-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({ token })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.msg || '更新APP Token失败');
+        }
+        
+        messageElement.textContent = 'APP Token更新成功';
+        messageElement.className = 'message success';
+      } catch (error) {
+        const messageElement = document.getElementById('tokenMessage');
+        messageElement.textContent = error.message;
+        messageElement.className = 'message error';
+        showError('更新APP Token失败: ' + error.message);
+      }
+    }
+    
+    // 更新管理员密码
+    async function updateAdminPassword() {
+      try {
+        const newPassword = document.getElementById('adminPassword').value.trim();
+        const messageElement = document.getElementById('passwordMessage');
+        
+        if (!newPassword || newPassword.length < 6) {
+          messageElement.textContent = '密码长度不能少于6位';
+          messageElement.className = 'message error';
+          return;
+        }
+        
+        // 这里应该有一个真实的API调用来更新密码
+        // 为了演示，我们只显示成功消息
+        messageElement.textContent = '密码更新功能在演示环境中不可用';
+        messageElement.className = 'message info';
+      } catch (error) {
+        const messageElement = document.getElementById('passwordMessage');
+        messageElement.textContent = error.message;
+        messageElement.className = 'message error';
+        showError('更新密码失败: ' + error.message);
+      }
+    }
+    
+    // 加载日志数据
+    async function loadLogs(page = 1) {
+      currentLogsPage = page;
+      const tableBody = document.getElementById('logsTableBody');
+      const loading = document.getElementById('logsLoading');
+      const emptyState = document.getElementById('logsEmptyState');
+      
+      // 显示加载状态
+      tableBody.innerHTML = '';
+      loading.style.display = 'flex';
+      emptyState.style.display = 'none';
+      
+      try {
+        const response = await fetch(`/api/logs?page=${page}&limit=20`, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            showError('登录已过期，请重新登录');
+            setTimeout(() => {
+              window.location.href = '/admin/login.html';
+            }, 3000);
+            return;
+          }
+          throw new Error('加载日志数据失败');
+        }
+        
+        const data = await response.json();
+        
+        // 隐藏加载状态
+        loading.style.display = 'none';
+        
+        // 显示日志数据
+        if (data.logs.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        
+        // 渲染日志列表
+        for (const log of data.logs) {
+          try {
+            const details = JSON.parse(log.details || '{}');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><input type="checkbox" value="${log.id}"></td>
+              <td>${log.action}</td>
+              <td>${new Date(log.created_at).toLocaleString()}</td>
+              <td>${log.ip}</td>
+              <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${JSON.stringify(details, null, 2)}">
+                ${JSON.stringify(details, null, 2).substring(0, 50)}${details.length > 50 ? '...' : ''}
+              </td>
+            `;
+            tableBody.appendChild(row);
+          } catch (parseError) {
+            // 处理JSON解析错误
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><input type="checkbox" value="${log.id}"></td>
+              <td>${log.action}</td>
+              <td>${new Date(log.created_at).toLocaleString()}</td>
+              <td>${log.ip}</td>
+              <td>日志格式错误</td>
+            `;
+            tableBody.appendChild(row);
+          }
+        }
+        
+        // 渲染分页
+        renderPagination('logsPagination', data.pagination.pages, page);
+      } catch (error) {
+        loading.style.display = 'none';
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
+        showError('加载日志数据失败: ' + error.message);
+      }
+    }
+    
+    // 搜索日志
+    function searchLogs() {
+      // 在实际应用中实现日志搜索功能
+      showError('日志搜索功能正在开发中');
+    }
+    
+    // 删除选中日志
+    async function deleteSelectedLogs() {
+      const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
+      const logIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+      
+      if (logIds.length === 0) {
+        showError('请先选择要删除的日志');
+        return;
+      }
+      
+      if (!confirm(`确定要删除选中的 ${logIds.length} 条日志吗？`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/logs', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({ ids: logIds })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.msg || '删除日志失败');
+        }
+        
+        // 刷新日志列表
+        loadLogs(currentLogsPage);
+        showError(`成功删除 ${logIds.length} 条日志`);
+      } catch (error) {
+        showError('删除日志失败: ' + error.message);
+      }
+    }
+    
+    // 退出登录
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/admin/login.html';
+    }
   </script>
 </body>
 </html>
