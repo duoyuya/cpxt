@@ -1,111 +1,369 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>车辆通知系统 - 发送通知</title>
+  <title>车牌管理系统 - 后台管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+      --text-secondary: #7f8c8d;
+      --border: #dcdfe6;
       --primary: #007bff;
+      --primary-hover: #0056b3;
       --primary-light: #e6f0ff;
-      --primary-dark: #0056b3;
-      --success: #28a745;
       --danger: #dc3545;
-      --text: #333;
-      --text-secondary: #6c757d;
-      --bg: #f8f9fa;
-      --card-bg: #fff;
-      --border: #dee2e6;
-      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --danger-hover: #c82333;
+      --success: #28a745;
+      --success-light: #f0fff4;
+      --warning: #ffc107;
+      --shadow: 0 4px 12px rgba(0,0,0,0.1);
       --radius: 12px;
       --transition: all 0.3s ease;
+    }
+    
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --card-bg: #2d2d2d;
+      --text: #ecf0f1;
+      --text-secondary: #95a5a6;
+      --border: #444;
+      --primary: #0d6efd;
+      --primary-hover: #0b5ed7;
+      --primary-light: #1a365d;
+      --danger: #ea4b4b;
+      --danger-hover: #e02d2d;
+      --success-light: #0f3413;
+      --shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     }
     
     body {
-      background-color: var(--bg);
+      font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
       color: var(--text);
+      line-height: 1.6;
+      transition: var(--transition);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       padding: 20px;
+      position: relative;
     }
     
-    .card {
+    /* 系统标题 */
+    .system-title {
+      display: flex;
+      align-items: center;
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 20px;
+      padding: 15px;
       background-color: var(--card-bg);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 30px;
-      width: 100%;
-      max-width: 400px;
-      transition: var(--transition);
     }
     
-    .card-header {
-      text-align: center;
-      margin-bottom: 25px;
+    .system-title i {
+      margin-right: 10px;
+      font-size: 28px;
     }
     
-    .card-header h2 {
+    /* 页面导航标题 */
+    .page-title {
+      font-size: 20px;
       color: var(--primary);
-      font-size: 24px;
-      font-weight: 600;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      display: inline-block;
     }
     
-    .form-group {
+    /* 功能区块标题 */
+    .section-title {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      padding: 12px 15px;
+      border-radius: var(--radius);
+      font-size: 18px;
       margin-bottom: 20px;
     }
     
-    input[type="text"], textarea {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 16px;
-      transition: var(--transition);
-    }
-    
-    textarea {
-      resize: none;
-      min-height: 100px;
-    }
-    
-    input[type="text"]:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    }
-    
-    .btn {
-      width: 100%;
-      padding: 14px;
-      background-color: var(--primary);
+    /* 错误提示 */
+    .error-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--danger);
       color: white;
-      border: none;
+      padding: 10px 20px;
       border-radius: 8px;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
+      z-index: 9999;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .logo {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
       align-items: center;
       gap: 8px;
     }
     
-    .btn:hover {
-      background-color: var(--primary-dark);
+    .logo i {
+      font-size: 24px;
+    }
+    
+    .welcome {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
     .btn i {
+      font-size: 16px;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: var(--danger-hover);
+    }
+    
+    .btn-theme {
+      background: var(--border);
+      color: var(--text);
+      font-size: 16px;
+      padding: 10px;
+    }
+    
+    .btn-theme:hover {
+      background: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .btn-theme:hover {
+      background: #555;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 24px;
+      transition: var(--transition);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .card-header {
+      padding: 16px 20px;
+      background: var(--primary-light);
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card-header h2 {
       font-size: 18px;
+      font-weight: 500;
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+    
+    .search-container {
+      margin-bottom: 20px;
+    }
+    
+    .search-input-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .log-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .log-actions input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+    }
+    
+    input[type="text"], input[type="password"] {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    thead th {
+      background: var(--card-bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 2px solid var(--border);
+      padding: 12px 15px;
+      text-align: left;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    tbody td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    
+    tbody tr:hover {
+      background: rgba(0, 123, 255, 0.03);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .action-btn {
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      border: none;
+      transition: var(--transition);
+    }
+    
+    .edit-btn {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .edit-btn:hover {
+      background: var(--primary-hover);
+    }
+    
+    .delete-btn {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .delete-btn:hover {
+      background: var(--danger-hover);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+      font-style: italic;
     }
     
     .message {
@@ -118,7 +376,7 @@
     }
     
     .success {
-      background-color: rgba(40, 167, 69, 0.1);
+      background-color: var(--success-light);
       color: var(--success);
       display: block;
     }
@@ -135,20 +393,70 @@
       display: block;
     }
     
-    .footer {
+    .pagination {
+      display: flex;
+      justify-content: center;
       margin-top: 20px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-secondary);
+      gap: 8px;
+    }
+    
+    .pagination-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .pagination-btn:hover, .pagination-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .tab i {
+      font-size: 16px;
+    }
+    
+    .tab.active {
+      border-bottom-color: var(--primary);
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
     
     .loading {
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
+      border: 3px solid rgba(0, 123, 255, 0.3);
       border-radius: 50%;
-      border-top-color: white;
+      border-top-color: var(--primary);
       animation: spin 1s ease-in-out infinite;
     }
     
@@ -156,213 +464,992 @@
       to { transform: rotate(360deg); }
     }
     
-    .btn-loading .text {
-      display: none;
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
     }
     
-    .redirect-message {
-      margin-top: 15px;
+    .footer {
       text-align: center;
+      padding: 20px;
       color: var(--text-secondary);
-      font-size: 14px;
+      font-size: 13px;
+      margin-top: 40px;
+    }
+    
+    /* 详情气泡样式 */
+    .details-bubble {
+      position: relative;
+      cursor: pointer;
+      color: var(--primary);
+    }
+    
+    .details-bubble:hover .details-popup {
+      display: block;
+    }
+    
+    .details-popup {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 100;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: var(--shadow);
+      width: 300px;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      font-size: 12px;
+    }
+    
+    .details-item {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border);
+    }
+    
+    .details-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .details-label {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .search-input-group {
+        flex-direction: column;
+      }
+      
+      .controls {
+        justify-content: center;
+        width: 100%;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .welcome {
+        margin-bottom: 10px;
+      }
+      
+      .tabs {
+        overflow-x: auto;
+      }
+      
+      .tab {
+        white-space: nowrap;
+      }
+      
+      .log-actions {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .details-popup {
+        width: 250px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="card-header">
-      <h2>车辆挪车通知</h2>
+  <!-- 系统标题 -->
+  <div class="system-title">
+    <i>🚗</i> 车牌管理系统
+  </div>
+  
+  <!-- 页面导航标题 -->
+  <h1 class="page-title">车牌管理系统设置操作日志</h1>
+  
+  <!-- 功能区块标题 -->
+  <div class="section-title">车牌列表</div>
+  
+  <!-- 错误提示 -->
+  <div class="error-toast" id="errorToast">错误提示</div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="logo">🚗 车牌管理系统</div>
+      <div class="controls">
+        <button class="btn btn-primary" onclick="openAddPlateModal()"><i>+</i> 添加车牌</button>
+        <button class="btn btn-danger" onclick="logout()"><i>🚪</i> 退出</button>
+        <button class="btn btn-theme" onclick="toggleTheme()"><i>🌓</i></button>
+      </div>
     </div>
     
-    <div class="form-group">
-      <input type="text" id="plateNumber" placeholder="请输入车牌号（第一位为汉字，共7-8位）" maxlength="8" autocomplete="off">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('plate-management')">
+        <i>📋</i> 车牌管理
+      </div>
+      <div class="tab" onclick="switchTab('system-settings')">
+        <i>⚙️</i> 系统设置
+      </div>
+      <div class="tab" onclick="switchTab('operation-logs')">
+        <i>📝</i> 操作日志
+      </div>
     </div>
     
-    <div class="form-group">
-      <textarea id="messageInput" placeholder="请输入留言（可选）" rows="3"></textarea>
+    <!-- 车牌管理标签页 -->
+    <div id="plate-management" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h2>车牌列表</h2>
+        </div>
+        <div class="card-body">
+          <div class="search-container">
+            <div class="search-input-group">
+              <input type="text" id="plateSearch" placeholder="搜索车牌...">
+              <button class="btn btn-primary" onclick="searchPlates()"><i>🔍</i> 搜索</button>
+              <button class="btn btn-primary" onclick="resetSearch()"><i>↺</i> 重置</button>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table id="platesTable">
+              <thead>
+                <tr>
+                  <th>车牌号</th>
+                  <th>用户UID</th>
+                  <th>备注</th>
+                  <th>添加时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="platesTableBody">
+                <!-- 车牌数据将通过JavaScript动态加载 -->
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="loading-container" id="platesLoading" style="display: none;">
+            <div class="loading"></div>
+            <span>加载中...</span>
+          </div>
+          
+          <div class="empty-state" id="platesEmptyState" style="display: none;">
+            暂无车牌数据，请添加车牌
+          </div>
+          
+          <div class="pagination" id="platesPagination">
+            <!-- 分页按钮将通过JavaScript动态加载 -->
+          </div>
+        </div>
+      </div>
     </div>
     
-    <button class="btn" id="sendBtn" onclick="sendNotification()">
-      <span class="loading" style="display: none;"></span>
-      <span class="text">发送挪车通知</span>
-    </button>
-    
-    <div class="message" id="message"></div>
-    <div class="redirect-message" id="redirectMessage" style="display: none;">
-      3秒后将跳转到普通输入页面...
+    <!-- 系统设置标签页 -->
+    <div id="system-settings" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>系统设置</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="appToken">APP Token</label>
+            <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
+            <div class="message" id="tokenMessage"></div>
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAppToken()"><i>💾</i> 保存设置</button>
+          </div>
+          
+          <div class="form-group">
+            <label for="adminPassword">管理员密码修改</label>
+            <input type="password" id="adminPassword" placeholder="输入新密码">
+            <div class="message" id="passwordMessage"></div>
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAdminPassword()"><i>🔒</i> 修改密码</button>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <div class="footer">
-      车辆通知系统 © 2025 | 便捷 · 高效
+    <!-- 操作日志标签页 -->
+    <div id="operation-logs" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>操作日志</h2>
+        </div>
+        
+        <div class="card-body">
+          <div class="search-container">
+            <div class="search-input-group">
+              <input type="text" id="logSearch" placeholder="搜索操作...">
+              <button class="btn btn-primary" onclick="searchLogs()"><i>🔍</i> 搜索</button>
+            </div>
+          </div>
+          
+          <!-- 日志操作按钮 -->
+          <div class="log-actions">
+            <label>
+              <input type="checkbox" id="selectAllLogs"> 全选
+            </label>
+            <button class="btn btn-danger" onclick="deleteSelectedLogs()"><span style="margin-right: 5px;">🗑️</span> 删除选中日志</button>
+            <div class="message" id="logMessage"></div>
+          </div>
+          
+          <div class="table-container">
+            <table id="logsTable">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="headerLogCheckbox"></th>
+                  <th>操作</th>                  
+                  <th>时间</th>
+                  <th>IP地址</th>
+                  <th>详情</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <!-- 日志数据将通过JavaScript动态加载 -->
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="loading-container" id="logsLoading" style="display: none;">
+            <div class="loading"></div>
+            <span>加载中...</span>
+          </div>
+          
+          <div class="empty-state" id="logsEmptyState" style="display: none;">
+            暂无日志数据
+          </div>
+          
+          <div class="pagination" id="logsPagination">
+            <!-- 分页按钮将通过JavaScript动态加载 -->
+          </div>          
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 添加/编辑车牌模态框 -->
+  <div id="plateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="max-width: 500px; width: 100%;">
+      <div class="card-header">
+        <h2 id="plateModalTitle">添加车牌</h2>
+        <button class="btn btn-danger" style="padding: 6px 10px; font-size: 14px;" onclick="closePlateModal()"><i>✕</i></button>
+      </div>
+      <div class="card-body">
+        <input type="hidden" id="editPlateId">
+        <div class="form-group">
+          <label for="modalPlateNumber">车牌号</label>
+          <input type="text" id="modalPlateNumber" placeholder="输入7-8位车牌号，第一位为汉字，其余为字母或数字">
+          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：京A12345、沪B678901等</small>
+        </div>
+        <div class="form-group">
+          <label for="modalPlateUid">用户UID</label>
+          <input type="text" id="modalPlateUid" placeholder="多个UID用逗号分隔">
+        </div>
+        <div class="form-group">
+          <label for="modalPlateRemark">备注</label>
+          <input type="text" id="modalPlateRemark" placeholder="输入备注信息">
+        </div>
+        <div class="message" id="modalMessage"></div>
+        <button class="btn btn-primary" id="savePlateBtn" onclick="savePlate()"><i>💾</i> 保存</button>
+      </div>
     </div>
   </div>
 
   <script>
-    const plateInput = document.getElementById('plateNumber');
-    const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const messageEl = document.getElementById('message');
-    const redirectMessageEl = document.getElementById('redirectMessage');
-    const loadingEl = sendBtn.querySelector('.loading');
-    const textEl = sendBtn.querySelector('.text');
+    // 错误提示显示函数
+    function showError(message) {
+      const toast = document.getElementById('errorToast');
+      toast.textContent = message;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
     
-    // 输入处理：第一位保留汉字，后续字母数字转大写
-    plateInput.addEventListener('input', function(e) {
-      if (this.value.length > 0) {
-        const firstChar = this.value.charAt(0);
-        const restChars = this.value.slice(1).toUpperCase().replace(/[^A-Z0-9]/g, '');
-        this.value = firstChar + restChars;
+    // 格式化日志详情为HTML
+    function formatLogDetails(details) {
+      if (typeof details !== 'object' || details === null) {
+        return `<div class="details-item">${details || '无详情'}</div>`;
       }
       
-      // 验证长度
-      if (this.value.length > 8) {
-        this.value = this.value.slice(0, 8);
-      }
+      let html = '';
       
-      // 显示输入提示
-      if (this.value.length > 0) {
-        const remaining = 7 - this.value.length;
-        if (remaining > 0) {
-          updateMessage(`请继续输入${remaining}位字符（共7-8位）`, 'info');
-        } else if (this.value.length === 7 || this.value.length === 8) {
-          updateMessage('格式正确', 'success');
+      // 递归渲染详情对象
+      function renderDetails(obj, prefix = '') {
+        let innerHtml = '';
+        
+        for (const [key, value] of Object.entries(obj)) {
+          const newPrefix = prefix ? `${prefix}.${key}` : key;
+          
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>${renderDetails(value, newPrefix)}</div>`;
+          } else if (Array.isArray(value)) {
+            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>`;
+            innerHtml += '<ul style="margin-left: 15px; padding-left: 0;">';
+            value.forEach((item, index) => {
+              if (typeof item === 'object' && item !== null) {
+                innerHtml += `<li>${newPrefix}[${index}]:${renderDetails(item, `${newPrefix}[${index}]`)}</li>`;
+              } else {
+                innerHtml += `<li>${newPrefix}[${index}]: ${item}</li>`;
+              }
+            });
+            innerHtml += '</ul></div>';
+          } else {
+            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div> ${value}</div>`;
+          }
         }
-      } else {
-        updateMessage('', '');
+        
+        return innerHtml;
       }
-    });
-    
-    // 页面加载时处理URL参数
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const plateParam = urlParams.get('plate');
       
-      // 优先处理token参数
-      if (token) {
-        validateTokenAndLoadPlate(token);
-      } else if (plateParam) {
-        // 兼容旧模式
-        plateInput.value = plateParam;
-      }
-    });
+      html = renderDetails(details);
+      return html;
+    }
     
-    // 令牌验证函数
-    async function validateTokenAndLoadPlate(token) {
+    // 当前页码和搜索条件
+    let currentPlatesPage = 1;
+    let currentLogsPage = 1;
+    let currentSearchTerm = '';
+    
+    // 加载日志数据
+    async function loadLogs(page = 1, action = '') {
       try {
-        const response = await fetch(`/api/validate-token?token=${token}`);
+        currentLogsPage = page;
+        const tableBody = document.getElementById('logsTableBody');
+        const loading = document.getElementById('logsLoading');
+        const emptyState = document.getElementById('logsEmptyState');
+        
+        // 显示加载状态
+        tableBody.innerHTML = '';
+        loading.style.display = 'flex';
+        emptyState.style.display = 'none';
+        
+        // 构建请求URL
+        let url = `/api/logs?page=${page}&limit=20`;
+        if (action) {
+          url += `&action=${encodeURIComponent(action)}`;
+        }
+        
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            // 处理token无效情况
+            localStorage.removeItem('token');
+            showError('登录已过期，请重新登录');
+            setTimeout(() => {
+              window.location.href = '/admin/login.html';
+            }, 3000);
+            return;
+          }
+          throw new Error('加载日志数据失败');
+        }
+        
         const data = await response.json();
         
-        if (!response.ok || !data.valid) {
-          showMessage(data.msg || '无效的访问链接', 'error');
-          // 3秒后重定向到普通输入页面
-          redirectMessageEl.style.display = 'block';
+        // 隐藏加载状态
+        loading.style.display = 'none';
+        
+        // 显示日志数据
+        if (data.logs.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        
+        // 渲染日志列表
+        for (const log of data.logs) {
+          // 格式化详情为HTML
+          const detailsHtml = formatLogDetails(log.details);
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><input type="checkbox" data-id="${log.id}"></td>
+            <td>${log.action}</td>
+            <td>${new Date(log.created_at).toLocaleString()}</td>
+            <td>${log.ip}</td>
+            <td>
+              <div class="details-bubble">
+                查看详情
+                <div class="details-popup">
+                  ${detailsHtml}
+                </div>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        }
+        
+        // 渲染分页
+        renderPagination('logsPagination', data.pagination.pages, page);
+        
+        // 重新绑定全选事件
+        bindSelectAllEvent();
+      } catch (error) {
+        console.error('加载日志错误:', error);
+        showError('加载日志失败: ' + error.message);
+      }
+    }
+    
+    // 绑定全选事件
+    function bindSelectAllEvent() {
+      // 全选复选框事件
+      document.getElementById('selectAllLogs').addEventListener('change', function(e) {
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+      
+      // 表头全选复选框同步
+      document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
+        document.getElementById('selectAllLogs').checked = this.checked;
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+    }
+    
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // 检查登录状态
+        if (!localStorage.getItem('token')) {
+          // 显示友好提示而非直接跳转
+          showError('请先登录系统');
+          // 3秒后跳转登录页
           setTimeout(() => {
-            window.location.href = '/admin/index.html';
+            window.location.href = '/admin/login.html';
           }, 3000);
           return;
         }
         
-        // 验证成功，加载车牌信息
-        plateInput.value = data.plate;
-        plateInput.disabled = true; // 禁止修改车牌
-        messageInput.focus();
+        // 应用保存的主题
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // 加载车牌数据
+        loadPlates();
+        
+        // 加载系统设置
+        loadSystemSettings();
+        
+        // 车牌号输入自动转为大写
+        document.getElementById('modalPlateNumber').addEventListener('input', function(e) {
+          // 保留第一个字符，后续字符转大写并过滤非字母数字
+          if (this.value.length > 0) {
+            const firstChar = this.value.charAt(0);
+            const restChars = this.value.slice(1).toUpperCase().replace(/[^A-Z0-9]/g, '');
+            this.value = firstChar + restChars;
+          }
+        });
+        
+        // 绑定全选事件
+        bindSelectAllEvent();
       } catch (error) {
-        showMessage('链接验证失败', 'error');
-        redirectMessageEl.style.display = 'block';
-        setTimeout(() => {
-          window.location.href = '/admin/index.html';
-        }, 3000);
+        showError('页面加载失败: ' + error.message);
+        console.error('初始化错误:', error);
+      }
+    });
+    
+    // 切换标签页
+    function switchTab(tabId) {
+      try {
+        // 更新标签激活状态
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        
+        // 更新内容显示
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+        
+        // 如果切换到日志标签页，加载日志数据
+        if (tabId === 'operation-logs') {
+          loadLogs();
+        }
+      } catch (error) {
+        showError('切换标签失败: ' + error.message);
       }
     }
     
-    // 发送通知
-    async function sendNotification() {
-      const plateNumber = plateInput.value.trim();
-      const message = messageInput.value.trim() || '';
-      
-      // 验证输入
-      if (!plateNumber) {
-        updateMessage('请输入车牌号后再发送', 'error');
-        return;
+    // 切换主题
+    function toggleTheme() {
+      try {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      } catch (error) {
+        showError('切换主题失败: ' + error.message);
       }
+    }
+    
+    // 加载车牌数据
+    async function loadPlates(page = 1, search = '') {
+      currentPlatesPage = page;
+      const tableBody = document.getElementById('platesTableBody');
+      const loading = document.getElementById('platesLoading');
+      const emptyState = document.getElementById('platesEmptyState');
       
-      // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
-      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
-      if (!plateRegex.test(plateNumber)) {
-        updateMessage('车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字', 'error');
-        return;
-      }
-      
-      // 准备发送
-      sendBtn.disabled = true;
-      loadingEl.style.display = 'inline-block';
-      textEl.textContent = '发送中...';
-      updateMessage('', '');
+      // 显示加载状态
+      tableBody.innerHTML = '';
+      loading.style.display = 'flex';
+      emptyState.style.display = 'none';
       
       try {
-        const response = await fetch('/api/notify', {
-          method: 'POST',
+        // 构建请求URL
+        let url = `/api/plates?page=${page}&limit=10`;
+        if (search) {
+          url += `&search=${encodeURIComponent(search)}`;
+        }
+        
+        const response = await fetch(url, {
           headers: {
-            'Content-Type': 'application/json'
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            // 处理token无效情况
+            localStorage.removeItem('token');
+            showError('登录已过期，请重新登录');
+            setTimeout(() => {
+              window.location.href = '/admin/login.html';
+            }, 3000);
+            return;
+          }
+          throw new Error('加载车牌数据失败');
+        }
+        
+        const data = await response.json();
+        
+        // 隐藏加载状态
+        loading.style.display = 'none';
+        
+        // 显示车牌数据
+        if (data.plates.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        
+        // 渲染车牌列表
+        for (const plate of data.plates) {
+          // 处理UID显示，隐藏中间部分字符
+          const maskedUids = plate.uids.map(uid => {
+            if (uid.length <= 7) {
+              return '******'; // 短UID全部隐藏
+            }
+            // 显示前3位和后4位，中间用*代替
+            return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
+          }).join(', ');
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${plate.plate}</td>
+            <td>${maskedUids}</td>
+            <td>${plate.remark || '-'}</td>
+            <td>${new Date(plate.created_at).toLocaleString()}</td>
+            <td class="action-buttons">
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑</button>
+              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        }
+        
+        // 渲染分页
+        renderPagination('platesPagination', data.pagination.pages, page);
+      } catch (error) {
+        loading.style.display = 'none';
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
+        showError('加载车牌数据失败: ' + error.message);
+      }
+    }
+    
+    // 渲染分页控件
+    function renderPagination(containerId, totalPages, currentPage) {
+      try {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        
+        // 如果只有一页，不显示分页
+        if (totalPages <= 1) {
+          return;
+        }
+        
+        // 添加首页按钮
+        if (currentPage > 1) {
+          addPaginationButton(container, 1, '首页');
+          
+          // 添加前一页按钮
+          addPaginationButton(container, currentPage - 1, '上一页');
+        }
+        
+        // 添加页码按钮（显示当前页前后2页）
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+          addPaginationButton(container, i, i, i === currentPage);
+        }
+        
+        // 添加下一页按钮
+        if (currentPage < totalPages) {
+          addPaginationButton(container, currentPage + 1, '下一页');
+          
+          // 添加末页按钮
+          addPaginationButton(container, totalPages, '末页');
+        }
+      } catch (error) {
+        showError('渲染分页失败: ' + error.message);
+      }
+    }
+    
+    // 添加分页按钮
+    function addPaginationButton(container, page, text, isActive = false) {
+      const button = document.createElement('button');
+      button.className = `pagination-btn ${isActive ? 'active' : ''}`;
+      button.textContent = text;
+      button.onclick = function() {
+        if (container.id === 'platesPagination') {
+          loadPlates(page, currentSearchTerm);
+        } else {
+          loadLogs(page);
+        }
+      };
+      container.appendChild(button);
+    }
+    
+    // 搜索车牌
+    function searchPlates() {
+      try {
+        const searchTerm = document.getElementById('plateSearch').value.trim();
+        currentSearchTerm = searchTerm;
+        loadPlates(1, searchTerm);
+      } catch (error) {
+        showError('搜索失败: ' + error.message);
+      }
+    }
+    
+    // 重置搜索
+    function resetSearch() {
+      try {
+        document.getElementById('plateSearch').value = '';
+        currentSearchTerm = '';
+        loadPlates(1);
+      } catch (error) {
+        showError('重置搜索失败: ' + error.message);
+      }
+    }
+    
+    // 打开添加车牌模态框
+    function openAddPlateModal() {
+      try {
+        document.getElementById('plateModalTitle').textContent = '添加车牌';
+        document.getElementById('editPlateId').value = '';
+        document.getElementById('modalPlateNumber').value = '';
+        document.getElementById('modalPlateUid').value = '';
+        document.getElementById('modalPlateRemark').value = '';
+        document.getElementById('modalMessage').textContent = '';
+        document.getElementById('modalMessage').className = 'message';
+        
+        // 显示模态框
+        document.getElementById('plateModal').style.display = 'flex';
+      } catch (error) {
+        showError('打开添加窗口失败: ' + error.message);
+      }
+    }
+    
+    // 打开编辑车牌模态框
+    function openEditPlateModal(id, plate, uids, remark) {
+      try {
+        document.getElementById('plateModalTitle').textContent = '编辑车牌';
+        document.getElementById('editPlateId').value = id;
+        document.getElementById('modalPlateNumber').value = plate;
+        document.getElementById('modalPlateUid').value = uids;
+        document.getElementById('modalPlateRemark').value = remark;
+        document.getElementById('modalMessage').textContent = '';
+        document.getElementById('modalMessage').className = 'message';
+        
+        // 显示模态框
+        document.getElementById('plateModal').style.display = 'flex';
+      } catch (error) {
+        showError('打开编辑窗口失败: ' + error.message);
+      }
+    }
+    
+    // 关闭车牌模态框
+    function closePlateModal() {
+      try {
+        document.getElementById('plateModal').style.display = 'none';
+      } catch (error) {
+        showError('关闭窗口失败: ' + error.message);
+      }
+    }
+    
+    // 保存车牌（添加或编辑）
+    async function savePlate() {
+      try {
+        const plateId = document.getElementById('editPlateId').value;
+        const plateNumber = document.getElementById('modalPlateNumber').value.trim();
+        const uids = document.getElementById('modalPlateUid').value.trim();
+        const remark = document.getElementById('modalPlateRemark').value.trim();
+        const messageEl = document.getElementById('modalMessage');
+        
+        // 验证输入
+        if (!plateNumber) {
+          messageEl.textContent = '请输入车牌号';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
+        const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+        if (!plateRegex.test(plateNumber)) {
+          messageEl.textContent = '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        if (!uids) {
+          messageEl.textContent = '请输入用户UID';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        // 处理UIDs
+        const uidsArray = uids.split(',').map(uid => uid.trim()).filter(uid => uid);
+        if (uidsArray.length === 0) {
+          messageEl.textContent = '请输入有效的用户UID';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
+        const method = plateId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
           body: JSON.stringify({
             plate: plateNumber,
-            message: message
+            uids: uidsArray,
+            remark: remark
           })
         });
         
         const data = await response.json();
         
         if (response.ok) {
-          updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
-          plateInput.value = ''; // 清空输入
-          messageInput.value = '';
+          messageEl.textContent = plateId ? '车牌更新成功' : '车牌添加成功';
+          messageEl.className = 'message success';
+          
+          // 关闭模态框并重新加载车牌数据
+          setTimeout(() => {
+            closePlateModal();
+            loadPlates(currentPlatesPage, currentSearchTerm);
+          }, 1000);
         } else {
-          updateMessage(data.msg || '发送失败，请稍后重试', 'error');
+          messageEl.textContent = data.msg || (plateId ? '更新失败' : '添加失败');
+          messageEl.className = 'message error';
         }
       } catch (error) {
-        updateMessage('网络错误，请检查网络连接', 'error');
-      } finally {
-        // 恢复按钮状态
-        sendBtn.disabled = false;
-        loadingEl.style.display = 'none';
-        textEl.textContent = '发送挪车通知';
+        showError('保存车牌失败: ' + error.message);
       }
     }
     
-    // 更新消息显示
-    function updateMessage(text, type) {
-      messageEl.textContent = text;
-      messageEl.className = 'message';
-      if (type) {
-        messageEl.classList.add(type);
+    // 删除车牌
+    async function deletePlate(id, plateNumber) {
+      try {
+        if (!confirm(`确定要删除车牌号 ${plateNumber} 吗？`)) {
+          return;
+        }
+        
+        const response = await fetch(`/api/plates/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          // 删除成功，重新加载车牌数据
+          loadPlates(currentPlatesPage, currentSearchTerm);
+        } else {
+          const data = await response.json();
+          showError('删除失败: ' + (data.msg || '未知错误'));
+        }
+      } catch (error) {
+        showError('删除车牌失败: ' + error.message);
       }
     }
     
-    // 显示消息
-    function showMessage(text, type) {
-      updateMessage(text, type);
-      // 禁用输入和按钮
-      plateInput.disabled = true;
-      messageInput.disabled = true;
-      sendBtn.disabled = true;
+    // 用户退出登录
+    function logout() {
+      try {  
+        if (confirm('确定要退出登录吗？')) {
+          localStorage.removeItem('token');
+          window.location.href = '/admin/login.html';
+        }
+      } catch (error) {
+        showError('退出登录失败: ' + error.message);
+      }
     }
     
-    // 回车发送
-    plateInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendNotification();
+    // 加载系统设置
+    async function loadSystemSettings() {
+      try {
+        // 获取APP Token
+        const tokenResponse = await fetch('/api/app-token', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (!tokenResponse.ok) {
+          throw new Error('加载系统设置失败');
+        }
+        
+        const tokenData = await tokenResponse.json();
+        document.getElementById('appToken').value = tokenData.token;
+      } catch (error) {
+        showError('加载系统设置失败: ' + error.message);
       }
-    });
+    }
     
-    messageInput.addEventListener('keypress', function(e) {
-      // Ctrl+Enter发送
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        sendNotification();
-        e.preventDefault();
+    // 更新APP Token
+    async function updateAppToken() {
+      try {
+        const token = document.getElementById('appToken').value.trim();
+        const messageEl = document.getElementById('tokenMessage');
+        
+        if (!token) {
+          messageEl.textContent = '请输入APP Token';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        const response = await fetch('/api/app-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({ token: token })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          messageEl.textContent = 'APP Token 更新成功';
+          messageEl.className = 'message success';
+        } else {
+          messageEl.textContent = data.msg || '更新失败';
+          messageEl.className = 'message error';
+        }
+      } catch (error) {
+        showError('更新APP Token失败: ' + error.message);
       }
-    });
+    }
+    
+    // 更新管理员密码
+    async function updateAdminPassword() {
+      try {
+        const password = document.getElementById('adminPassword').value.trim();
+        const messageEl = document.getElementById('passwordMessage');
+        
+        if (!password) {
+          messageEl.textContent = '请输入新密码';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        if (password.length < 6) {
+          messageEl.textContent = '密码长度不能少于6位';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        // 这里应该有一个真实的API调用来更新密码
+        // 目前只是模拟成功
+        messageEl.textContent = '密码更新功能尚未实现';
+        messageEl.className = 'message info';
+      } catch (error) {
+        showError('更新密码失败: ' + error.message);
+      }
+    }
+    
+    // 搜索日志
+    function searchLogs() {
+      try {
+        const searchTerm = document.getElementById('logSearch').value.trim();
+        loadLogs(1, searchTerm);
+      } catch (error) {
+        showError('搜索日志失败: ' + error.message);
+      }
+    }
+    
+    // 删除选中日志
+    async function deleteSelectedLogs() {
+      try {
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
+        if (checkboxes.length === 0) {
+          showError('请先选择要删除的日志');
+          return;
+        }
+        
+        const logIds = Array.from(checkboxes).map(checkbox => checkbox.getAttribute('data-id'));
+        
+        const response = await fetch('/api/logs', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({ ids: logIds })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('logMessage').textContent = data.msg;
+          document.getElementById('logMessage').className = 'message success';
+          
+          // 重新加载日志
+          loadLogs(currentLogsPage);
+          
+          // 重置全选状态
+          document.getElementById('selectAllLogs').checked = false;
+          document.getElementById('headerLogCheckbox').checked = false;
+        } else {
+          document.getElementById('logMessage').textContent = data.msg || '删除失败';
+          document.getElementById('logMessage').className = 'message error';
+        }
+      } catch (error) {
+        showError('删除日志失败: ' + error.message);
+      }
+    }
   </script>
 </body>
 </html>
