@@ -24,14 +24,37 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
   } else {
     console.log('✅ SQLite 数据库连接成功');
     // 创建表结构
-    db.run(`CREATE TABLE IF NOT EXISTS plates (\\n      id TEXT PRIMARY KEY,\\n      plate TEXT NOT NULL UNIQUE,\\n      uids TEXT NOT NULL,\\n      remark TEXT,\\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\\n      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS plates (
+      id TEXT PRIMARY KEY,
+      plate TEXT NOT NULL UNIQUE,
+      uids TEXT NOT NULL,
+      remark TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
     
-    db.run(`CREATE TABLE IF NOT EXISTS settings (\\n      key TEXT PRIMARY KEY,\\n      value TEXT NOT NULL,\\n      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
     
-    db.run(`CREATE TABLE IF NOT EXISTS logs (\\n      id TEXT PRIMARY KEY,\\n      action TEXT NOT NULL,\\n      details TEXT,\\n      ip TEXT,\\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS logs (
+      id TEXT PRIMARY KEY,
+      action TEXT NOT NULL,
+      details TEXT,
+      ip TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
     
     // 创建访问令牌表
-    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (\\n      id TEXT PRIMARY KEY,\\n      plate TEXT NOT NULL,\\n      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\\n      expires_at TIMESTAMP NOT NULL,\\n      used INTEGER DEFAULT 0\\n    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
+      id TEXT PRIMARY KEY,
+      plate TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      expires_at TIMESTAMP NOT NULL,
+      used INTEGER DEFAULT 0
+    )`);
     
     // 初始化默认设置
     db.get("SELECT * FROM settings WHERE key = 'app_token'", (err, row) => {
@@ -54,18 +77,6 @@ setInterval(() => {
     }
   });
 }, 3600000); // 3600000ms = 1小时
-
-// 每天清理30天前的日志
-setInterval(() => {
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  db.run("DELETE FROM logs WHERE created_at < ?", [thirtyDaysAgo], function(err) {
-    if (err) {
-      console.error('清理过期日志失败:', err.message);
-    } else {
-      console.log(`清理过期日志: ${this.changes} 条`);
-    }
-  });
-}, 86400000); // 86400000ms = 1天
 
 // 中间件
 app.use(express.json());
@@ -99,34 +110,47 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// 日志记录中间件 - 改进版
+// 日志记录中间件 - 增强版
 const logAction = (action) => {
   return (req, res, next) => {
-    const logId = uuidv4();
-    const logData = {
-      id: logId,
-      action,
-      details: JSON.stringify({
+    const originalSend = res.send;
+    res.send = function(body) {
+      const logId = uuidv4();
+      const details = {
         path: req.path,
         method: req.method,
         body: req.body,
-        ip: req.ip
-      }),
-      created_at: new Date().toISOString()
-    };
-    
-    // 确保日志始终被记录
-    res.on('finish', () => {
-      logData.details = JSON.stringify({
-        ...JSON.parse(logData.details),
-        statusCode: res.statusCode
-      });
+        statusCode: res.statusCode,
+        response: body
+      };
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip, created_at) VALUES (?, ?, ?, ?, ?)",
-        [logData.id, logData.action, logData.details, req.ip, logData.created_at],
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
+        [logId, action, JSON.stringify(details), req.ip],
         (err) => {
           if (err) console.error('日志记录失败:', err.message);
+        }
+      );
+      
+      originalSend.call(this, body);
+    };
+    
+    // 捕获未处理的Promise错误
+    process.on('unhandledRejection', (reason, promise) => {
+      const logId = uuidv4();
+      const details = {
+        path: req.path,
+        method: req.method,
+        error: reason.toString(),
+        stack: reason.stack,
+        promise: promise.toString()
+      };
+      
+      db.run(
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
+        [logId, 'error', JSON.stringify(details), req.ip],
+        (err) => {
+          if (err) console.error('错误日志记录失败:', err.message);
         }
       );
     });
@@ -436,13 +460,18 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
   );
 });
 
-// 通知发送 API - 无需认证
+// 通知发送 API - 增强版（修复留言发送问题）
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
     const { plate, message } = req.body;
     
+    // 验证必填参数
     if (!plate) {
       return res.status(400).json({ msg: '车牌号必填' });
+    }
+    
+    if (!message) {
+      return res.status(400).json({ msg: '留言内容必填' });
     }
     
     // 查询车牌信息（完整匹配）
@@ -474,12 +503,10 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
           return res.status(400).json({ msg: '该车牌尚未配置有效的接收用户' });
         }
         
-        // 构造通知内容，包含可选留言
-        const messageText = message ? `\\n\\n留言：${message}` : '';
-        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。${messageText} 请及时处理！`;
+        // 构造通知内容，确保包含留言
+        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。留言：${message} 请及时处理！`;
         
         try {
-          // 调用 WxPusher API
           const response = await fetch("https://wxpusher.zjiecode.com/api/send/message", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -491,6 +518,11 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
             })
           });          
           
+          // 检查HTTP响应状态
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
           const result = await response.json();
           
           if (result.code === 1000) {
@@ -499,7 +531,13 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
             res.status(500).json({ msg: `发送失败: ${result.msg || '未知错误'}`, code: result.code });
           }
         } catch (networkError) {
-          res.status(500).json({ msg: '发送通知时网络错误', error: networkError.message });
+          // 记录详细错误信息
+          console.error('发送通知网络错误:', networkError);
+          res.status(500).json({ 
+            msg: '发送通知时网络错误', 
+            error: networkError.message,
+            stack: networkError.stack
+          });
         }
       });
     });
@@ -508,47 +546,42 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   }
 });
 
-// 日志查询 API - 添加错误处理
+// 日志查询 API
 app.get('/api/logs', authenticateJWT, (req, res) => {
-  try {
-    const { page = 1, limit = 20, action } = req.query;
-    const offset = (page - 1) * limit;
-    let query = "SELECT * FROM logs";
-    let countQuery = "SELECT COUNT(*) as total FROM logs";
-    const params = [];
-    const countParams = [];
-    
-    if (action) {
-      query += " WHERE action = ?";
-      countQuery += " WHERE action = ?";
-      params.push(action);
-      countParams.push(action);
+  const { page = 1, limit = 20, action } = req.query;
+  const offset = (page - 1) * limit;
+  let query = "SELECT * FROM logs";
+  let countQuery = "SELECT COUNT(*) as total FROM logs";
+  const params = [];
+  const countParams = [];
+  
+  if (action) {
+    query += " WHERE action = ?";
+    countQuery += " WHERE action = ?";
+    params.push(action);
+    countParams.push(action);
+  }
+  
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  params.push(limit, offset);
+  
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      return res.status(500).json({ msg: '获取日志失败', error: err.message });
     }
     
-    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-    params.push(limit, offset);
-    
-    db.all(query, params, (err, rows) => {
-      if (err) {
-        return res.status(500).json({ msg: '获取日志失败', error: err.message });
-      }
-      
-      db.get(countQuery, countParams, (err, countRow) => {
-        res.json({
-          logs: rows,
-          pagination: {
-            total: countRow ? countRow.total : 0,
-            page: parseInt(page),
-            limit: parseInt(limit),
-            pages: Math.ceil((countRow ? countRow.total : 0) / limit)
-          }
-        });
+    db.get(countQuery, countParams, (err, countRow) => {
+      res.json({
+        logs: rows,
+        pagination: {
+          total: countRow ? countRow.total : 0,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil((countRow ? countRow.total : 0) / limit)
+        }
       });
     });
-  } catch (error) {
-    console.error('日志查询错误:', error);
-    res.status(500).json({ msg: '获取日志失败', error: error.message });
-  }
+  });
 });
 
 // 批量删除日志 API
