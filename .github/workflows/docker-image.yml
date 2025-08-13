@@ -1,6 +1,6 @@
-name: 构建并推送 Docker 镜像
+name: 构建并推送 Docker 镜像到多平台
 on:
-  workflow_dispatch:  # 改为手动触发，需在 GitHub 仓库页面手动点击运行
+  workflow_dispatch:  # 手动触发，在 GitHub 仓库页面手动运行
 
 jobs:
   build-and-publish:
@@ -10,23 +10,37 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      # 2. 登录 GitHub 容器仓库（GHCR），使用个人访问令牌
+      # 2. 登录 GitHub 容器仓库（GHCR）
       - name: 登录 GHCR
         env:
-          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  # 从 Secrets 读取令牌
+          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  # GHCR 的个人访问令牌
         run: |
           echo "$DOCKER_PAT" | docker login ghcr.io --username ${{ github.actor }} --password-stdin
 
-      # 3. 构建 Docker 镜像（直接使用环境内置的 Docker）
+      # 3. 登录 Docker Hub（需提前在 Secrets 配置 DOCKER_HUB_TOKEN）
+      - name: 登录 Docker Hub
+        env:
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}  # Docker Hub 的令牌
+        run: |
+          echo "$DOCKER_HUB_TOKEN" | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      # 4. 构建 Docker 镜像（命名兼容双平台）
       - name: 构建镜像
         run: |
-          docker build -t ghcr.io/${{ github.actor }}/cpxt:latest .  
+          # 镜像名格式：同时适配 GHCR 和 Docker Hub
+          docker build -t ghcr.io/${{ github.actor }}/cpxt:latest \
+                       -t ${{ secrets.DOCKER_HUB_USERNAME }}/cpxt:latest .  
 
-      # 4. 推送镜像到 GHCR
-      - name: 推送镜像
+      # 5. 推送镜像到 GHCR
+      - name: 推送镜像到 GHCR
         run: |
           docker push ghcr.io/${{ github.actor }}/cpxt:latest  
 
-      # 5. （可选）调试：查看本地镜像列表
+      # 6. 推送镜像到 Docker Hub
+      - name: 推送镜像到 Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/cpxt:latest  
+
+      # 7. （可选）调试：查看本地镜像列表
       - name: 查看本地镜像
         run: docker images
