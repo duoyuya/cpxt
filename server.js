@@ -437,6 +437,10 @@ app.get('/api/plates', authenticateJWT, (req, res) => {
     }));
     
     db.get(countQuery, countParams, (err, countRow) => {
+      if (err) {
+        return res.status(500).json({ msg: '获取数据总数失败', error: err.message });
+      }
+      
       res.json({
         plates,
         pagination: {
@@ -478,7 +482,14 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
   // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
   const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
+    return res.status(400).json({ 
+      msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字',
+      debug: {
+        input: plate,
+        length: plate.length,
+        regex: plateRegex.toString()
+      }
+    });
   }
   
   // 验证通知方式
@@ -497,10 +508,16 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     [plateId, plate, uidsStr, remark || '', notificationTypesStr],
     function(err) {
       if (err) {
+        console.error('添加车牌数据库错误:', err.message);
         if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ msg:'该车牌号已存在' });
+          return res.status(400).json({ msg: '该车牌号已存在' });
         }
-        return res.status(500).json({ msg: '添加车牌失败', error: err.message });
+        return res.status(500).json({ 
+          msg: '添加车牌失败', 
+          error: err.message,
+          errorType: err.name,
+          code: err.errno
+        });
       }
       
       res.status(201).json({ 
