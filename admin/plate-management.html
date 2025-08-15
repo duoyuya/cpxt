@@ -250,12 +250,6 @@
       flex-wrap: wrap;
     }
     
-    .log-actions input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      margin-right: 5px;
-    }
-    
     input[type="text"], input[type="password"] {
       flex: 1;
       padding: 10px 14px;
@@ -524,6 +518,20 @@
       color: var(--text-secondary);
     }
     
+    /* 通知方式选择样式 */
+    .notification-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 10px;
+    }
+    
+    .notification-type {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
     /* 响应式设计 */
     @media (max-width: 768px) {
       .form-grid {
@@ -661,14 +669,38 @@
           <h2>系统设置</h2>
         </div>
         <div class="card-body">
+          <!-- APP Token设置 -->
           <div class="form-group">
-            <label for="appToken">APP Token</label>
+            <label for="appToken">WXPusher APP Token</label>
             <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
             <div class="message" id="tokenMessage"></div>
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAppToken()"><i>💾</i> 保存设置</button>
           </div>
           
+          <!-- 企业微信设置 -->
           <div class="form-group">
+            <label for="wechatWorkWebhook">企业微信机器人Webhook</label>
+            <input type="text" id="wechatWorkWebhook" placeholder="输入企业微信机器人Webhook地址">
+          </div>
+          
+          <!-- 钉钉设置 -->
+          <div class="form-group">
+            <label for="dingtalkWebhook">钉钉机器人Webhook</label>
+            <input type="text" id="dingtalkWebhook" placeholder="输入钉钉机器人Webhook地址">
+          </div>
+          
+          <!-- Bark设置 -->
+          <div class="form-group">
+            <label for="barkServer">Bark服务器地址</label>
+            <input type="text" id="barkServer" placeholder="输入Bark服务器地址，默认https://api.day.app/">
+            
+            <label for="barkToken" style="margin-top: 10px;">Bark设备Token</label>
+            <input type="text" id="barkToken" placeholder="输入Bark设备Token">
+          </div>
+          
+          <button class="btn btn-primary" onclick="saveSystemSettings()"><i>💾</i> 保存系统设置</button>
+          
+          <!-- 密码修改 -->
+          <div class="form-group" style="margin-top: 30px;">
             <label for="adminPassword">管理员密码修改</label>
             <input type="password" id="adminPassword" placeholder="输入新密码">
             <div class="message" id="passwordMessage"></div>
@@ -757,6 +789,27 @@
         <div class="form-group">
           <label for="modalPlateRemark">备注</label>
           <input type="text" id="modalPlateRemark" placeholder="输入备注信息">
+        </div>
+        <div class="form-group">
+          <label>通知方式 (可多选)</label>
+          <div class="notification-types">
+            <div class="notification-type">
+              <input type="checkbox" id="notifyWxpusher" value="wxpusher" checked>
+              <label for="notifyWxpusher">WXPusher</label>
+            </div>
+            <div class="notification-type">
+              <input type="checkbox" id="notifyWechatWork" value="wechatWork">
+              <label for="notifyWechatWork">企业微信</label>
+            </div>
+            <div class="notification-type">
+              <input type="checkbox" id="notifyDingtalk" value="dingtalk">
+              <label for="notifyDingtalk">钉钉</label>
+            </div>
+            <div class="notification-type">
+              <input type="checkbox" id="notifyBark" value="bark">
+              <label for="notifyBark">Bark</label>
+            </div>
+          </div>
         </div>
         <div class="message" id="modalMessage"></div>
         <button class="btn btn-primary" id="savePlateBtn" onclick="savePlate()"><i>💾</i> 保存</button>
@@ -1068,7 +1121,7 @@
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑</button>
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}', '${JSON.stringify(plate.notification_types || ['wxpusher'])}')">✏️ 编辑</button>
               <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
             </td>
           `;
@@ -1171,6 +1224,12 @@
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
         
+        // 重置通知方式选择，默认选中WXPusher
+        document.getElementById('notifyWxpusher').checked = true;
+        document.getElementById('notifyWechatWork').checked = false;
+        document.getElementById('notifyDingtalk').checked = false;
+        document.getElementById('notifyBark').checked = false;
+        
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
@@ -1179,7 +1238,7 @@
     }
     
     // 打开编辑车牌模态框
-    function openEditPlateModal(id, plate, uids, remark) {
+    function openEditPlateModal(id, plate, uids, remark, notificationTypes) {
       try {
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = id;
@@ -1188,6 +1247,20 @@
         document.getElementById('modalPlateRemark').value = remark;
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
+        
+        // 解析通知方式
+        let notificationTypesArray = ['wxpusher'];
+        try {
+          notificationTypesArray = JSON.parse(notificationTypes);
+        } catch (e) {
+          console.error('解析通知方式失败:', e);
+        }
+        
+        // 设置通知方式选择
+        document.getElementById('notifyWxpusher').checked = notificationTypesArray.includes('wxpusher');
+        document.getElementById('notifyWechatWork').checked = notificationTypesArray.includes('wechatWork');
+        document.getElementById('notifyDingtalk').checked = notificationTypesArray.includes('dingtalk');
+        document.getElementById('notifyBark').checked = notificationTypesArray.includes('bark');
         
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
@@ -1243,6 +1316,19 @@
           return;
         }
         
+        // 获取选中的通知方式
+        const notificationTypes = [];
+        if (document.getElementById('notifyWxpusher').checked) notificationTypes.push('wxpusher');
+        if (document.getElementById('notifyWechatWork').checked) notificationTypes.push('wechatWork');
+        if (document.getElementById('notifyDingtalk').checked) notificationTypes.push('dingtalk');
+        if (document.getElementById('notifyBark').checked) notificationTypes.push('bark');
+        
+        if (notificationTypes.length === 0) {
+          messageEl.textContent = '请至少选择一种通知方式';
+          messageEl.className = 'message error';
+          return;
+        }
+        
         const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
         const method = plateId ? 'PUT' : 'POST';
         
@@ -1255,7 +1341,8 @@
           body: JSON.stringify({
             plate: plateNumber,
             uids: uidsArray,
-            remark: remark
+            remark: remark,
+            notification_types: notificationTypes
           })
         });
         
@@ -1320,56 +1407,66 @@
     // 加载系统设置
     async function loadSystemSettings() {
       try {
-        // 获取APP Token
-        const tokenResponse = await fetch('/api/app-token', {
+        // 获取所有系统设置
+        const response = await fetch('/api/settings', {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           }
         });
         
-        if (!tokenResponse.ok) {
+        if (!response.ok) {
           throw new Error('加载系统设置失败');
         }
         
-        const tokenData = await tokenResponse.json();
-        document.getElementById('appToken').value = tokenData.token;
+        const settings = await response.json();
+        
+        // 填充表单
+        document.getElementById('appToken').value = settings.app_token || '';
+        document.getElementById('wechatWorkWebhook').value = settings.wechat_work_webhook || '';
+        document.getElementById('dingtalkWebhook').value = settings.dingtalk_webhook || '';
+        document.getElementById('barkServer').value = settings.bark_server || 'https://api.day.app/';
+        document.getElementById('barkToken').value = settings.bark_token || '';
       } catch (error) {
         showError('加载系统设置失败: ' + error.message);
       }
     }
     
-    // 更新APP Token
-    async function updateAppToken() {
+    // 保存系统设置
+    async function saveSystemSettings() {
       try {
-        const token = document.getElementById('appToken').value.trim();
-        const messageEl = document.getElementById('tokenMessage');
+        const settings = {
+          app_token: document.getElementById('appToken').value.trim(),
+          wechat_work_webhook: document.getElementById('wechatWorkWebhook').value.trim(),
+          dingtalk_webhook: document.getElementById('dingtalkWebhook').value.trim(),
+          bark_server: document.getElementById('barkServer').value.trim() || 'https://api.day.app/',
+          bark_token: document.getElementById('barkToken').value.trim()
+        };
         
-        if (!token) {
-          messageEl.textContent = '请输入APP Token';
-          messageEl.className = 'message error';
-          return;
-        }
-        
-        const response = await fetch('/api/app-token', {
-          method: 'POST',
+        const response = await fetch('/api/settings', {
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
-          body: JSON.stringify({ token: token })
+          body: JSON.stringify(settings)
         });
         
         const data = await response.json();
         
         if (response.ok) {
-          messageEl.textContent = 'APP Token 更新成功';
-          messageEl.className = 'message success';
+          document.getElementById('tokenMessage').textContent = '系统设置保存成功';
+          document.getElementById('tokenMessage').className = 'message success';
+          
+          setTimeout(() => {
+            document.getElementById('tokenMessage').textContent = '';
+            document.getElementById('tokenMessage').className = 'message';
+          }, 3000);
         } else {
-          messageEl.textContent = data.msg || '更新失败';
-          messageEl.className = 'message error';
+          document.getElementById('tokenMessage').textContent = data.msg || '保存失败';
+          document.getElementById('tokenMessage').className = 'message error';
         }
       } catch (error) {
-        showError('更新APP Token失败: ' + error.message);
+        showError('保存系统设置失败: ' + error.message);
       }
     }
     
@@ -1436,12 +1533,11 @@
           document.getElementById('logMessage').textContent = data.msg;
           document.getElementById('logMessage').className = 'message success';
           
-          // 重新加载日志
-          loadLogs(currentLogsPage);
-          
-          // 重置全选状态
-          document.getElementById('selectAllLogs').checked = false;
-          document.getElementById('headerLogCheckbox').checked = false;
+          setTimeout(() => {
+            document.getElementById('logMessage').textContent = '';
+            document.getElementById('logMessage').className = 'message';
+            loadLogs(currentLogsPage);
+          }, 1000);
         } else {
           document.getElementById('logMessage').textContent = data.msg || '删除失败';
           document.getElementById('logMessage').className = 'message error';
