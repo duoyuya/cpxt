@@ -63,7 +63,7 @@
       margin-bottom: 20px;
     }
     
-    input[type="text"], textarea {
+    input[type="text"], input[type="tel"], textarea {
       width: 100%;
       padding: 12px 15px;
       border: 1px solid var(--border);
@@ -179,7 +179,7 @@
     </div>
     
     <div class="form-group">
-      <textarea id="messageInput" placeholder="请输入留言/您的手机号（可选）" rows="3"></textarea>
+      <input type="tel" id="phoneNumber" placeholder="请输入您的手机号（11位数字）" pattern="\d{11}" title="请输入11位手机号码" required>
     </div>
     
     <button class="btn" id="sendBtn" onclick="sendNotification()">
@@ -199,7 +199,7 @@
 
   <script>
     const plateInput = document.getElementById('plateNumber');
-    const messageInput = document.getElementById('messageInput');
+    const phoneInput = document.getElementById('phoneNumber');
     const sendBtn = document.getElementById('sendBtn');
     const messageEl = document.getElementById('message');
     const redirectMessageEl = document.getElementById('redirectMessage');
@@ -279,11 +279,11 @@
     // 发送通知
     async function sendNotification() {
       const plateNumber = plateInput.value.trim();
-      const message = messageInput.value.trim() || '';
+      const phoneNumber = phoneInput.value.trim();
       
       // 验证输入
-      if (!plateNumber) {
-        updateMessage('请输入车牌号后再发送', 'error');
+      if (!plateNumber || !phoneNumber) {
+        updateMessage('请输入车牌号和手机号后再发送', 'error');
         return;
       }
       
@@ -291,6 +291,12 @@
       const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
       if (!plateRegex.test(plateNumber)) {
         updateMessage('车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字', 'error');
+        return;
+      }
+      
+      // 验证手机号格式
+      if (!/^1\d{10}$/.test(phone)) {
+        updateMessage('请输入以1开头的11位手机号码', 'error');
         return;
       }
       
