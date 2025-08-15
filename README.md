@@ -45,7 +45,7 @@ JWT_EXPIRES_IN=24h
 version: '3.8'
 services:
   car-system:
-    image: ghcr.io/duoyuya/cpxt:latest  # 替换为你的镜像地址
+    image: bmcgal/cpxt:latest  # 也可以替换为ghcr.io/duoyuya/cpxt:latest
     container_name: car-system
     restart: always
     ports:
