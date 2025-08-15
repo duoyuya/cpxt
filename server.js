@@ -466,36 +466,42 @@ app.post('/api/system-settings', authenticateJWT, logAction('更新系统设置'
       return res.status(400).json({ msg: '没有需要更新的设置' });
     }
     
-    // 开始事务
-    db.run("BEGIN TRANSACTION");
-    
-    let completed = 0;
-    let hasError = false;
-    
-    keys.forEach(key => {
-      db.run(
-        "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?",
-        [settings[key], key],
-        function(err) {
-          if (err) {
-            hasError = true;
-            console.error(`更新设置 ${key} 失败:`, err.message);
-          }
-          
-          completed++;
-          
-          // 所有设置都已处理
-          if (completed === keys.length) {
-            if (hasError) {
-              db.run("ROLLBACK");
-              res.status(500).json({ msg: '部分设置更新失败' });
-            } else {
-              db.run("COMMIT");
-              res.json({ msg: '系统设置更新成功' });
+    // 使用事务处理多个更新
+    db.run("BEGIN TRANSACTION", function(err) {
+      if (err) {
+        return res.status(500).json({ msg: '事务开始失败', error: err.message });
+      }
+      
+      let completed = 0;
+      let hasError = false;
+      
+      keys.forEach(key => {
+        db.run(
+          "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?",
+          [settings[key], key],
+          function(err) {
+            if (err) {
+              hasError = true;
+              console.error(`更新设置 ${key} 失败:`, err.message);
+            }
+            
+            completed++;
+            
+            // 所有设置都已处理
+            if (completed === keys.length) {
+              if (hasError) {
+                db.run("ROLLBACK", function() {
+                  res.status(500).json({ msg: '部分设置更新失败，已回滚' });
+                });
+              } else {
+                db.run("COMMIT", function() {
+                  res.json({ msg: '系统设置更新成功' });
+                });
+              }
             }
           }
-        }
-      );
+        );
+      });
     });
   } catch (error) {
     res.status(500).json({ msg: '服务器错误', error: error.message });
