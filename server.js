@@ -456,15 +456,8 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
     const { plate, message } = req.body;
     
     // 验证必填参数
-    const { plate, phone } = req.body;
-    
-    if (!plate || !phone) {
-      return res.status(400).json({ msg: '车牌号和手机号必填' });
-    }
-    
-    // 验证手机号格式
-    if (!/^1\d{10}$/.test(phone)) {
-      return res.status(400).json({ msg: '请输入以1开头的11位手机号码' });
+    if (!plate) {
+      return res.status(400).json({ msg: '车牌号必填' });
     }
     
     // 查询车牌信息（完整匹配）
@@ -498,8 +491,8 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
         
         // 构造通知内容，留言为可选
         const content = message 
-          ? `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，手机号: ${phone}，来自 IP: ${req.ip}。留言：${message} 请及时处理！`
-          : `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，手机号: ${phone}，来自 IP: ${req.ip}。请及时处理！`;
+          ? `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。留言：${message} 请及时处理！`
+          : `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。请及时处理！`;
         
         try {
           const response = await fetch("https://wxpusher.zjiecode.com/api/send/message", {
