@@ -1012,6 +1012,32 @@
         
         // 绑定全选事件
         bindSelectAllEvent();
+        
+        // 为车牌表格绑定事件委托
+        document.getElementById('platesTableBody').addEventListener('click', function(e) {
+          if (e.target.classList.contains('edit-btn')) {
+            const id = e.target.getAttribute('data-id');
+            const plate = e.target.getAttribute('data-plate');
+            const uids = e.target.getAttribute('data-uids');
+            const remark = e.target.getAttribute('data-remark');
+            const notificationTypes = e.target.getAttribute('data-notification-types');
+            
+            if (id && plate) {
+              openEditPlateModal(id, plate, uids, remark, notificationTypes);
+            } else {
+              showError('无法获取车牌信息，编辑失败');
+            }
+          } else if (e.target.classList.contains('delete-btn')) {
+            const id = e.target.getAttribute('data-id');
+            const plate = e.target.getAttribute('data-plate');
+            
+            if (id && plate) {
+              deletePlate(id, plate);
+            } else {
+              showError('无法获取车牌信息，删除失败');
+            }
+          }
+        });
       } catch (error) {
         showError('页面加载失败: ' + error.message);
         console.error('初始化错误:', error);
@@ -1114,6 +1140,9 @@
             return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
           }).join(', ');
           
+          // 对notification_types进行编码以安全地作为HTML属性值
+          const encodedNotificationTypes = encodeURIComponent(JSON.stringify(plate.notification_types || ['wxpusher']));
+          
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${plate.plate}</td>
@@ -1121,8 +1150,15 @@
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}', '${JSON.stringify(plate.notification_types || ['wxpusher'])}')">✏️ 编辑</button>
-              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
+              <button class="action-btn edit-btn" 
+                data-id="${plate.id}" 
+                data-plate="${plate.plate}" 
+                data-uids="${plate.uids}" 
+                data-remark="${plate.remark || ''}" 
+                data-notification-types="${encodedNotificationTypes}">✏️ 编辑</button>
+              <button class="action-btn delete-btn" 
+                data-id="${plate.id}" 
+                data-plate="${plate.plate}">🗑️ 删除</button>
             </td>
           `;
           tableBody.appendChild(row);
@@ -1238,20 +1274,20 @@
     }
     
     // 打开编辑车牌模态框
-    function openEditPlateModal(id, plate, uids, remark, notificationTypes) {
+    function openEditPlateModal(id, plate, uids, remark, encodedNotificationTypes) {
       try {
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = id;
         document.getElementById('modalPlateNumber').value = plate;
         document.getElementById('modalPlateUid').value = uids;
-        document.getElementById('modalPlateRemark').value = remark;
+        document.getElementById('modalPlateRemark').value = remark || '';
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
         
-        // 解析通知方式
+        // 解码通知方式
         let notificationTypesArray = ['wxpusher'];
         try {
-          notificationTypesArray = JSON.parse(notificationTypes);
+          notificationTypesArray = JSON.parse(decodeURIComponent(encodedNotificationTypes));
         } catch (e) {
           console.error('解析通知方式失败:', e);
         }
@@ -1266,6 +1302,7 @@
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
         showError('打开编辑窗口失败: ' + error.message);
+        console.error('编辑车牌错误:', error);
       }
     }
     
@@ -1454,7 +1491,7 @@
         const data = await response.json();
         
         if (response.ok) {
-          document.getElementById('tokenMessage').textContent = '系统设置保存成功';
+          document.getElementById('tokenMessage').textContent = '系统设置更新成功';
           document.getElementById('tokenMessage').className = 'message success';
           
           setTimeout(() => {
