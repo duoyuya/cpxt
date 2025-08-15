@@ -710,7 +710,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   } catch (error) {
     res.status(500).json({ msg: '服务器错误', error: error.message });
   }
-}
+});
 
 // 日志查询 API - 修复日志详情显示错误
 app.get('/api/logs', authenticateJWT, (req, res) => {
