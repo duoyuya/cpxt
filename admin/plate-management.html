@@ -250,6 +250,12 @@
       flex-wrap: wrap;
     }
     
+    .log-actions input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+    }
+    
     input[type="text"], input[type="password"] {
       flex: 1;
       padding: 10px 14px;
@@ -518,18 +524,23 @@
       color: var(--text-secondary);
     }
     
-    /* 通知方式选择样式 */
-    .notification-types {
+    /* 多选框样式 */
+    .checkbox-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
-      margin-top: 10px;
+      gap: 10px;
+      margin-top: 8px;
     }
     
-    .notification-type {
+    .checkbox-item {
       display: flex;
       align-items: center;
       gap: 5px;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
     }
     
     /* 响应式设计 */
@@ -573,6 +584,11 @@
         width: 250px;
         left: 50%;
         transform: translateX(-50%);
+      }
+      
+      .checkbox-group {
+        flex-direction: column;
+        gap: 8px;
       }
     }
   </style>
@@ -669,43 +685,57 @@
           <h2>系统设置</h2>
         </div>
         <div class="card-body">
-          <!-- APP Token设置 -->
-          <div class="form-group">
-            <label for="appToken">WXPusher APP Token</label>
-            <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
-            <div class="message" id="tokenMessage"></div>
-          </div>
-          
-          <!-- 企业微信设置 -->
-          <div class="form-group">
-            <label for="wechatWorkWebhook">企业微信机器人Webhook</label>
-            <input type="text" id="wechatWorkWebhook" placeholder="输入企业微信机器人Webhook地址">
-          </div>
-          
-          <!-- 钉钉设置 -->
-          <div class="form-group">
-            <label for="dingtalkWebhook">钉钉机器人Webhook</label>
-            <input type="text" id="dingtalkWebhook" placeholder="输入钉钉机器人Webhook地址">
-          </div>
-          
-          <!-- Bark设置 -->
-          <div class="form-group">
-            <label for="barkServer">Bark服务器地址</label>
-            <input type="text" id="barkServer" placeholder="输入Bark服务器地址，默认https://api.day.app/">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="appToken">WxPusher APP Token</label>
+              <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
+            </div>
             
-            <label for="barkToken" style="margin-top: 10px;">Bark设备Token</label>
-            <input type="text" id="barkToken" placeholder="输入Bark设备Token">
+            <div class="form-group">
+              <label for="wechatWorkWebhook">企业微信机器人Webhook</label>
+              <input type="text" id="wechatWorkWebhook" placeholder="输入企业微信机器人Webhook地址">
+            </div>
+            
+            <div class="form-group">
+              <label for="dingtalkWebhook">钉钉机器人Webhook</label>
+              <input type="text" id="dingtalkWebhook" placeholder="输入钉钉机器人Webhook地址">
+            </div>
+            
+            <div class="form-group">
+              <label for="barkWebhook">Bark服务器地址</label>
+              <input type="text" id="barkWebhook" placeholder="输入Bark服务器地址（如：https://api.day.app/your-device-key）">
+            </div>
+            
+            <div class="form-group">
+              <label>默认通知渠道（可多选）</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelWxpusher" value="wxpusher">
+                  <label for="channelWxpusher">WxPusher</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelWechatWork" value="wechat_work">
+                  <label for="channelWechatWork">企业微信</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelDingtalk" value="dingtalk">
+                  <label for="channelDingtalk">钉钉</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelBark" value="bark">
+                  <label for="channelBark">Bark</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="adminPassword">管理员密码修改</label>
+              <input type="password" id="adminPassword" placeholder="输入新密码">
+            </div>
           </div>
           
-          <button class="btn btn-primary" onclick="saveSystemSettings()"><i>💾</i> 保存系统设置</button>
-          
-          <!-- 密码修改 -->
-          <div class="form-group" style="margin-top: 30px;">
-            <label for="adminPassword">管理员密码修改</label>
-            <input type="password" id="adminPassword" placeholder="输入新密码">
-            <div class="message" id="passwordMessage"></div>
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAdminPassword()"><i>🔒</i> 修改密码</button>
-          </div>
+          <div class="message" id="settingsMessage"></div>
+          <button class="btn btn-primary" onclick="saveSystemSettings()"><i>💾</i> 保存所有设置</button>
         </div>
       </div>
     </div>
@@ -789,27 +819,6 @@
         <div class="form-group">
           <label for="modalPlateRemark">备注</label>
           <input type="text" id="modalPlateRemark" placeholder="输入备注信息">
-        </div>
-        <div class="form-group">
-          <label>通知方式 (可多选)</label>
-          <div class="notification-types">
-            <div class="notification-type">
-              <input type="checkbox" id="notifyWxpusher" value="wxpusher" checked>
-              <label for="notifyWxpusher">WXPusher</label>
-            </div>
-            <div class="notification-type">
-              <input type="checkbox" id="notifyWechatWork" value="wechatWork">
-              <label for="notifyWechatWork">企业微信</label>
-            </div>
-            <div class="notification-type">
-              <input type="checkbox" id="notifyDingtalk" value="dingtalk">
-              <label for="notifyDingtalk">钉钉</label>
-            </div>
-            <div class="notification-type">
-              <input type="checkbox" id="notifyBark" value="bark">
-              <label for="notifyBark">Bark</label>
-            </div>
-          </div>
         </div>
         <div class="message" id="modalMessage"></div>
         <button class="btn btn-primary" id="savePlateBtn" onclick="savePlate()"><i>💾</i> 保存</button>
@@ -1012,32 +1021,6 @@
         
         // 绑定全选事件
         bindSelectAllEvent();
-        
-        // 为车牌表格绑定事件委托
-        document.getElementById('platesTableBody').addEventListener('click', function(e) {
-          if (e.target.classList.contains('edit-btn')) {
-            const id = e.target.getAttribute('data-id');
-            const plate = e.target.getAttribute('data-plate');
-            const uids = e.target.getAttribute('data-uids');
-            const remark = e.target.getAttribute('data-remark');
-            const notificationTypes = e.target.getAttribute('data-notification-types');
-            
-            if (id && plate) {
-              openEditPlateModal(id, plate, uids, remark, notificationTypes);
-            } else {
-              showError('无法获取车牌信息，编辑失败');
-            }
-          } else if (e.target.classList.contains('delete-btn')) {
-            const id = e.target.getAttribute('data-id');
-            const plate = e.target.getAttribute('data-plate');
-            
-            if (id && plate) {
-              deletePlate(id, plate);
-            } else {
-              showError('无法获取车牌信息，删除失败');
-            }
-          }
-        });
       } catch (error) {
         showError('页面加载失败: ' + error.message);
         console.error('初始化错误:', error);
@@ -1140,9 +1123,6 @@
             return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
           }).join(', ');
           
-          // 对notification_types进行编码以安全地作为HTML属性值
-          const encodedNotificationTypes = encodeURIComponent(JSON.stringify(plate.notification_types || ['wxpusher']));
-          
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${plate.plate}</td>
@@ -1150,15 +1130,8 @@
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" 
-                data-id="${plate.id}" 
-                data-plate="${plate.plate}" 
-                data-uids="${plate.uids}" 
-                data-remark="${plate.remark || ''}" 
-                data-notification-types="${encodedNotificationTypes}">✏️ 编辑</button>
-              <button class="action-btn delete-btn" 
-                data-id="${plate.id}" 
-                data-plate="${plate.plate}">🗑️ 删除</button>
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑</button>
+              <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
             </td>
           `;
           tableBody.appendChild(row);
@@ -1260,12 +1233,6 @@
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
         
-        // 重置通知方式选择，默认选中WXPusher
-        document.getElementById('notifyWxpusher').checked = true;
-        document.getElementById('notifyWechatWork').checked = false;
-        document.getElementById('notifyDingtalk').checked = false;
-        document.getElementById('notifyBark').checked = false;
-        
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
@@ -1274,35 +1241,20 @@
     }
     
     // 打开编辑车牌模态框
-    function openEditPlateModal(id, plate, uids, remark, encodedNotificationTypes) {
+    function openEditPlateModal(id, plate, uids, remark) {
       try {
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = id;
         document.getElementById('modalPlateNumber').value = plate;
         document.getElementById('modalPlateUid').value = uids;
-        document.getElementById('modalPlateRemark').value = remark || '';
+        document.getElementById('modalPlateRemark').value = remark;
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
-        
-        // 解码通知方式
-        let notificationTypesArray = ['wxpusher'];
-        try {
-          notificationTypesArray = JSON.parse(decodeURIComponent(encodedNotificationTypes));
-        } catch (e) {
-          console.error('解析通知方式失败:', e);
-        }
-        
-        // 设置通知方式选择
-        document.getElementById('notifyWxpusher').checked = notificationTypesArray.includes('wxpusher');
-        document.getElementById('notifyWechatWork').checked = notificationTypesArray.includes('wechatWork');
-        document.getElementById('notifyDingtalk').checked = notificationTypesArray.includes('dingtalk');
-        document.getElementById('notifyBark').checked = notificationTypesArray.includes('bark');
         
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
         showError('打开编辑窗口失败: ' + error.message);
-        console.error('编辑车牌错误:', error);
       }
     }
     
@@ -1332,7 +1284,7 @@
         }
         
         // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
-        const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+        const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
         if (!plateRegex.test(plateNumber)) {
           messageEl.textContent = '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字';
           messageEl.className = 'message error';
@@ -1353,19 +1305,6 @@
           return;
         }
         
-        // 获取选中的通知方式
-        const notificationTypes = [];
-        if (document.getElementById('notifyWxpusher').checked) notificationTypes.push('wxpusher');
-        if (document.getElementById('notifyWechatWork').checked) notificationTypes.push('wechatWork');
-        if (document.getElementById('notifyDingtalk').checked) notificationTypes.push('dingtalk');
-        if (document.getElementById('notifyBark').checked) notificationTypes.push('bark');
-        
-        if (notificationTypes.length === 0) {
-          messageEl.textContent = '请至少选择一种通知方式';
-          messageEl.className = 'message error';
-          return;
-        }
-        
         const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
         const method = plateId ? 'PUT' : 'POST';
         
@@ -1378,8 +1317,7 @@
           body: JSON.stringify({
             plate: plateNumber,
             uids: uidsArray,
-            remark: remark,
-            notification_types: notificationTypes
+            remark: remark
           })
         });
         
@@ -1445,7 +1383,7 @@
     async function loadSystemSettings() {
       try {
         // 获取所有系统设置
-        const response = await fetch('/api/settings', {
+        const response = await fetch('/api/system-settings', {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           }
@@ -1461,8 +1399,14 @@
         document.getElementById('appToken').value = settings.app_token || '';
         document.getElementById('wechatWorkWebhook').value = settings.wechat_work_webhook || '';
         document.getElementById('dingtalkWebhook').value = settings.dingtalk_webhook || '';
-        document.getElementById('barkServer').value = settings.bark_server || 'https://api.day.app/';
-        document.getElementById('barkToken').value = settings.bark_token || '';
+        document.getElementById('barkWebhook').value = settings.bark_webhook || '';
+        
+        // 选中默认通知渠道
+        const defaultChannels = settings.notification_channels ? JSON.parse(settings.notification_channels) : [];
+        ['wxpusher', 'wechat_work', 'dingtalk', 'bark'].forEach(channel => {
+          const checkbox = document.getElementById(`channel${channel.charAt(0).toUpperCase() + channel.slice(1)}`);
+          checkbox.checked = defaultChannels.includes(channel);
+        });
       } catch (error) {
         showError('加载系统设置失败: ' + error.message);
       }
@@ -1471,16 +1415,28 @@
     // 保存系统设置
     async function saveSystemSettings() {
       try {
+        // 收集表单数据
         const settings = {
           app_token: document.getElementById('appToken').value.trim(),
           wechat_work_webhook: document.getElementById('wechatWorkWebhook').value.trim(),
           dingtalk_webhook: document.getElementById('dingtalkWebhook').value.trim(),
-          bark_server: document.getElementById('barkServer').value.trim() || 'https://api.day.app/',
-          bark_token: document.getElementById('barkToken').value.trim()
+          bark_webhook: document.getElementById('barkWebhook').value.trim(),
+          notification_channels: Array.from(document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked'))
+            .map(checkbox => checkbox.value)
         };
         
-        const response = await fetch('/api/settings', {
-          method: 'PUT',
+        // 验证至少选择一个通知渠道
+        if (settings.notification_channels.length === 0) {
+          document.getElementById('settingsMessage').textContent = '请至少选择一个通知渠道';
+          document.getElementById('settingsMessage').className = 'message error';
+          return;
+        }
+        
+        // 保存到JSON字符串
+        settings.notification_channels = JSON.stringify(settings.notification_channels);
+        
+        const response = await fetch('/api/system-settings', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -1491,16 +1447,11 @@
         const data = await response.json();
         
         if (response.ok) {
-          document.getElementById('tokenMessage').textContent = '系统设置更新成功';
-          document.getElementById('tokenMessage').className = 'message success';
-          
-          setTimeout(() => {
-            document.getElementById('tokenMessage').textContent = '';
-            document.getElementById('tokenMessage').className = 'message';
-          }, 3000);
+          document.getElementById('settingsMessage').textContent = '系统设置保存成功';
+          document.getElementById('settingsMessage').className = 'message success';
         } else {
-          document.getElementById('tokenMessage').textContent = data.msg || '保存失败';
-          document.getElementById('tokenMessage').className = 'message error';
+          document.getElementById('settingsMessage').textContent = data.msg || '保存设置失败';
+          document.getElementById('settingsMessage').className = 'message error';
         }
       } catch (error) {
         showError('保存系统设置失败: ' + error.message);
@@ -1511,7 +1462,7 @@
     async function updateAdminPassword() {
       try {
         const password = document.getElementById('adminPassword').value.trim();
-        const messageEl = document.getElementById('passwordMessage');
+        const messageEl = document.getElementById('settingsMessage');
         
         if (!password) {
           messageEl.textContent = '请输入新密码';
@@ -1570,9 +1521,8 @@
           document.getElementById('logMessage').textContent = data.msg;
           document.getElementById('logMessage').className = 'message success';
           
+          // 重新加载日志
           setTimeout(() => {
-            document.getElementById('logMessage').textContent = '';
-            document.getElementById('logMessage').className = 'message';
             loadLogs(currentLogsPage);
           }, 1000);
         } else {
