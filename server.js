@@ -8,29 +8,73 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
 const sqlite3 = require('sqlite3').verbose();
-const notificationService = require('./notificationService');
+
+// 确保数据目录存在
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log('✅ 数据目录创建成功');
+  } catch (err) {
+    console.error('❌ 创建数据目录失败:', err.message);
+    process.exit(1);
+  }
+}
 
 // 加载环境变量
 dotenv.config();
+
+// 验证必要的环境变量
+const requiredEnvVars = ['JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(env => !process.env[env]);
+if (missingEnvVars.length > 0) {
+  console.error('❌ 缺少必要的环境变量:', missingEnvVars.join(', '));
+  process.exit(1);
+}
+
+// 引入通知服务并处理可能的错误
+let notificationService;
+try {
+  notificationService = require('./notificationService');
+  console.log('✅ 通知服务加载成功');
+} catch (err) {
+  console.error('❌ 加载通知服务失败:', err.message);
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-// 初始化数据库
-const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (err) => {
-  if (err) {
-    console.error('数据库连接错误:', err.message);
-  } else {
-    console.log('✅ SQLite 数据库连接成功');
+// 初始化数据库并添加错误处理
+let db;
+try {
+  db = new sqlite3.Database(path.join(dataDir, 'car_notify.db'), (err) => {
+    if (err) {
+      console.error('❌ 数据库连接错误:', err.message);
+      process.exit(1);
+    } else {
+      console.log('✅ SQLite 数据库连接成功');
+      initDatabase();
+    }
+  });
+} catch (err) {
+  console.error('❌ 数据库初始化失败:', err.message);
+  process.exit(1);
+}
+
+// 数据库初始化函数
+function initDatabase() {
+  try {
     // 创建表结构
     db.run(`CREATE TABLE IF NOT EXISTS plates (
       id TEXT PRIMARY KEY,
       plate TEXT NOT NULL UNIQUE,
       uids TEXT NOT NULL,
       remark TEXT,
-      notification_types TEXT DEFAULT '["wxpusher"]', -- 新增：通知方式配置
+      notification_types TEXT DEFAULT '["wxpusher"]',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -49,7 +93,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     
-    // 创建访问令牌表
     db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
       id TEXT PRIMARY KEY,
       plate TEXT NOT NULL,
@@ -69,13 +112,26 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
     
     defaultSettings.forEach(({ key, value }) => {
       db.get(`SELECT * FROM settings WHERE key = ?`, [key], (err, row) => {
+        if (err) {
+          console.error(`❌ 查询设置 ${key} 失败:`, err.message);
+          return;
+        }
         if (!row) {
-          db.run(`INSERT INTO settings (key, value) VALUES (?, ?)`, [key, value]);
+          db.run(`INSERT INTO settings (key, value) VALUES (?, ?)`, [key, value], function(err) {
+            if (err) {
+              console.error(`❌ 初始化设置 ${key} 失败:`, err.message);
+            } else {
+              console.log(`✅ 初始化设置 ${key} 成功`);
+            }
+          });
         }
       });
     });
+  } catch (err) {
+    console.error('❌ 数据库表初始化失败:', err.message);
+    process.exit(1);
   }
-});
+}
 
 // 每小时清理过期令牌
 setInterval(() => {
@@ -381,10 +437,6 @@ app.get('/api/plates', authenticateJWT, (req, res) => {
     }));
     
     db.get(countQuery, countParams, (err, countRow) => {
-      if (err) {
-        return res.status(500).json({ msg: '获取数据总数失败', error: err.message });
-      }
-      
       res.json({
         plates,
         pagination: {
@@ -424,7 +476,7 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
   }
   
   // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
+  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
@@ -467,7 +519,7 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
   }
   
   // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
+  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
@@ -729,19 +781,51 @@ app.use((req, res) => {
   res.status(404).json({ msg: '接口不存在' });
 });
 
-// 启动服务器
-app.listen(PORT, () => {
-  console.log(`✅ 服务已启动：http://localhost:${PORT}`);
-  console.log(`🔑 后台登录：http://localhost:${PORT}/admin/login.html`);
+// 启动服务器并添加错误处理
+try {
+  app.listen(PORT, () => {
+    console.log(`✅ 服务已启动：http://localhost:${PORT}`);
+    console.log(`🔑 后台登录：http://localhost:${PORT}/admin/login.html`);
+  });
+} catch (err) {
+  console.error('❌ 服务器启动失败:', err.message);
+  process.exit(1);
+}
+
+// 未捕获异常处理
+process.on('uncaughtException', (err) => {
+  console.error('❌ 未捕获的异常:', err.message);
+  console.error(err.stack);
+  
+  // 尝试优雅关闭数据库连接
+  if (db) {
+    db.close((err) => {
+      if (err) console.error('❌ 关闭数据库连接失败:', err.message);
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+});
+
+// 未处理的Promise拒绝处理
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ 未处理的Promise拒绝:', reason);
+  console.error('Promise:', promise);
 });
 
 // 优雅关闭
 process.on('SIGINT', () => {
-  db.close((err) => {
-    if (err) {
-      console.error('关闭数据库连接失败:', err.message);
-    } else {
-      console.log('数据库连接已关闭');
-    }
+  if (db) {
+    db.close((err) => {
+      if (err) {
+        console.error('❌ 关闭数据库连接失败:', err.message);
+      } else {
+        console.log('✅ 数据库连接已关闭');
+      }
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
+});
