@@ -1,9 +1,9 @@
-name: 手动输入版本号构建 Docker 镜像
+name: 生产环境 - 手动输入版本号构建 Docker 镜像
 on:
   workflow_dispatch:
     inputs:
       new_version:  # 手动触发时，让用户输入新版本号（如 v1.0.1）
-        description: 'v1.0.1'
+        description: '输入新版本号（如 v1.0.1）'
         required: true
         default: 'v1.0.1'  # 默认值（可改，或让用户每次填）
 
