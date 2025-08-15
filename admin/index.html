@@ -179,7 +179,7 @@
     </div>
     
     <div class="form-group">
-      <textarea id="messageInput" placeholder="请输入留言/您的手机号（可选）" rows="3"></textarea>
+      <input type="text" id="phoneNumber" placeholder="请输入手机号（11位数字，必填）" maxlength="11" autocomplete="off" required>
     </div>
     
     <button class="btn" id="sendBtn" onclick="sendNotification()">
@@ -199,12 +199,36 @@
 
   <script>
     const plateInput = document.getElementById('plateNumber');
-    const messageInput = document.getElementById('messageInput');
+    const phoneInput = document.getElementById('phoneNumber');
     const sendBtn = document.getElementById('sendBtn');
     const messageEl = document.getElementById('message');
     const redirectMessageEl = document.getElementById('redirectMessage');
     const loadingEl = sendBtn.querySelector('.loading');
     const textEl = sendBtn.querySelector('.text');
+    
+    // 手机号输入处理
+    phoneInput.addEventListener('input', function(e) {
+      // 只保留数字
+      this.value = this.value.replace(/[^0-9]/g, '');
+      
+      // 验证长度
+      if (this.value.length > 11) {
+        this.value = this.value.slice(0, 11);
+      }
+      
+      // 验证格式
+      if (this.value.length === 11) {
+        if (this.value.startsWith('1')) {
+          updateMessage('手机号格式正确', 'success');
+        } else {
+          updateMessage('手机号必须以1开头', 'error');
+        }
+      } else if (this.value.length > 0) {
+        updateMessage(`请输入完整的11位手机号，已输入${this.value.length}位`, 'info');
+      } else {
+        updateMessage('', '');
+      }
+    });
     
     // 输入处理：第一位保留汉字，后续字母数字转大写
     plateInput.addEventListener('input', function(e) {
@@ -266,7 +290,7 @@
         // 验证成功，加载车牌信息
         plateInput.value = data.plate;
         plateInput.disabled = true; // 禁止修改车牌
-        messageInput.focus();
+        phoneInput.focus();
       } catch (error) {
         showMessage('链接验证失败', 'error');
         redirectMessageEl.style.display = 'block';
@@ -279,11 +303,16 @@
     // 发送通知
     async function sendNotification() {
       const plateNumber = plateInput.value.trim();
-      const message = messageInput.value.trim() || '';
+      const phoneNumber = phoneInput.value.trim();
       
       // 验证输入
       if (!plateNumber) {
         updateMessage('请输入车牌号后再发送', 'error');
+        return;
+      }
+      
+      if (!phoneNumber || phoneNumber.length !== 11 || !phoneNumber.startsWith('1')) {
+        updateMessage('请输入有效的11位手机号', 'error');
         return;
       }
       
@@ -308,7 +337,7 @@
           },
           body: JSON.stringify({
             plate: plateNumber,
-            message: message
+            phone: phoneNumber
           })
         });
         
@@ -317,7 +346,7 @@
         if (response.ok) {
           updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
           plateInput.value = ''; // 清空输入
-          messageInput.value = '';
+          phoneInput.value = '';
         } else {
           updateMessage(data.msg || '发送失败，请稍后重试', 'error');
         }
@@ -345,7 +374,7 @@
       updateMessage(text, type);
       // 禁用输入和按钮
       plateInput.disabled = true;
-      messageInput.disabled = true;
+      phoneInput.disabled = true;
       sendBtn.disabled = true;
     }
     
@@ -356,11 +385,9 @@
       }
     });
     
-    messageInput.addEventListener('keypress', function(e) {
-      // Ctrl+Enter发送
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    phoneInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
         sendNotification();
-        e.preventDefault();
       }
     });
   </script>
