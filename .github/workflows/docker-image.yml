@@ -1,46 +1,85 @@
-name: 构建并推送 Docker 镜像到多平台
+name: 生产环境 - 手动触发构建 Docker 镜像（自动版本）
 on:
-  workflow_dispatch:  # 手动触发，在 GitHub 仓库页面手动运行
+  workflow_dispatch:  # 仅保留手动触发，专注手动更新场景
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    # 生产环境防护：避免重复构建、防止超时
+    timeout-minutes: 30  # 30分钟未完成则终止，避免资源浪费
+    concurrency:
+      group: production-manual-build  # 同一时间只允许1个手动构建任务
+      cancel-in-progress: true  # 新任务触发时，取消正在运行的旧任务
     steps:
-      # 1. 拉取仓库代码
-      - name: 拉取代码
+      # 1. 拉取代码（生产环境需完整历史，避免依赖缺失）
+      - name: 拉取仓库代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 拉取所有提交历史，适配需 Git 信息的 Dockerfile
 
-      # 2. 登录 GitHub 容器仓库（GHCR）
-      - name: 登录 GHCR
+      # 2. 登录 GHCR
+      - name: 登录 GitHub 容器仓库（GHCR）
         env:
-          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  # GHCR 的个人访问令牌
+          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}  # 提前在仓库 Secrets 配置
         run: |
           echo "$DOCKER_PAT" | docker login ghcr.io --username ${{ github.actor }} --password-stdin
 
-      # 3. 登录 Docker Hub（需提前在 Secrets 配置 DOCKER_HUB_TOKEN）
+      # 3. 登录 Docker Hub
       - name: 登录 Docker Hub
         env:
-          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}  # Docker Hub 的令牌
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
-          echo "$DOCKER_HUB_TOKEN" | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          echo "$DOCKER_HUB_TOKEN" | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
-      # 4. 构建 Docker 镜像（命名兼容双平台）
-      - name: 构建镜像
+      # 4. 自动生成版本号（时间戳）+ 定义镜像名（复用变量，减少错误）
+      - name: 生成版本号并定义镜像变量
+        id: image-info
         run: |
-          # 镜像名格式：同时适配 GHCR 和 Docker Hub
-          docker build -t ghcr.io/${{ github.actor }}/cpxt:latest \
-                       -t ${{ secrets.DOCKER_HUB_USERNAME }}/cpxt:latest .  
+          # 生成唯一版本号：格式 年-月-日-时-分（如 202408151630）
+          IMAGE_VERSION=$(date +%Y%m%d%H%M)
+          # 定义 GHCR 和 Docker Hub 镜像名（后续直接复用）
+          GHCR_IMAGE="ghcr.io/${{ github.actor }}/cpxt"
+          DOCKERHUB_IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/cpxt"
+          
+          # 输出变量给后续步骤使用
+          echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "GHCR_IMAGE=$GHCR_IMAGE" >> $GITHUB_OUTPUT
+          echo "DOCKERHUB_IMAGE=$DOCKERHUB_IMAGE" >> $GITHUB_OUTPUT
 
-      # 5. 推送镜像到 GHCR
+      # 5. 构建镜像（生产环境禁用缓存，确保用最新代码）
+      - name: 构建镜像（自动版本号）
+        run: |
+          # 从步骤4获取变量
+          GHCR_IMAGE="${{ steps.image-info.outputs.GHCR_IMAGE }}"
+          DOCKERHUB_IMAGE="${{ steps.image-info.outputs.DOCKERHUB_IMAGE }}"
+          IMAGE_VERSION="${{ steps.image-info.outputs.IMAGE_VERSION }}"
+
+          # 同时打「时间戳版本」和「latest」标签（latest 始终指向最新版）
+          docker build --no-cache \  # 禁用缓存，避免旧依赖残留（生产必需）
+            -t $GHCR_IMAGE:$IMAGE_VERSION \
+            -t $GHCR_IMAGE:latest \
+            -t $DOCKERHUB_IMAGE:$IMAGE_VERSION \
+            -t $DOCKERHUB_IMAGE:latest .
+
+      # 6. 推送镜像到 GHCR
       - name: 推送镜像到 GHCR
         run: |
-          docker push ghcr.io/${{ github.actor }}/cpxt:latest  
+          GHCR_IMAGE="${{ steps.image-info.outputs.GHCR_IMAGE }}"
+          IMAGE_VERSION="${{ steps.image-info.outputs.IMAGE_VERSION }}"
+          docker push $GHCR_IMAGE:$IMAGE_VERSION  # 推版本号镜像
+          docker push $GHCR_IMAGE:latest         # 推最新版镜像
 
-      # 6. 推送镜像到 Docker Hub
+      # 7. 推送镜像到 Docker Hub
       - name: 推送镜像到 Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/cpxt:latest  
+          DOCKERHUB_IMAGE="${{ steps.image-info.outputs.DOCKERHUB_IMAGE }}"
+          IMAGE_VERSION="${{ steps.image-info.outputs.IMAGE_VERSION }}"
+          docker push $DOCKERHUB_IMAGE:$IMAGE_VERSION  # 推版本号镜像
+          docker push $DOCKERHUB_IMAGE:latest         # 推最新版镜像
 
-      # 7. （可选）调试：查看本地镜像列表
-      - name: 查看本地镜像
-        run: docker images
+      # 8. 验证：查看镜像标签（确认版本正确，方便后续核对）
+      - name: 查看本地镜像（含版本号）
+        run: |
+          echo "当前构建的镜像版本：${{ steps.image-info.outputs.IMAGE_VERSION }}"
+          docker images | grep cpxt  # 只显示 cpxt 相关镜像，输出更清晰
