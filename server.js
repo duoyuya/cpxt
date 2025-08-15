@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
 const sqlite3 = require('sqlite3').verbose();
+const notificationService = require('./notificationService');
 
 // 加载环境变量
 dotenv.config();
@@ -29,6 +30,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
       plate TEXT NOT NULL UNIQUE,
       uids TEXT NOT NULL,
       remark TEXT,
+      notification_types TEXT DEFAULT '["wxpusher"]', -- 新增：通知方式配置
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -57,11 +59,20 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
     )`);
     
     // 初始化默认设置
-    db.get("SELECT * FROM settings WHERE key = 'app_token'", (err, row) => {
-      if (!row) {
-        db.run("INSERT INTO settings (key, value) VALUES (?, ?)", 
-          ['app_token', 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs']);
-      }
+    const defaultSettings = [
+      { key: 'app_token', value: 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs' },
+      { key: 'wechat_work_webhook', value: '' },
+      { key: 'dingtalk_webhook', value: '' },
+      { key: 'bark_server', value: 'https://api.day.app/' },
+      { key: 'bark_token', value: '' }
+    ];
+    
+    defaultSettings.forEach(({ key, value }) => {
+      db.get(`SELECT * FROM settings WHERE key = ?`, [key], (err, row) => {
+        if (!row) {
+          db.run(`INSERT INTO settings (key, value) VALUES (?, ?)`, [key, value]);
+        }
+      });
     });
   }
 });
@@ -278,6 +289,67 @@ app.get('/api/validate-token', (req, res) => {
   }
 });
 
+// 系统设置 API - 新增
+app.get('/api/settings', authenticateJWT, (req, res) => {
+  db.all("SELECT * FROM settings", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ msg: '获取设置失败', error: err.message });
+    }
+    
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.key] = row.value;
+    });
+    
+    res.json(settings);
+  });
+});
+
+// 更新系统设置 API - 新增
+app.put('/api/settings', authenticateJWT, logAction('更新系统设置'), (req, res) => {
+  const settings = req.body;
+  
+  if (!settings || typeof settings !== 'object') {
+    return res.status(400).json({ msg: '设置参数必须是对象' });
+  }
+  
+  // 使用事务确保所有设置都更新成功
+  db.run("BEGIN TRANSACTION", err => {
+    if (err) {
+      return res.status(500).json({ msg: '开始事务失败', error: err.message });
+    }
+    
+    const keys = Object.keys(settings);
+    let completed = 0;
+    let hasError = false;
+    
+    keys.forEach(key => {
+      db.run(
+        "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?",
+        [settings[key], key],
+        function(err) {
+          if (err) {
+            hasError = true;
+            return db.run("ROLLBACK", () => {
+              res.status(500).json({ msg: `更新设置 ${key} 失败`, error: err.message });
+            });
+          }
+          
+          completed++;
+          if (completed === keys.length && !hasError) {
+            db.run("COMMIT", err => {
+              if (err) {
+                return res.status(500).json({ msg: '提交事务失败', error: err.message });
+              }
+              res.json({ msg: '系统设置更新成功', updatedCount: keys.length });
+            });
+          }
+        }
+      );
+    });
+  });
+});
+
 // 车牌管理 API
 app.get('/api/plates', authenticateJWT, (req, res) => {
   const { search, page = 1, limit = 10 } = req.query;
@@ -304,7 +376,8 @@ app.get('/api/plates', authenticateJWT, (req, res) => {
     
     const plates = rows.map(row => ({
       ...row,
-      uids: row.uids.split(',')
+      uids: row.uids.split(','),
+      notification_types: JSON.parse(row.notification_types || '["wxpusher"]')
     }));
     
     db.get(countQuery, countParams, (err, countRow) => {
@@ -337,32 +410,39 @@ app.get('/api/plates/:id', authenticateJWT, (req, res) => {
     
     res.json({
       ...row,
-      uids: row.uids.split(',')
+      uids: row.uids.split(','),
+      notification_types: JSON.parse(row.notification_types || '["wxpusher"]')
     });
   });
 });
 
 app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) => {
-  const { plate, uids, remark } = req.body;
+  const { plate, uids, remark, notification_types = ['wxpusher'] } = req.body;
   
   if (!plate || !uids || !uids.length) {
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
   // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+  const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
   
-  const plateId = uuidv4();
+  // 验证通知方式
+  const validNotificationTypes = ['wxpusher', 'wechatWork', 'dingtalk', 'bark'];
+  const invalidTypes = notification_types.filter(type => !validNotificationTypes.includes(type));
+  if (invalidTypes.length > 0) {
+    return res.status(400).json({ msg: `无效的通知方式: ${invalidTypes.join(', ')}` });
+  }
   
-  // 确保uids是数组
+  const plateId = uuidv4();
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
+  const notificationTypesStr = JSON.stringify(notification_types);
   
   db.run(
-    "INSERT INTO plates (id, plate, uids, remark) VALUES (?, ?, ?, ?)",
-    [plateId, plate, uidsStr, remark || ''],
+    "INSERT INTO plates (id, plate, uids, remark, notification_types) VALUES (?, ?, ?, ?, ?)",
+    [plateId, plate, uidsStr, remark || '', notificationTypesStr],
     function(err) {
       if (err) {
         if (err.message.includes('UNIQUE constraint failed')) {
@@ -380,23 +460,31 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
 });
 
 app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res) => {
-  const { plate, uids, remark } = req.body;
+  const { plate, uids, remark, notification_types = ['wxpusher'] } = req.body;
   
   if (!plate || !uids || !uids.length) {
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
   // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+  const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
   
+  // 验证通知方式
+  const validNotificationTypes = ['wxpusher', 'wechatWork', 'dingtalk', 'bark'];
+  const invalidTypes = notification_types.filter(type => !validNotificationTypes.includes(type));
+  if (invalidTypes.length > 0) {
+    return res.status(400).json({ msg: `无效的通知方式: ${invalidTypes.join(', ')}` });
+  }
+  
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
+  const notificationTypesStr = JSON.stringify(notification_types);
   
   db.run(
-    "UPDATE plates SET plate = ?, uids = ?, remark = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-    [plate, uidsStr, remark || '', req.params.id],
+    "UPDATE plates SET plate = ?, uids = ?, remark = ?, notification_types = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    [plate, uidsStr, remark || '', notificationTypesStr, req.params.id],
     function(err) {
       if (err) {
         if (err.message.includes('UNIQUE constraint failed')) {
@@ -428,38 +516,7 @@ app.delete('/api/plates/:id', authenticateJWT, logAction('删除车牌'), (req, 
   });
 });
 
-// APP Token 管理
-app.get('/api/app-token', authenticateJWT, (req, res) => {
-  db.get("SELECT value FROM settings WHERE key = 'app_token'", (err, row) => {
-    if (err) {
-      return res.status(500).json({ msg: '获取 APP Token 失败', error: err.message });
-    }
-    
-    res.json({ token: row ? row.value : '' });
-  });
-});
-
-app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, res) => {
-  const { token } = req.body;
-  
-  if (!token) {
-    return res.status(400).json({ msg: 'APP Token 必填' });
-  }
-  
-  db.run(
-    "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'app_token'",
-    [token],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ msg: '更新 APP Token 失败', error: err.message });
-      }
-      
-      res.json({ msg: 'APP Token 更新成功' });
-    }
-  );
-});
-
-// 通知发送 API - 修改为接收手机号参数
+// 通知发送 API - 修改为支持多种通知方式
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
     const { plate, phone } = req.body;
@@ -483,61 +540,84 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
         return res.status(404).json({ msg: '车牌不存在' });
       }
       
-      // 查询 APP Token
-      db.get("SELECT value FROM settings WHERE key = 'app_token'", async (err, tokenRow) => {
+      // 查询所有系统设置
+      db.all("SELECT * FROM settings", (err, settingsRows) => {
         if (err) {
-          return res.status(500).json({ msg: '获取 APP Token 失败', error: err.message });
+          return res.status(500).json({ msg: '获取系统设置失败', error: err.message });
         }
         
-        if (!tokenRow || !tokenRow.value) {
-          return res.status(500).json({ msg: 'APP Token 未配置' });
+        // 整理设置
+        const settings = {};
+        settingsRows.forEach(row => {
+          settings[row.key] = row.value;
+        });
+        
+        // 验证通知方式配置
+        let notificationTypes;
+        try {
+          notificationTypes = JSON.parse(plateInfo.notification_types || '["wxpusher"]');
+        } catch (e) {
+          return res.status(500).json({ msg: '解析通知方式配置失败', error: e.message });
         }
         
-        // 构造消息内容
+        if (!notificationTypes || !notificationTypes.length) {
+          return res.status(400).json({ msg: '未配置通知方式' });
+        }
+        
+        // 验证各通知方式的配置
+        const config = {
+          wxpusherAppToken: settings.app_token,
+          wechatWorkWebhook: settings.wechat_work_webhook,
+          dingtalkWebhook: settings.dingtalk_webhook,
+          barkServer: settings.bark_server || 'https://api.day.app/',
+          barkToken: settings.bark_token
+        };
+        
+        // 检查企业微信配置
+        if (notificationTypes.includes('wechatWork') && !config.wechatWorkWebhook) {
+          return res.status(400).json({ msg: '企业微信Webhook未配置' });
+        }
+        
+        // 检查钉钉配置
+        if (notificationTypes.includes('dingtalk') && !config.dingtalkWebhook) {
+          return res.status(400).json({ msg: '钉钉Webhook未配置' });
+        }
+        
+        // 检查Bark配置
+        if (notificationTypes.includes('bark') && !config.barkToken) {
+          return res.status(400).json({ msg: 'Bark设备Token未配置' });
+        }
+        
+        // 构造通知内容
         const { uids, remark } = plateInfo;
-        
-        // 验证UID格式
         const validUids = uids.split(',').filter(uid => uid.trim() !== '');
-        if (!validUids.length) {
-          return res.status(400).json({ msg: '该车牌尚未配置有效的接收用户' });
+        
+        // 验证WXPusher UID
+        if (notificationTypes.includes('wxpusher') && (!validUids || !validUids.length)) {
+          return res.status(400).json({ msg: 'WXPusher需要至少一个用户UID' });
         }
         
-        // 构造通知内容，包含手机号
         const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，联系电话：${phone}。请及时处理！`;
         
-        try {
-          const response = await fetch("https://wxpusher.zjiecode.com/api/send/message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              appToken: tokenRow.value,
-              content,
-              contentType: 1,
-              uids: validUids
-            })
-          });          
-          
-          // 检查HTTP响应状态
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const result = await response.json();
-          
-          if (result.code === 1000) {
-            res.json({ msg: '通知发送成功', requestId: result.data[0].requestId });
-          } else {
-            res.status(500).json({ msg: `发送失败: ${result.msg || '未知错误'}`, code: result.code });
-          }
-        } catch (networkError) {
-          // 记录详细错误信息
-          console.error('发送通知网络错误:', networkError);
-          res.status(500).json({ 
-            msg: '发送通知时网络错误', 
-            error: networkError.message,
-            stack: networkError.stack
+        // 调用通知服务发送通知
+        notificationService.sendNotification({
+          types: notificationTypes,
+          content,
+          config,
+          uids: validUids
+        })
+        .then(results => {
+          res.json({ 
+            msg: '通知发送完成', 
+            results 
           });
-        }
+        })
+        .catch(error => {
+          res.status(500).json({ 
+            msg: '发送通知失败', 
+            error: error.message 
+          });
+        });
       });
     });
   } catch (error) {
