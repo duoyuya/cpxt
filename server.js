@@ -125,7 +125,9 @@ const logAction = (action) => {
       };
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",[logId, action, JSON.stringify(details), req.ip],(err) => {
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
+        [logId, action, JSON.stringify(details), req.ip],
+        (err) => {
           if (err) console.error('日志记录失败:', err.message);
         }
       );
@@ -136,10 +138,17 @@ const logAction = (action) => {
     // 捕获未处理的Promise错误
     process.on('unhandledRejection', (reason) => {
       const logId = uuidv4();
-      const details = {path: req.path,method: req.method,error: reason.toString(),stack: reason.stack};
+      const details = {
+        path: req.path,
+        method: req.method,
+        error: reason.toString(),
+        stack: reason.stack
+      };
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",[logId, 'error', JSON.stringify(details), req.ip],(err) => {
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
+        [logId, 'error', JSON.stringify(details), req.ip],
+        (err) => {
           if (err) console.error('错误日志记录失败:', err.message);
         }
       );
@@ -450,14 +459,18 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
   );
 });
 
-// 通知发送 API - 修复留言可选问题
+// 通知发送 API - 修改为接收手机号参数
 app.post('/api/notify', logAction('发送通知'), async (req, res) => {
   try {
-    const { plate, message } = req.body;
+    const { plate, phone } = req.body;
     
     // 验证必填参数
     if (!plate) {
       return res.status(400).json({ msg: '车牌号必填' });
+    }
+    
+    if (!phone || phone.length !== 11 || !phone.startsWith('1')) {
+      return res.status(400).json({ msg: '请输入有效的11位手机号' });
     }
     
     // 查询车牌信息（完整匹配）
@@ -489,10 +502,8 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
           return res.status(400).json({ msg: '该车牌尚未配置有效的接收用户' });
         }
         
-        // 构造通知内容，留言为可选
-        const content = message 
-          ? `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。留言：${message} 请及时处理！`
-          : `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，来自 IP: ${req.ip}。请及时处理！`;
+        // 构造通知内容，包含手机号
+        const content = `【挪车通知】车牌 ${plateInfo.plate}（备注：${remark || '无'}）需要挪车，联系电话：${phone}。请及时处理！`;
         
         try {
           const response = await fetch("https://wxpusher.zjiecode.com/api/send/message", {
