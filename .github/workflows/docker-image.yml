@@ -1,69 +1,113 @@
-name: 构建 Docker 镜像
+name: 构建 Docker 镜像（双仓库推送+版本号+更新备注）
 on:
   workflow_dispatch:
     inputs:
-      new_version:  # 手动触发时，让用户输入新版本号（如 v1.0.1）
-        description: '输入新版本号（如 v1.0.1）'
+      new_version:  # 版本号输入框
+        description: '输入新版本号（如 v1.0.1，需以 v 开头）'
         required: true
-        default: 'v1.0.1'  # 默认值（可改，或让用户每次填）
+        default: 'v1.0.1'
+      update_note:  # 新增：更新备注输入框（记录本次更新内容）
+        description: '填写本次更新内容（如“修复登录bug”“新增支付功能”）'
+        required: true
+        default: '优化镜像构建流程'  # 可选默认备注
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    # 生产防护：防重复构建+超时控制
+    concurrency:
+      group: docker-cpxt-build  # 同组任务互斥，避免版本冲突
+      cancel-in-progress: true  # 新任务触发时取消旧任务
+    timeout-minutes: 30  # 30分钟超时终止，避免资源浪费
     steps:
-      # 1. 拉取代码（确保拿到仓库文件）
+      # 1. 拉取仓库代码（完整历史，适配需Git信息的场景）
       - name: 拉取仓库代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. 登录 GHCR
-      - name: 登录 GitHub 容器仓库（GHCR）
+      # 2. 打印本次构建核心信息（版本号+备注，方便日志追溯）
+      - name: 显示构建信息
+        run: |
+          echo "======================================"
+          echo "构建时间：$(date +'%Y-%m-%d %H:%M:%S')"
+          echo "本次构建版本号：${{ github.event.inputs.new_version }}"
+          echo "本次更新备注：${{ github.event.inputs.update_note }}"
+          echo "======================================"
+
+      # 3. 登录 GitHub 容器仓库（GHCR）
+      - name: 登录 GHCR
         env:
           DOCKER_PAT: ${{ secrets.DOCKER_PAT }}
         run: |
+          # 校验 PAT 是否配置，避免登录失败
+          if [ -z "$DOCKER_PAT" ]; then
+            echo "错误：GHCR 个人访问令牌（DOCKER_PAT）未配置！"
+            exit 1
+          fi
           echo "$DOCKER_PAT" | docker login ghcr.io --username ${{ github.actor }} --password-stdin
+          echo "GHCR 登录成功"
 
-      # 3. 登录 Docker Hub
+      # 4. 登录 Docker Hub
       - name: 登录 Docker Hub
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
         run: |
+          # 校验账号/令牌是否配置
+          if [ -z "$DOCKER_HUB_USERNAME" ] || [ -z "$DOCKER_HUB_TOKEN" ]; then
+            echo "错误：Docker Hub 用户名或令牌未配置！"
+            exit 1
+          fi
           echo "$DOCKER_HUB_TOKEN" | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+          echo "Docker Hub 登录成功"
 
-      # 4. 构建镜像（用用户输入的版本号）
+      # 5. 构建镜像（双仓库标签+禁用缓存）
       - name: 构建镜像（自定义版本号）
         run: |
-          # 从 workflow_dispatch 输入拿新版本号
           NEW_VERSION="${{ github.event.inputs.new_version }}"
           GHCR_IMAGE="ghcr.io/${{ github.actor }}/cpxt"
           DOCKERHUB_IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/cpxt"
 
-          # 打双标签：用户填的版本号 + latest
+          # --no-cache：禁用缓存，确保用最新代码构建（生产必需）
           docker build --no-cache \
-            -t $GHCR_IMAGE:$NEW_VERSION \
-            -t $GHCR_IMAGE:latest \
-            -t $DOCKERHUB_IMAGE:$NEW_VERSION \
-            -t $DOCKERHUB_IMAGE:latest \
-            .  # 确保根目录有 Dockerfile
+            -t $GHCR_IMAGE:$NEW_VERSION -t $GHCR_IMAGE:latest \
+            -t $DOCKERHUB_IMAGE:$NEW_VERSION -t $DOCKERHUB_IMAGE:latest \
+            .
+          echo "镜像构建完成："
+          echo "- GHCR：$GHCR_IMAGE:$NEW_VERSION、$GHCR_IMAGE:latest"
+          echo "- Docker Hub：$DOCKERHUB_IMAGE:$NEW_VERSION、$DOCKERHUB_IMAGE:latest"
 
-      # 5. 推送镜像到 GHCR
+      # 6. 推送镜像到 GHCR
       - name: 推送镜像到 GHCR
         run: |
           NEW_VERSION="${{ github.event.inputs.new_version }}"
           GHCR_IMAGE="ghcr.io/${{ github.actor }}/cpxt"
           docker push $GHCR_IMAGE:$NEW_VERSION
           docker push $GHCR_IMAGE:latest
+          echo "GHCR 镜像推送完成"
 
-      # 6. 推送镜像到 Docker Hub
+      # 7. 推送镜像到 Docker Hub
       - name: 推送镜像到 Docker Hub
         run: |
           NEW_VERSION="${{ github.event.inputs.new_version }}"
           DOCKERHUB_IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/cpxt"
           docker push $DOCKERHUB_IMAGE:$NEW_VERSION
           docker push $DOCKERHUB_IMAGE:latest
+          echo "Docker Hub 镜像推送完成"
 
-      # 7. 验证：查看镜像版本
+      # 8. 验证：查看本地镜像（确认标签正确）
       - name: 查看本地镜像（含版本号）
         run: |
-          echo "当前构建的版本：${{ github.event.inputs.new_version }}"
+          echo "======================================"
+          echo "本地 cpxt 相关镜像列表："
           docker images | grep cpxt
+          echo "======================================"
+
+      # 9. 登出所有仓库（安全最佳实践）
+      - name: 登出 GHCR 和 Docker Hub
+        if: always()  # 无论构建成功/失败，都执行登出
+        run: |
+          docker logout ghcr.io
+          docker logout
+        continue-on-error: true  # 登出失败不影响整体结果
