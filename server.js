@@ -9,17 +9,27 @@ const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
 const sqlite3 = require('sqlite3').verbose();
 
-// 确保数据目录存在
+// 确保数据目录存在并检查权限
 const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
+function checkDataDirPermissions() {
   try {
-    fs.mkdirSync(dataDir, { recursive: true });
-    console.log('✅ 数据目录创建成功');
+    // 检查目录是否存在
+    if (!fs.existsSync(dataDir)) {
+      console.log('数据目录不存在，尝试创建...');
+      fs.mkdirSync(dataDir, { recursive: true, mode: 0o755 });
+    }
+    
+    // 检查写入权限
+    const testFile = path.join(dataDir, 'test_permission.txt');
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+    console.log('✅ 数据目录权限检查通过');
   } catch (err) {
-    console.error('❌ 创建数据目录失败:', err.message);
+    console.error('❌ 数据目录权限检查失败:', err.message);
     process.exit(1);
   }
 }
+checkDataDirPermissions();
 
 // 加载环境变量
 dotenv.config();
@@ -51,7 +61,10 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 // 初始化数据库并添加错误处理
 let db;
 try {
-  db = new sqlite3.Database(path.join(dataDir, 'car_notify.db'), (err) => {
+  const dbPath = path.join(dataDir, 'car_notify.db');
+  console.log(`📂 数据库路径: ${dbPath}`);
+  
+  db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
       console.error('❌ 数据库连接错误:', err.message);
       process.exit(1);
@@ -59,6 +72,11 @@ try {
       console.log('✅ SQLite 数据库连接成功');
       initDatabase();
     }
+  });
+  
+  // 监听数据库错误
+  db.on('error', (err) => {
+    console.error('❌ 数据库运行错误:', err.message);
   });
 } catch (err) {
   console.error('❌ 数据库初始化失败:', err.message);
@@ -77,13 +95,19 @@ function initDatabase() {
       notification_types TEXT DEFAULT '["wxpusher"]',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, (err) => {
+      if (err) console.error('创建plates表错误:', err.message);
+      else console.log('✅ plates表初始化成功');
+    });
     
     db.run(`CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, (err) => {
+      if (err) console.error('创建settings表错误:', err.message);
+      else console.log('✅ settings表初始化成功');
+    });
     
     db.run(`CREATE TABLE IF NOT EXISTS logs (
       id TEXT PRIMARY KEY,
@@ -91,7 +115,10 @@ function initDatabase() {
       details TEXT,
       ip TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, (err) => {
+      if (err) console.error('创建logs表错误:', err.message);
+      else console.log('✅ logs表初始化成功');
+    });
     
     db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
       id TEXT PRIMARY KEY,
@@ -99,7 +126,10 @@ function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       expires_at TIMESTAMP NOT NULL,
       used INTEGER DEFAULT 0
-    )`);
+    )`, (err) => {
+      if (err) console.error('创建access_tokens表错误:', err.message);
+      else console.log('✅ access_tokens表初始化成功');
+    });
     
     // 初始化默认设置
     const defaultSettings = [
@@ -148,6 +178,13 @@ setInterval(() => {
 // 中间件
 app.use(express.json());
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
+
+// 请求日志中间件
+app.use((req, res, next) => {
+  console.log(`📝 请求: ${req.method} ${req.path} - IP: ${req.ip}`);
+  console.log('📥 请求体:', JSON.stringify(req.body, null, 2));
+  next();
+});
 
 // 登录限流
 const loginLimiter = rateLimit({
@@ -201,25 +238,6 @@ const logAction = (action) => {
       
       originalSend.call(this, body);
     };
-    
-    // 捕获未处理的Promise错误
-    process.on('unhandledRejection', (reason) => {
-      const logId = uuidv4();
-      const details = {
-        path: req.path,
-        method: req.method,
-        error: reason.toString(),
-        stack: reason.stack
-      };
-      
-      db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
-        [logId, 'error', JSON.stringify(details), req.ip],
-        (err) => {
-          if (err) console.error('错误日志记录失败:', err.message);
-        }
-      );
-    });
     
     next();
   };
@@ -473,59 +491,135 @@ app.get('/api/plates/:id', authenticateJWT, (req, res) => {
 });
 
 app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) => {
-  const { plate, uids, remark, notification_types = ['wxpusher'] } = req.body;
-  
-  if (!plate || !uids || !uids.length) {
-    return res.status(400).json({ msg: '车牌号和 UID 必填' });
-  }
-  
-  // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
-  if (!plateRegex.test(plate)) {
-    return res.status(400).json({ 
-      msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字',
-      debug: {
-        input: plate,
-        length: plate.length,
-        regex: plateRegex.toString()
-      }
+  try {
+    const { plate, uids, remark, notification_types = ['wxpusher'] } = req.body;
+    
+    console.log('📥 添加车牌请求参数:', {
+      plate,
+      uids,
+      remark,
+      notification_types,
+      plateLength: plate ? plate.length : 0,
+      plateChars: plate ? plate.split('').map(c => `0x${c.charCodeAt(0).toString(16)}(${c})`).join(' ') : 'undefined'
     });
-  }
-  
-  // 验证通知方式
-  const validNotificationTypes = ['wxpusher', 'wechatWork', 'dingtalk', 'bark'];
-  const invalidTypes = notification_types.filter(type => !validNotificationTypes.includes(type));
-  if (invalidTypes.length > 0) {
-    return res.status(400).json({ msg: `无效的通知方式: ${invalidTypes.join(', ')}` });
-  }
-  
-  const plateId = uuidv4();
-  const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
-  const notificationTypesStr = JSON.stringify(notification_types);
-  
-  db.run(
-    "INSERT INTO plates (id, plate, uids, remark, notification_types) VALUES (?, ?, ?, ?, ?)",
-    [plateId, plate, uidsStr, remark || '', notificationTypesStr],
-    function(err) {
-      if (err) {
-        console.error('添加车牌数据库错误:', err.message);
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ msg: '该车牌号已存在' });
+    
+    // 基本参数验证
+    if (!plate || !uids || !uids.length) {
+      return res.status(400).json({ msg: '车牌号和 UID 必填' });
+    }
+    
+    // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
+    const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+    if (!plateRegex.test(plate)) {
+      return res.status(400).json({ 
+        msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字',
+        debug: {
+          input: plate,
+          length: plate.length,
+          regex: plateRegex.toString(),
+          testResult: plateRegex.test(plate),
+          firstChar: plate ? plate[0] : 'undefined',
+          firstCharCode: plate ? plate.charCodeAt(0) : 'undefined',
+          isChinese: plate ? /^[\u4e00-\u9fa5]$/.test(plate[0]) : false
         }
-        return res.status(500).json({ 
-          msg: '添加车牌失败', 
-          error: err.message,
-          errorType: err.name,
-          code: err.errno
-        });
-      }
-      
-      res.status(201).json({ 
-        msg: '车牌添加成功', 
-        id: plateId 
       });
     }
-  );
+    
+    // 验证通知方式
+    const validNotificationTypes = ['wxpusher', 'wechatWork', 'dingtalk', 'bark'];
+    const invalidTypes = notification_types.filter(type => !validNotificationTypes.includes(type));
+    if (invalidTypes.length > 0) {
+      return res.status(400).json({ msg: `无效的通知方式: ${invalidTypes.join(', ')}` });
+    }
+    
+    // 数据库文件权限检查
+    const dbPath = path.join(dataDir, 'car_notify.db');
+    try {
+      fs.accessSync(dbPath, fs.constants.W_OK);
+      console.log('✅ 数据库文件可写');
+    } catch (err) {
+      console.error('❌ 数据库文件不可写:', err.message);
+      return res.status(500).json({ 
+        msg: '数据库文件无写入权限',
+        error: err.message,
+        dbPath: dbPath
+      });
+    }
+    
+    const plateId = uuidv4();
+    const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
+    const notificationTypesStr = JSON.stringify(notification_types);
+    
+    console.log('📥 准备插入数据库:', {
+      plateId,
+      plate,
+      uidsStr,
+      notificationTypesStr
+    });
+    
+    db.run(
+      "INSERT INTO plates (id, plate, uids, remark, notification_types) VALUES (?, ?, ?, ?, ?)",
+      [plateId, plate, uidsStr, remark || '', notificationTypesStr],
+      function(err) {
+        if (err) {
+          console.error('❌ 添加车牌数据库错误:', {
+            message: err.message,
+            errno: err.errno,
+            code: err.code,
+            stack: err.stack
+          });
+          
+          if (err.message.includes('UNIQUE constraint failed')) {
+            return res.status(400).json({ 
+              msg: '该车牌号已存在',
+              plate: plate
+            });
+          } else if (err.message.includes('permission denied')) {
+            return res.status(500).json({ 
+              msg: '数据库写入权限不足',
+              error: err.message,
+              solution: '检查容器数据目录挂载权限'
+            });
+          } else if (err.message.includes('no such table')) {
+            return res.status(500).json({ 
+              msg: '数据库表结构不存在',
+              error: err.message,
+              solution: '重启服务以初始化数据库表结构'
+            });
+          }
+          
+          return res.status(500).json({ 
+            msg: '添加车牌失败', 
+            error: err.message,
+            errno: err.errno,
+            code: err.code,
+            debug: {
+              plate,
+              plateId,
+              dbPath: path.join(dataDir, 'car_notify.db')
+            }
+          });
+        }
+        
+        console.log(`✅ 车牌添加成功: ${plate} (ID: ${plateId})`);
+        res.status(201).json({ 
+          msg: '车牌添加成功', 
+          id: plateId,
+          plate: plate
+        });
+      }
+    );
+  } catch (error) {
+    console.error('❌ 添加车牌请求处理错误:', {
+      message: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({ 
+      msg: '添加车牌请求处理错误', 
+      error: error.message,
+      stack: error.stack
+    });
+  }
 });
 
 app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res) => {
@@ -803,6 +897,11 @@ try {
   app.listen(PORT, () => {
     console.log(`✅ 服务已启动：http://localhost:${PORT}`);
     console.log(`🔑 后台登录：http://localhost:${PORT}/admin/login.html`);
+    console.log(`📊 数据目录：${dataDir}`);
+    console.log(`🔍 故障排查建议：`);
+    console.log(`  1. 检查数据目录权限: ls -ld ${dataDir}`);
+    console.log(`  2. 检查数据库文件权限: ls -l ${path.join(dataDir, 'car_notify.db')}`);
+    console.log(`  3. 查看应用日志获取详细错误信息`);
   });
 } catch (err) {
   console.error('❌ 服务器启动失败:', err.message);
