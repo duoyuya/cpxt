@@ -1041,4 +1041,4 @@ process.on('SIGINT', () => {
   } else {
     process.exit(0);
   }
-}
+});
