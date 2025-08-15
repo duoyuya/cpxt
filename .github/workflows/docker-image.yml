@@ -1,4 +1,4 @@
-name: 生产环境 - 手动输入版本号构建 Docker 镜像
+name: 构建 Docker 镜像
 on:
   workflow_dispatch:
     inputs:
