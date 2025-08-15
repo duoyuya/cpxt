@@ -83,11 +83,11 @@ try {
   process.exit(1);
 }
 
-// 数据库初始化函数
+// 数据库初始化函数 - 包含表结构迁移
 function initDatabase() {
   try {
-    // 创建表结构
-    db.run(`CREATE TABLE IF NOT EXISTS plates (
+    // 先创建新表结构
+    db.run(`CREATE TABLE IF NOT EXISTS plates_new (
       id TEXT PRIMARY KEY,
       plate TEXT NOT NULL UNIQUE,
       uids TEXT NOT NULL,
@@ -96,63 +96,43 @@ function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`, (err) => {
-      if (err) console.error('创建plates表错误:', err.message);
-      else console.log('✅ plates表初始化成功');
-    });
-    
-    db.run(`CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-      if (err) console.error('创建settings表错误:', err.message);
-      else console.log('✅ settings表初始化成功');
-    });
-    
-    db.run(`CREATE TABLE IF NOT EXISTS logs (
-      id TEXT PRIMARY KEY,
-      action TEXT NOT NULL,
-      details TEXT,
-      ip TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-      if (err) console.error('创建logs表错误:', err.message);
-      else console.log('✅ logs表初始化成功');
-    });
-    
-    db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
-      id TEXT PRIMARY KEY,
-      plate TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      expires_at TIMESTAMP NOT NULL,
-      used INTEGER DEFAULT 0
-    )`, (err) => {
-      if (err) console.error('创建access_tokens表错误:', err.message);
-      else console.log('✅ access_tokens表初始化成功');
-    });
-    
-    // 初始化默认设置
-    const defaultSettings = [
-      { key: 'app_token', value: 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs' },
-      { key: 'wechat_work_webhook', value: '' },
-      { key: 'dingtalk_webhook', value: '' },
-      { key: 'bark_server', value: 'https://api.day.app/' },
-      { key: 'bark_token', value: '' }
-    ];
-    
-    defaultSettings.forEach(({ key, value }) => {
-      db.get(`SELECT * FROM settings WHERE key = ?`, [key], (err, row) => {
-        if (err) {
-          console.error(`❌ 查询设置 ${key} 失败:`, err.message);
+      if (err) {
+        console.error('❌ 创建新plates表错误:', err.message);
+        // 如果是表已存在错误，则跳过
+        if (!err.message.includes('already exists')) {
           return;
         }
-        if (!row) {
-          db.run(`INSERT INTO settings (key, value) VALUES (?, ?)`, [key, value], function(err) {
-            if (err) {
-              console.error(`❌ 初始化设置 ${key} 失败:`, err.message);
+      }
+      
+      // 检查旧表是否存在
+      db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='plates'", (err, row) => {
+        if (err) {
+          console.error('❌ 检查旧表错误:', err.message);
+          return;
+        }
+        
+        if (row) {
+          // 旧表存在，检查是否需要迁移
+          db.get("PRAGMA table_info(plates)", (err, columns) => {
+            const hasNotificationColumn = columns.some(col => col.name === 'notification_types');
+            
+            if (!hasNotificationColumn) {
+              console.log('🔄 检测到旧表结构，需要迁移数据...');
+              migratePlateData();
             } else {
-              console.log(`✅ 初始化设置 ${key} 成功`);
+              console.log('✅ plates表结构已存在且最新');
+              continueDatabaseInit();
             }
+          });
+        } else {
+          // 旧表不存在，直接重命名新表
+          db.run("ALTER TABLE plates_new RENAME TO plates", (err) => {
+            if (err) {
+              console.error('❌ 重命名新表错误:', err.message);
+            } else {
+              console.log('✅ plates表初始化成功');
+            }
+            continueDatabaseInit();
           });
         }
       });
@@ -161,6 +141,124 @@ function initDatabase() {
     console.error('❌ 数据库表初始化失败:', err.message);
     process.exit(1);
   }
+}
+
+// 迁移旧表数据到新表
+function migratePlateData() {
+  db.run("BEGIN TRANSACTION", (err) => {
+    if (err) {
+      console.error('❌ 开始迁移事务失败:', err.message);
+      continueDatabaseInit();
+      return;
+    }
+    
+    // 复制旧表数据到新表
+    db.run(`INSERT INTO plates_new (id, plate, uids, remark, created_at, updated_at)
+            SELECT id, plate, uids, remark, created_at, updated_at FROM plates`, function(err) {
+      if (err) {
+        console.error('❌ 迁移数据错误:', err.message);
+        db.run("ROLLBACK", () => {
+          continueDatabaseInit();
+        });
+        return;
+      }
+      
+      console.log(`✅ 迁移数据成功，共迁移 ${this.changes} 条记录`);
+      
+      // 删除旧表
+      db.run("DROP TABLE plates", (err) => {
+        if (err) {
+          console.error('❌ 删除旧表错误:', err.message);
+          db.run("ROLLBACK", () => {
+            continueDatabaseInit();
+          });
+          return;
+        }
+        
+        // 重命名新表
+        db.run("ALTER TABLE plates_new RENAME TO plates", (err) => {
+          if (err) {
+            console.error('❌ 重命名新表错误:', err.message);
+            db.run("ROLLBACK", () => {
+              continueDatabaseInit();
+            });
+            return;
+          }
+          
+          db.run("COMMIT", (err) => {
+            if (err) {
+              console.error('❌ 提交迁移事务错误:', err.message);
+            } else {
+              console.log('✅ 表结构迁移完成');
+            }
+            continueDatabaseInit();
+          });
+        });
+      });
+    });
+  });
+}
+
+// 继续初始化其他表
+function continueDatabaseInit() {
+  // 创建其他表结构
+  db.run(`CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`, (err) => {
+    if (err) console.error('创建settings表错误:', err.message);
+    else console.log('✅ settings表初始化成功');
+  });
+  
+  db.run(`CREATE TABLE IF NOT EXISTS logs (
+    id TEXT PRIMARY KEY,
+    action TEXT NOT NULL,
+    details TEXT,
+    ip TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`, (err) => {
+    if (err) console.error('创建logs表错误:', err.message);
+    else console.log('✅ logs表初始化成功');
+  });
+  
+  db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
+    id TEXT PRIMARY KEY,
+    plate TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    used INTEGER DEFAULT 0
+  )`, (err) => {
+    if (err) console.error('创建access_tokens表错误:', err.message);
+    else console.log('✅ access_tokens表初始化成功');
+  });
+  
+  // 初始化默认设置
+  const defaultSettings = [
+    { key: 'app_token', value: 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs' },
+    { key: 'wechat_work_webhook', value: '' },
+    { key: 'dingtalk_webhook', value: '' },
+    { key: 'bark_server', value: 'https://api.day.app/' },
+    { key: 'bark_token', value: '' }
+  ];
+  
+  defaultSettings.forEach(({ key, value }) => {
+    db.get(`SELECT * FROM settings WHERE key = ?`, [key], (err, row) => {
+      if (err) {
+        console.error(`❌ 查询设置 ${key} 失败:`, err.message);
+        return;
+      }
+      if (!row) {
+        db.run(`INSERT INTO settings (key, value) VALUES (?, ?)`, [key, value], function(err) {
+          if (err) {
+            console.error(`❌ 初始化设置 ${key} 失败:`, err.message);
+          } else {
+            console.log(`✅ 初始化设置 ${key} 成功`);
+          }
+        });
+      }
+    });
+  });
 }
 
 // 每小时清理过期令牌
@@ -540,9 +638,9 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     } catch (err) {
       console.error('❌ 数据库文件不可写:', err.message);
       return res.status(500).json({ 
-        msg: '数据库文件无写入权限',
+        msg: '数据库写入权限不足',
         error: err.message,
-        dbPath: dbPath
+        solution: '检查容器数据目录挂载权限'
       });
     }
     
@@ -574,19 +672,18 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
               msg: '该车牌号已存在',
               plate: plate
             });
+          } else if (err.message.includes('no such column: notification_types')) {
+            return res.status(500).json({ 
+              msg: '数据库表结构过时',
+              error: err.message,
+              solution: '请删除旧数据库文件或执行数据迁移'
+            });
           } else if (err.message.includes('permission denied')) {
             return res.status(500).json({ 
               msg: '数据库写入权限不足',
               error: err.message,
               solution: '检查容器数据目录挂载权限'
             });
-          } else if (err.message.includes('no such table')) {
-            return res.status(500).json({ 
-              msg: '数据库表结构不存在',
-              error: err.message,
-              solution: '重启服务以初始化数据库表结构'
-            });
-          }
           
           return res.status(500).json({ 
             msg: '添加车牌失败', 
@@ -901,7 +998,7 @@ try {
     console.log(`🔍 故障排查建议：`);
     console.log(`  1. 检查数据目录权限: ls -ld ${dataDir}`);
     console.log(`  2. 检查数据库文件权限: ls -l ${path.join(dataDir, 'car_notify.db')}`);
-    console.log(`  3. 查看应用日志获取详细错误信息`);
+    console.log(`  3. 表结构过时请删除旧数据库文件: rm ${path.join(dataDir, 'car_notify.db')}`);
   });
 } catch (err) {
   console.error('❌ 服务器启动失败:', err.message);
