@@ -1,29 +1,28 @@
-name: 生产环境 - 手动触发构建 Docker 镜像（自动版本·修复版）
+name: 手动输入版本号构建 Docker 镜像
 on:
-  workflow_dispatch:  # 仅手动触发，点击 "Run workflow" 即可执行
+  workflow_dispatch:
+    inputs:
+      new_version:  # 手动触发时，让用户输入新版本号（如 v1.0.1）
+        description: 'v1.0.1'
+        required: true
+        default: 'v1.0.1'  # 默认值（可改，或让用户每次填）
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 防止构建卡住占资源
-    concurrency:
-      group: production-manual-build
-      cancel-in-progress: true  # 取消旧任务，优先跑新构建
     steps:
-      # 1. 拉取代码（必选，确保拿到仓库所有文件）
+      # 1. 拉取代码（确保拿到仓库文件）
       - name: 拉取仓库代码
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 拉取完整提交历史（如需 Git 信息则必须）
 
-      # 2. 登录 GHCR（用 Secrets 里的 PAT）
+      # 2. 登录 GHCR
       - name: 登录 GitHub 容器仓库（GHCR）
         env:
           DOCKER_PAT: ${{ secrets.DOCKER_PAT }}
         run: |
           echo "$DOCKER_PAT" | docker login ghcr.io --username ${{ github.actor }} --password-stdin
 
-      # 3. 登录 Docker Hub（用 Secrets 里的账号和 Token）
+      # 3. 登录 Docker Hub
       - name: 登录 Docker Hub
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -31,51 +30,40 @@ jobs:
         run: |
           echo "$DOCKER_HUB_TOKEN" | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
-      # 4. 自动生成版本号（时间戳）+ 定义镜像名
-      - name: 生成版本号并定义镜像变量
-        id: image-info
+      # 4. 构建镜像（用用户输入的版本号）
+      - name: 构建镜像（自定义版本号）
         run: |
-          IMAGE_VERSION=$(date +%Y%m%d%H%M)  # 格式：202408161030
+          # 从 workflow_dispatch 输入拿新版本号
+          NEW_VERSION="${{ github.event.inputs.new_version }}"
           GHCR_IMAGE="ghcr.io/${{ github.actor }}/cpxt"
           DOCKERHUB_IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/cpxt"
-          echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
-          echo "GHCR_IMAGE=$GHCR_IMAGE" >> $GITHUB_OUTPUT
-          echo "DOCKERHUB_IMAGE=$DOCKERHUB_IMAGE" >> $GITHUB_OUTPUT
 
-      # 5. 构建镜像（核心修复：确保 Dockerfile 在根目录，上下文路径正确）
-      - name: 构建镜像（自动版本号·修复版）
-        run: |
-          # 从步骤4拿变量
-          GHCR_IMAGE="${{ steps.image-info.outputs.GHCR_IMAGE }}"
-          DOCKERHUB_IMAGE="${{ steps.image-info.outputs.DOCKERHUB_IMAGE }}"
-          IMAGE_VERSION="${{ steps.image-info.outputs.IMAGE_VERSION }}"
-
-          # 关键：确保 Dockerfile 在仓库根目录，上下文用 "." 即可
+          # 打双标签：用户填的版本号 + latest
           docker build --no-cache \
-            -t $GHCR_IMAGE:$IMAGE_VERSION \
+            -t $GHCR_IMAGE:$NEW_VERSION \
             -t $GHCR_IMAGE:latest \
-            -t $DOCKERHUB_IMAGE:$IMAGE_VERSION \
+            -t $DOCKERHUB_IMAGE:$NEW_VERSION \
             -t $DOCKERHUB_IMAGE:latest \
-            .  # 仓库根目录作为上下文（必须确保根目录有 Dockerfile）
+            .  # 确保根目录有 Dockerfile
 
-      # 6. 推送镜像到 GHCR（版本号 + latest）
+      # 5. 推送镜像到 GHCR
       - name: 推送镜像到 GHCR
         run: |
-          GHCR_IMAGE="${{ steps.image-info.outputs.GHCR_IMAGE }}"
-          IMAGE_VERSION="${{ steps.image-info.outputs.IMAGE_VERSION }}"
-          docker push $GHCR_IMAGE:$IMAGE_VERSION
+          NEW_VERSION="${{ github.event.inputs.new_version }}"
+          GHCR_IMAGE="ghcr.io/${{ github.actor }}/cpxt"
+          docker push $GHCR_IMAGE:$NEW_VERSION
           docker push $GHCR_IMAGE:latest
 
-      # 7. 推送镜像到 Docker Hub（版本号 + latest）
+      # 6. 推送镜像到 Docker Hub
       - name: 推送镜像到 Docker Hub
         run: |
-          DOCKERHUB_IMAGE="${{ steps.image-info.outputs.DOCKERHUB_IMAGE }}"
-          IMAGE_VERSION="${{ steps.image-info.outputs.IMAGE_VERSION }}"
-          docker push $DOCKERHUB_IMAGE:$IMAGE_VERSION
+          NEW_VERSION="${{ github.event.inputs.new_version }}"
+          DOCKERHUB_IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/cpxt"
+          docker push $DOCKERHUB_IMAGE:$NEW_VERSION
           docker push $DOCKERHUB_IMAGE:latest
 
-      # 8. 验证：检查镜像和版本（可选，方便调试）
+      # 7. 验证：查看镜像版本
       - name: 查看本地镜像（含版本号）
         run: |
-          echo "当前构建版本：${{ steps.image-info.outputs.IMAGE_VERSION }}"
+          echo "当前构建的版本：${{ github.event.inputs.new_version }}"
           docker images | grep cpxt
