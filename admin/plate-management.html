@@ -524,6 +524,25 @@
       color: var(--text-secondary);
     }
     
+    /* 多选框样式 */
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+    }
+    
     /* 响应式设计 */
     @media (max-width: 768px) {
       .form-grid {
@@ -565,6 +584,11 @@
         width: 250px;
         left: 50%;
         transform: translateX(-50%);
+      }
+      
+      .checkbox-group {
+        flex-direction: column;
+        gap: 8px;
       }
     }
   </style>
@@ -661,19 +685,57 @@
           <h2>系统设置</h2>
         </div>
         <div class="card-body">
-          <div class="form-group">
-            <label for="appToken">APP Token</label>
-            <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
-            <div class="message" id="tokenMessage"></div>
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAppToken()"><i>💾</i> 保存设置</button>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="appToken">WxPusher APP Token</label>
+              <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
+            </div>
+            
+            <div class="form-group">
+              <label for="wechatWorkWebhook">企业微信机器人Webhook</label>
+              <input type="text" id="wechatWorkWebhook" placeholder="输入企业微信机器人Webhook地址">
+            </div>
+            
+            <div class="form-group">
+              <label for="dingtalkWebhook">钉钉机器人Webhook</label>
+              <input type="text" id="dingtalkWebhook" placeholder="输入钉钉机器人Webhook地址">
+            </div>
+            
+            <div class="form-group">
+              <label for="barkWebhook">Bark服务器地址</label>
+              <input type="text" id="barkWebhook" placeholder="输入Bark服务器地址（如：https://api.day.app/your-device-key）">
+            </div>
+            
+            <div class="form-group">
+              <label>默认通知渠道（可多选）</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelWxpusher" value="wxpusher">
+                  <label for="channelWxpusher">WxPusher</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelWechatWork" value="wechat_work">
+                  <label for="channelWechatWork">企业微信</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelDingtalk" value="dingtalk">
+                  <label for="channelDingtalk">钉钉</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="channelBark" value="bark">
+                  <label for="channelBark">Bark</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="adminPassword">管理员密码修改</label>
+              <input type="password" id="adminPassword" placeholder="输入新密码">
+            </div>
           </div>
           
-          <div class="form-group">
-            <label for="adminPassword">管理员密码修改</label>
-            <input type="password" id="adminPassword" placeholder="输入新密码">
-            <div class="message" id="passwordMessage"></div>
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateAdminPassword()"><i>🔒</i> 修改密码</button>
-          </div>
+          <div class="message" id="settingsMessage"></div>
+          <button class="btn btn-primary" onclick="saveSystemSettings()"><i>💾</i> 保存所有设置</button>
         </div>
       </div>
     </div>
@@ -747,8 +809,8 @@
         <input type="hidden" id="editPlateId">
         <div class="form-group">
           <label for="modalPlateNumber">车牌号</label>
-          <input type="text" id="modalPlateNumber" placeholder="输入7-8位车牌号，第一位为汉字，其余为字母或数字">
-          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：京A12345、沪B678901等</small>
+          <input type="text" id="modalPlateNumber" placeholder="请输入车牌号">
+          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">示例：标准车牌7位（如云A12345），新能源车牌8位（如云A123456）</small>
         </div>
         <div class="form-group">
           <label for="modalPlateUid">用户UID</label>
@@ -930,7 +992,6 @@
         if (!localStorage.getItem('token')) {
           // 显示友好提示而非直接跳转
           showError('请先登录系统');
-          // 3秒后跳转登录页
           setTimeout(() => {
             window.location.href = '/admin/login.html';
           }, 3000);
@@ -961,7 +1022,6 @@
         bindSelectAllEvent();
       } catch (error) {
         showError('页面加载失败: ' + error.message);
-        console.error('初始化错误:', error);
       }
     });
     
@@ -1221,10 +1281,10 @@
           return;
         }
         
-        // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
-        const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+        // 验证车牌格式：第一位为汉字，总长度6-8位，后续为字母或数字
+		const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
         if (!plateRegex.test(plateNumber)) {
-          messageEl.textContent = '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字';
+          messageEl.textContent = '车牌号格式不正确，第一位必须为汉字，总长度6-8位（标准车牌7位：如云A12345，新能源车牌8位：如云A123456），后续为字母或数字';
           messageEl.className = 'message error';
           return;
         }
@@ -1320,56 +1380,95 @@
     // 加载系统设置
     async function loadSystemSettings() {
       try {
-        // 获取APP Token
-        const tokenResponse = await fetch('/api/app-token', {
+        // 获取所有系统设置
+        const response = await fetch('/api/system-settings', {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           }
         });
         
-        if (!tokenResponse.ok) {
+        if (!response.ok) {
           throw new Error('加载系统设置失败');
         }
         
-        const tokenData = await tokenResponse.json();
-        document.getElementById('appToken').value = tokenData.token;
+        const settings = await response.json();
+        
+        // 填充表单
+        document.getElementById('appToken').value = settings.app_token || '';
+        document.getElementById('wechatWorkWebhook').value = settings.wechat_work_webhook || '';
+        document.getElementById('dingtalkWebhook').value = settings.dingtalk_webhook || '';
+        document.getElementById('barkWebhook').value = settings.bark_webhook || '';
+        
+        // 选中默认通知渠道
+        const defaultChannels = settings.notification_channels ? JSON.parse(settings.notification_channels) : [];
+        
+        // 渠道ID映射关系（channel值到HTML元素ID）
+        const channelIdMap = {
+          'wxpusher': 'channelWxpusher',
+          'wechat_work': 'channelWechatWork',
+          'dingtalk': 'channelDingtalk',
+          'bark': 'channelBark'
+        };
+        
+        // 遍历所有渠道并设置checkbox状态
+        Object.keys(channelIdMap).forEach(channel => {
+          const checkboxId = channelIdMap[channel];
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+            checkbox.checked = defaultChannels.includes(channel);
+          } else {
+            console.warn(`通知渠道 ${channel} 的checkbox元素不存在`);
+          }
+        });
+        
       } catch (error) {
         showError('加载系统设置失败: ' + error.message);
       }
     }
     
-    // 更新APP Token
-    async function updateAppToken() {
+    // 保存系统设置
+    async function saveSystemSettings() {
       try {
-        const token = document.getElementById('appToken').value.trim();
-        const messageEl = document.getElementById('tokenMessage');
+        // 收集表单数据
+        const settings = {
+          app_token: document.getElementById('appToken').value.trim(),
+          wechat_work_webhook: document.getElementById('wechatWorkWebhook').value.trim(),
+          dingtalk_webhook: document.getElementById('dingtalkWebhook').value.trim(),
+          bark_webhook: document.getElementById('barkWebhook').value.trim(),
+          notification_channels: Array.from(document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked'))
+            .map(checkbox => checkbox.value)
+        };
         
-        if (!token) {
-          messageEl.textContent = '请输入APP Token';
-          messageEl.className = 'message error';
+        // 验证至少选择一个通知渠道
+        if (settings.notification_channels.length === 0) {
+          document.getElementById('settingsMessage').textContent = '请至少选择一个通知渠道';
+          document.getElementById('settingsMessage').className = 'message error';
           return;
         }
         
-        const response = await fetch('/api/app-token', {
+        // 保存到JSON字符串
+        settings.notification_channels = JSON.stringify(settings.notification_channels);
+        
+        const response = await fetch('/api/system-settings', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
-          body: JSON.stringify({ token: token })
+          body: JSON.stringify(settings)
         });
         
         const data = await response.json();
         
         if (response.ok) {
-          messageEl.textContent = 'APP Token 更新成功';
-          messageEl.className = 'message success';
+          document.getElementById('settingsMessage').textContent = '系统设置保存成功';
+          document.getElementById('settingsMessage').className = 'message success';
         } else {
-          messageEl.textContent = data.msg || '更新失败';
-          messageEl.className = 'message error';
+          document.getElementById('settingsMessage').textContent = data.msg || '保存设置失败';
+          document.getElementById('settingsMessage').className = 'message error';
         }
       } catch (error) {
-        showError('更新APP Token失败: ' + error.message);
+        showError('保存系统设置失败: ' + error.message);
       }
     }
     
@@ -1377,7 +1476,7 @@
     async function updateAdminPassword() {
       try {
         const password = document.getElementById('adminPassword').value.trim();
-        const messageEl = document.getElementById('passwordMessage');
+        const messageEl = document.getElementById('settingsMessage');
         
         if (!password) {
           messageEl.textContent = '请输入新密码';
@@ -1437,11 +1536,9 @@
           document.getElementById('logMessage').className = 'message success';
           
           // 重新加载日志
-          loadLogs(currentLogsPage);
-          
-          // 重置全选状态
-          document.getElementById('selectAllLogs').checked = false;
-          document.getElementById('headerLogCheckbox').checked = false;
+          setTimeout(() => {
+            loadLogs(currentLogsPage);
+          }, 1000);
         } else {
           document.getElementById('logMessage').textContent = data.msg || '删除失败';
           document.getElementById('logMessage').className = 'message error';
