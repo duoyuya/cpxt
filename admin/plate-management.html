@@ -543,6 +543,20 @@
       height: 14px;
     }
     
+    /* 通知配置样式 */
+    .notification-config-group {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+    
+    .notification-config-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: var(--primary-light);
+      border-radius: 8px;
+    }
+    
     /* 响应式设计 */
     @media (max-width: 768px) {
       .form-grid {
@@ -651,6 +665,7 @@
                 <tr>
                   <th>车牌号</th>
                   <th>用户UID</th>
+                  <th>通知方式</th>
                   <th>备注</th>
                   <th>添加时间</th>
                   <th>操作</th>
@@ -689,43 +704,6 @@
             <div class="form-group">
               <label for="appToken">WxPusher APP Token</label>
               <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
-            </div>
-            
-            <div class="form-group">
-              <label for="wechatWorkWebhook">企业微信机器人Webhook</label>
-              <input type="text" id="wechatWorkWebhook" placeholder="输入企业微信机器人Webhook地址">
-            </div>
-            
-            <div class="form-group">
-              <label for="dingtalkWebhook">钉钉机器人Webhook</label>
-              <input type="text" id="dingtalkWebhook" placeholder="输入钉钉机器人Webhook地址">
-            </div>
-            
-            <div class="form-group">
-              <label for="barkWebhook">Bark服务器地址</label>
-              <input type="text" id="barkWebhook" placeholder="输入Bark服务器地址（如：https://api.day.app/your-device-key）">
-            </div>
-            
-            <div class="form-group">
-              <label>默认通知渠道（可多选）</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item">
-                  <input type="checkbox" id="channelWxpusher" value="wxpusher">
-                  <label for="channelWxpusher">WxPusher</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="channelWechatWork" value="wechat_work">
-                  <label for="channelWechatWork">企业微信</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="channelDingtalk" value="dingtalk">
-                  <label for="channelDingtalk">钉钉</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="channelBark" value="bark">
-                  <label for="channelBark">Bark</label>
-                </div>
-              </div>
             </div>
             
             <div class="form-group">
@@ -817,6 +795,36 @@
           <input type="text" id="modalPlateUid" placeholder="多个UID用逗号分隔">
         </div>
         <div class="form-group">
+          <label>通知渠道配置</label>
+          <div class="checkbox-group" id="notificationChannels">
+            <div class="checkbox-item">
+              <input type="checkbox" id="channelWxpusher" value="wxpusher">
+              <label for="channelWxpusher">WxPusher</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="channelWechatWork" value="wechat_work">
+              <label for="channelWechatWork">企业微信</label>
+              <div id="wechatWorkConfig" class="notification-config-item" style="display: none;">
+                <input type="text" id="wechatWorkWebhook" placeholder="输入企业微信机器人Webhook地址">
+              </div>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="channelDingtalk" value="dingtalk">
+              <label for="channelDingtalk">钉钉</label>
+              <div id="dingtalkConfig" class="notification-config-item" style="display: none;">
+                <input type="text" id="dingtalkWebhook" placeholder="输入钉钉机器人Webhook地址">
+              </div>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="channelBark" value="bark">
+              <label for="channelBark">Bark</label>
+              <div id="barkConfig" class="notification-config-item" style="display: none;">
+                <input type="text" id="barkWebhook" placeholder="输入Bark服务器地址">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="modalPlateRemark">备注</label>
           <input type="text" id="modalPlateRemark" placeholder="输入备注信息">
         </div>
@@ -876,6 +884,21 @@
       html = renderDetails(details);
       return html;
     }
+    
+    // 通知渠道复选框交互
+    document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const channel = this.value;
+        const configId = channel === 'wechat_work' ? 'wechatWorkConfig' : 
+                        channel === 'dingtalk' ? 'dingtalkConfig' : 
+                        channel === 'bark' ? 'barkConfig' : null;
+        
+        if (configId) {
+          const configElement = document.getElementById(configId);
+          configElement.style.display = this.checked ? 'block' : 'none';
+        }
+      });
+    });
     
     // 当前页码和搜索条件
     let currentPlatesPage = 1;
@@ -1121,14 +1144,25 @@
             return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
           }).join(', ');
           
+          // 处理通知方式显示
+          const channels = JSON.parse(plate.notification_channels || '[]');
+          const channelLabels = {
+            'wxpusher': 'WxPusher',
+            'wechat_work': '企业微信',
+            'dingtalk': '钉钉',
+            'bark': 'Bark'
+          };
+          const channelText = channels.map(c => channelLabels[c] || c).join(', ') || '未设置';
+          
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${plate.plate}</td>
             <td>${maskedUids}</td>
+            <td>${channelText}</td>
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}')">✏️ 编辑</button>
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids}', '${plate.remark || ''}', '${plate.notification_channels || '[]'}', '${plate.notification_configs || '{}'}')">✏️ 编辑</button>
               <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
             </td>
           `;
@@ -1139,7 +1173,7 @@
         renderPagination('platesPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
         showError('加载车牌数据失败: ' + error.message);
       }
     }
@@ -1231,6 +1265,15 @@
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
         
+        // 重置通知渠道选择
+        document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        document.querySelectorAll('.notification-config-item').forEach(item => {
+          item.style.display = 'none';
+          item.querySelector('input').value = '';
+        });
+        
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
@@ -1239,7 +1282,7 @@
     }
     
     // 打开编辑车牌模态框
-    function openEditPlateModal(id, plate, uids, remark) {
+    function openEditPlateModal(id, plate, uids, remark, notificationChannels, notificationConfigs) {
       try {
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = id;
@@ -1248,6 +1291,39 @@
         document.getElementById('modalPlateRemark').value = remark;
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
+        
+        // 重置通知渠道选择
+        document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        document.querySelectorAll('.notification-config-item').forEach(item => {
+          item.style.display = 'none';
+          item.querySelector('input').value = '';
+        });
+        
+        // 解析通知配置
+        const channels = JSON.parse(notificationChannels || '[]');
+        const configs = JSON.parse(notificationConfigs || '{}');
+        
+        // 设置复选框状态
+        channels.forEach(channel => {
+          const checkbox = document.getElementById(`channel${channel.charAt(0).toUpperCase() + channel.slice(1)}`);
+          if (checkbox) {
+            checkbox.checked = true;
+            
+            // 显示对应配置项并填充值
+            if (channel === 'wechat_work') {
+              document.getElementById('wechatWorkConfig').style.display = 'block';
+              document.getElementById('wechatWorkWebhook').value = configs.wechat_work_webhook || '';
+            } else if (channel === 'dingtalk') {
+              document.getElementById('dingtalkConfig').style.display = 'block';
+              document.getElementById('dingtalkWebhook').value = configs.dingtalk_webhook || '';
+            } else if (channel === 'bark') {
+              document.getElementById('barkConfig').style.display = 'block';
+              document.getElementById('barkWebhook').value = configs.bark_webhook || '';
+            }
+          }
+        });
         
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
@@ -1282,7 +1358,7 @@
         }
         
         // 验证车牌格式：第一位为汉字，总长度6-8位，后续为字母或数字
-		const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+		const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
         if (!plateRegex.test(plateNumber)) {
           messageEl.textContent = '车牌号格式不正确，第一位必须为汉字，总长度6-8位（标准车牌7位：如云A12345，新能源车牌8位：如云A123456），后续为字母或数字';
           messageEl.className = 'message error';
@@ -1291,6 +1367,53 @@
         
         if (!uids) {
           messageEl.textContent = '请输入用户UID';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        // 收集通知渠道配置
+        const channels = [];
+        const configs = {};
+        
+        if (document.getElementById('channelWxpusher').checked) {
+          channels.push('wxpusher');
+        }
+        
+        if (document.getElementById('channelWechatWork').checked) {
+          const webhook = document.getElementById('wechatWorkWebhook').value.trim();
+          if (!webhook) {
+            messageEl.textContent = '请输入企业微信Webhook地址';
+            messageEl.className = 'message error';
+            return;
+          }
+          channels.push('wechat_work');
+          configs.wechat_work_webhook = webhook;
+        }
+        
+        if (document.getElementById('channelDingtalk').checked) {
+          const webhook = document.getElementById('dingtalkWebhook').value.trim();
+          if (!webhook) {
+            messageEl.textContent = '请输入钉钉Webhook地址';
+            messageEl.className = 'message error';
+            return;
+          }
+          channels.push('dingtalk');
+          configs.dingtalk_webhook = webhook;
+        }
+        
+        if (document.getElementById('channelBark').checked) {
+          const webhook = document.getElementById('barkWebhook').value.trim();
+          if (!webhook) {
+            messageEl.textContent = '请输入Bark服务器地址';
+            messageEl.className = 'message error';
+            return;
+          }
+          channels.push('bark');
+          configs.bark_webhook = webhook;
+        }
+        
+        if (channels.length === 0) {
+          messageEl.textContent = '请至少选择一种通知渠道';
           messageEl.className = 'message error';
           return;
         }
@@ -1315,7 +1438,9 @@
           body: JSON.stringify({
             plate: plateNumber,
             uids: uidsArray,
-            remark: remark
+            remark: remark,
+            notification_channels: JSON.stringify(channels),
+            notification_configs: JSON.stringify(configs)
           })
         });
         
@@ -1395,31 +1520,6 @@
         
         // 填充表单
         document.getElementById('appToken').value = settings.app_token || '';
-        document.getElementById('wechatWorkWebhook').value = settings.wechat_work_webhook || '';
-        document.getElementById('dingtalkWebhook').value = settings.dingtalk_webhook || '';
-        document.getElementById('barkWebhook').value = settings.bark_webhook || '';
-        
-        // 选中默认通知渠道
-        const defaultChannels = settings.notification_channels ? JSON.parse(settings.notification_channels) : [];
-        
-        // 渠道ID映射关系（channel值到HTML元素ID）
-        const channelIdMap = {
-          'wxpusher': 'channelWxpusher',
-          'wechat_work': 'channelWechatWork',
-          'dingtalk': 'channelDingtalk',
-          'bark': 'channelBark'
-        };
-        
-        // 遍历所有渠道并设置checkbox状态
-        Object.keys(channelIdMap).forEach(channel => {
-          const checkboxId = channelIdMap[channel];
-          const checkbox = document.getElementById(checkboxId);
-          if (checkbox) {
-            checkbox.checked = defaultChannels.includes(channel);
-          } else {
-            console.warn(`通知渠道 ${channel} 的checkbox元素不存在`);
-          }
-        });
         
       } catch (error) {
         showError('加载系统设置失败: ' + error.message);
@@ -1429,25 +1529,19 @@
     // 保存系统设置
     async function saveSystemSettings() {
       try {
-        // 收集表单数据
-        const settings = {
-          app_token: document.getElementById('appToken').value.trim(),
-          wechat_work_webhook: document.getElementById('wechatWorkWebhook').value.trim(),
-          dingtalk_webhook: document.getElementById('dingtalkWebhook').value.trim(),
-          bark_webhook: document.getElementById('barkWebhook').value.trim(),
-          notification_channels: Array.from(document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked'))
-            .map(checkbox => checkbox.value)
-        };
+        const appToken = document.getElementById('appToken').value.trim();
+        const adminPassword = document.getElementById('adminPassword').value.trim();
+        const messageEl = document.getElementById('settingsMessage');
         
-        // 验证至少选择一个通知渠道
-        if (settings.notification_channels.length === 0) {
-          document.getElementById('settingsMessage').textContent = '请至少选择一个通知渠道';
-          document.getElementById('settingsMessage').className = 'message error';
+        const settings = {};
+        if (appToken) settings.app_token = appToken;
+        if (adminPassword) settings.admin_password = adminPassword;
+        
+        if (Object.keys(settings).length === 0) {
+          messageEl.textContent = '没有需要保存的设置';
+          messageEl.className = 'message info';
           return;
         }
-        
-        // 保存到JSON字符串
-        settings.notification_channels = JSON.stringify(settings.notification_channels);
         
         const response = await fetch('/api/system-settings', {
           method: 'POST',
@@ -1461,41 +1555,21 @@
         const data = await response.json();
         
         if (response.ok) {
-          document.getElementById('settingsMessage').textContent = '系统设置保存成功';
-          document.getElementById('settingsMessage').className = 'message success';
+          messageEl.textContent = '系统设置保存成功';
+          messageEl.className = 'message success';
+          
+          // 如果修改了密码，提示重新登录
+          if (adminPassword) {
+            setTimeout(() => {
+              logout();
+            }, 2000);
+          }
         } else {
-          document.getElementById('settingsMessage').textContent = data.msg || '保存设置失败';
-          document.getElementById('settingsMessage').className = 'message error';
+          messageEl.textContent = data.msg || '保存失败';
+          messageEl.className = 'message error';
         }
       } catch (error) {
         showError('保存系统设置失败: ' + error.message);
-      }
-    }
-    
-    // 更新管理员密码
-    async function updateAdminPassword() {
-      try {
-        const password = document.getElementById('adminPassword').value.trim();
-        const messageEl = document.getElementById('settingsMessage');
-        
-        if (!password) {
-          messageEl.textContent = '请输入新密码';
-          messageEl.className = 'message error';
-          return;
-        }
-        
-        if (password.length < 6) {
-          messageEl.textContent = '密码长度不能少于6位';
-          messageEl.className = 'message error';
-          return;
-        }
-        
-        // 这里应该有一个真实的API调用来更新密码
-        // 目前只是模拟成功
-        messageEl.textContent = '密码更新功能尚未实现';
-        messageEl.className = 'message info';
-      } catch (error) {
-        showError('更新密码失败: ' + error.message);
       }
     }
     
@@ -1512,13 +1586,13 @@
     // 删除选中日志
     async function deleteSelectedLogs() {
       try {
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
-        if (checkboxes.length === 0) {
+        const selectedCheckboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
+        if (selectedCheckboxes.length === 0) {
           showError('请先选择要删除的日志');
           return;
         }
         
-        const logIds = Array.from(checkboxes).map(checkbox => checkbox.getAttribute('data-id'));
+        const ids = Array.from(selectedCheckboxes).map(checkbox => checkbox.getAttribute('data-id'));
         
         const response = await fetch('/api/logs', {
           method: 'DELETE',
@@ -1526,22 +1600,16 @@
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
           },
-          body: JSON.stringify({ ids: logIds })
+          body: JSON.stringify({ ids: ids })
         });
         
         const data = await response.json();
         
         if (response.ok) {
-          document.getElementById('logMessage').textContent = data.msg;
-          document.getElementById('logMessage').className = 'message success';
-          
-          // 重新加载日志
-          setTimeout(() => {
-            loadLogs(currentLogsPage);
-          }, 1000);
+          showError(`成功删除 ${data.deletedCount} 条日志`);
+          loadLogs(currentLogsPage);
         } else {
-          document.getElementById('logMessage').textContent = data.msg || '删除失败';
-          document.getElementById('logMessage').className = 'message error';
+          showError(data.msg || '删除日志失败');
         }
       } catch (error) {
         showError('删除日志失败: ' + error.message);
