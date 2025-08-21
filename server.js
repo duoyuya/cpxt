@@ -24,7 +24,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
     console.error('数据库连接错误:', err.message);
   } else {
     console.log('✅ SQLite 数据库连接成功');
-    // 创建表结构
+    // 创建表结构（已修复SQL语法错误）
     db.run(`CREATE TABLE IF NOT EXISTS plates (
       id TEXT PRIMARY KEY,
       plate TEXT NOT NULL UNIQUE,
@@ -32,51 +32,47 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'car_notify.db'), (
       remark TEXT,
       notification_channels TEXT DEFAULT '[]',
       notification_configs TEXT DEFAULT '{}',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );`);
     
     db.run(`CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );`);
     
     db.run(`CREATE TABLE IF NOT EXISTS logs (
       id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
       details TEXT,
       ip TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );`);
     
     // 创建访问令牌表
     db.run(`CREATE TABLE IF NOT EXISTS access_tokens (
       id TEXT PRIMARY KEY,
       plate TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      expires_at TIMESTAMP NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NOT NULL,
       used INTEGER DEFAULT 0
-    )`);
+    );`);
     
     // 初始化默认设置
     db.get("SELECT * FROM settings WHERE key = 'app_token'", (err, row) => {
       if (!row) {
-        db.run("INSERT INTO settings (key, value) VALUES (?, ?)", 
+        db.run("INSERT INTO settings (key, value) VALUES (?, ?);", 
           ['app_token', 'AT_dHj0kby8R58ywAo8MW272n2ike2Uv7rs']);
       }
     });
-    
-    // 检查并添加新字段（用于数据库迁移）
-    db.run(`ALTER TABLE plates ADD COLUMN IF NOT EXISTS notification_channels TEXT DEFAULT '[]'`);
-    db.run(`ALTER TABLE plates ADD COLUMN IF NOT EXISTS notification_configs TEXT DEFAULT '{}'`);
   }
 });
 
 // 每小时清理过期令牌
 setInterval(() => {
   const now = new Date().toISOString();
-  db.run("DELETE FROM access_tokens WHERE expires_at < ?", [now], function(err) {
+  db.run("DELETE FROM access_tokens WHERE expires_at < ?;", [now], function(err) {
     if (err) {
       console.error('清理过期令牌失败:', err.message);
     } else {
@@ -134,7 +130,7 @@ const logAction = (action) => {
       };
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?);",
         [logId, action, JSON.stringify(details), req.ip],
         (err) => {
           if (err) console.error('日志记录失败:', err.message);
@@ -155,7 +151,7 @@ const logAction = (action) => {
       };
       
       db.run(
-        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?)",
+        "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?);",
         [logId, 'error', JSON.stringify(details), req.ip],
         (err) => {
           if (err) console.error('错误日志记录失败:', err.message);
@@ -208,7 +204,7 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
     }
     
     // 验证车牌是否存在
-    db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
+    db.get("SELECT * FROM plates WHERE plate = ?;", [plate], (err, plateInfo) => {
       if (err) {
         return res.status(500).json({ msg: '查询车牌失败', error: err.message });
       }
@@ -224,7 +220,7 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
       
       // 保存令牌
       db.run(
-        "INSERT INTO access_tokens (id, plate, expires_at) VALUES (?, ?, ?)",
+        "INSERT INTO access_tokens (id, plate, expires_at) VALUES (?, ?, ?);",
         [token, plate, expiresAt],
         function(err) {
           if (err) {
@@ -254,7 +250,7 @@ app.get('/api/validate-token', (req, res) => {
     }
     
     // 查询令牌
-    db.get("SELECT * FROM access_tokens WHERE id = ?", [token], (err, tokenInfo) => {
+    db.get("SELECT * FROM access_tokens WHERE id = ?;", [token], (err, tokenInfo) => {
       if (err) {
         return res.status(500).json({ msg: '验证令牌失败', error: err.message });
       }
@@ -274,7 +270,7 @@ app.get('/api/validate-token', (req, res) => {
       }
       
       // 标记令牌为已使用（单次有效）
-      db.run("UPDATE access_tokens SET used = 1 WHERE id = ?", [token]);
+      db.run("UPDATE access_tokens SET used = 1 WHERE id = ?;", [token]);
       
       res.json({
         valid: true,
@@ -303,7 +299,7 @@ app.get('/api/plates', authenticateJWT, (req, res) => {
     countParams.push(`%${search}%`);
   }
   
-  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?;";
   params.push(limit, offset);
   
   db.all(query, params, (err, rows) => {
@@ -337,7 +333,7 @@ app.get('/api/plates', authenticateJWT, (req, res) => {
 });
 
 app.get('/api/plates/:id', authenticateJWT, (req, res) => {
-  db.get("SELECT * FROM plates WHERE id = ?", [req.params.id], (err, row) => {
+  db.get("SELECT * FROM plates WHERE id = ?;", [req.params.id], (err, row) => {
     if (err) {
       return res.status(500).json({ msg: '获取车牌数据失败', error: err.message });
     }
@@ -377,7 +373,7 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
   
   db.run(
-    "INSERT INTO plates (id, plate, uids, remark, notification_channels, notification_configs) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO plates (id, plate, uids, remark, notification_channels, notification_configs) VALUES (?, ?, ?, ?, ?, ?);",
     [plateId, plate, uidsStr, remark || '', JSON.stringify(notification_channels), JSON.stringify(notification_configs || {})],
     function(err) {
       if (err) {
@@ -417,7 +413,7 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
   
   db.run(
-    "UPDATE plates SET plate = ?, uids = ?, remark = ?, notification_channels = ?, notification_configs = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    "UPDATE plates SET plate = ?, uids = ?, remark = ?, notification_channels = ?, notification_configs = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
     [plate, uidsStr, remark || '', JSON.stringify(notification_channels), JSON.stringify(notification_configs || {}), req.params.id],
     function(err) {
       if (err) {
@@ -437,7 +433,7 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
 });
 
 app.delete('/api/plates/:id', authenticateJWT, logAction('删除车牌'), (req, res) => {
-  db.run("DELETE FROM plates WHERE id = ?", [req.params.id], function(err) {
+  db.run("DELETE FROM plates WHERE id = ?;", [req.params.id], function(err) {
     if (err) {
       return res.status(500).json({ msg: '删除车牌失败', error: err.message });
     }
@@ -453,7 +449,7 @@ app.delete('/api/plates/:id', authenticateJWT, logAction('删除车牌'), (req, 
 // 系统设置 API
 app.get('/api/system-settings', authenticateJWT, (req, res) => {
   try {
-    db.all("SELECT key, value FROM settings", (err, settings) => {
+    db.all("SELECT key, value FROM settings;", (err, settings) => {
       if (err) {
         return res.status(500).json({ msg: '获取系统设置失败', error: err.message });
       }
@@ -493,7 +489,7 @@ app.post('/api/system-settings', authenticateJWT, logAction('更新系统设置'
     }
     
     // 使用事务处理多个更新
-    db.run("BEGIN TRANSACTION", function(err) {
+    db.run("BEGIN TRANSACTION;", function(err) {
       if (err) {
         return res.status(500).json({ msg: '事务开始失败', error: err.message });
       }
@@ -503,7 +499,7 @@ app.post('/api/system-settings', authenticateJWT, logAction('更新系统设置'
       
       Object.keys(filteredSettings).forEach(key => {
         db.run(
-          "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?",
+          "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?;",
           [filteredSettings[key], key],
           function(err) {
             if (err) {
@@ -516,11 +512,11 @@ app.post('/api/system-settings', authenticateJWT, logAction('更新系统设置'
             // 所有设置都已处理
             if (completed === Object.keys(filteredSettings).length) {
               if (hasError) {
-                db.run("ROLLBACK", function() {
+                db.run("ROLLBACK;", function() {
                   res.status(500).json({ msg: '部分设置更新失败，已回滚' });
                 });
               } else {
-                db.run("COMMIT", function() {
+                db.run("COMMIT;", function() {
                   res.json({ msg: '系统设置更新成功' });
                 });
               }
@@ -536,7 +532,7 @@ app.post('/api/system-settings', authenticateJWT, logAction('更新系统设置'
 
 // APP Token 管理 (保留向后兼容)
 app.get('/api/app-token', authenticateJWT, (req, res) => {
-  db.get("SELECT value FROM settings WHERE key = 'app_token'", (err, row) => {
+  db.get("SELECT value FROM settings WHERE key = 'app_token';", (err, row) => {
     if (err) {
       return res.status(500).json({ msg: '获取 APP Token 失败', error: err.message });
     }
@@ -553,7 +549,7 @@ app.post('/api/app-token', authenticateJWT, logAction('更新APP Token'), (req, 
   }
   
   db.run(
-    "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'app_token'",
+    "UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'app_token';",
     [token],
     function(err) {
       if (err) {
@@ -631,7 +627,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
     }
     
     // 查询车牌信息（完整匹配）
-    db.get("SELECT * FROM plates WHERE plate = ?", [plate], (err, plateInfo) => {
+    db.get("SELECT * FROM plates WHERE plate = ?;", [plate], (err, plateInfo) => {
       if (err) {
         return res.status(500).json({ msg: '查询车牌失败', error: err.message });
       }      
@@ -641,7 +637,7 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
       }
       
       // 查询系统设置（只获取WxPusher APP Token）
-      db.get("SELECT value FROM settings WHERE key = 'app_token'", async (err, tokenRow) => {
+      db.get("SELECT value FROM settings WHERE key = 'app_token';", async (err, tokenRow) => {
         if (err) {
           return res.status(500).json({ msg: '获取配置失败', error: err.message });
         }
@@ -743,7 +739,7 @@ app.get('/api/logs', authenticateJWT, (req, res) => {
     countParams.push(action);
   }
   
-  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?;";
   params.push(limit, offset);
   
   db.all(query, params, (err, rows) => {
@@ -800,7 +796,7 @@ app.delete('/api/logs', authenticateJWT, logAction('删除日志'), (req, res) =
     const placeholders = validIds.map(() => '?').join(',');
     
     db.run(
-      "DELETE FROM logs WHERE id IN (" + placeholders + ")",
+      "DELETE FROM logs WHERE id IN (" + placeholders + ");",
       validIds,
       function(err) {
         if (err) {
