@@ -1,15 +1,10 @@
-# 不使用-alpine后缀
-FROM node:14
+# 使用包含时区数据的基础镜像
+FROM node:14-buster
 
-# 非交互式安装tzdata并配置时区
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata && \
-    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone && \
-    rm -rf /var/lib/apt/lists/*  # 清理缓存减小镜像体积
-
-# 设置环境变量
+# 直接设置时区（无需安装任何包）
 ENV TZ=Asia/Shanghai
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    echo ${TZ} > /etc/timezone
 
 WORKDIR /app
 
