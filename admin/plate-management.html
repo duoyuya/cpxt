@@ -614,7 +614,7 @@
   </div>
   
   <!-- 页面导航标题 -->
-  <h1 class="page-title">车牌管理系统设置操作日志</h1>
+  <h1 class="page-title">北沐挪车通知系统</h1>
   
   <!-- 功能区块标题 -->
   <div class="section-title">车牌列表</div>
@@ -1136,7 +1136,7 @@
             setTimeout(() => {
               window.location.href = '/admin/login.html';
             }, 3000);
-            return;
+            return; // 添加return防止继续执行
           }
           throw new Error('加载车牌数据失败');
         }
@@ -1174,8 +1174,8 @@
           const channelText = channels.map(c => channelLabels[c] || c).join(', ') || '未设置';
           
           // 转义JSON参数中的双引号
-          const channelsStr = JSON.stringify(plate.notification_channels || []).replace(/"/g, '\\"');
-          const configsStr = JSON.stringify(plate.notification_configs || {}).replace(/"/g, '\\"');
+          const channelsStr = JSON.stringify(plate.notification_channels || []).replace(/\"/g, '\\\"');
+          const configsStr = JSON.stringify(plate.notification_configs || {}).replace(/\"/g, '\\\"');
           
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -1194,7 +1194,7 @@
         
         // 渲染分页
         renderPagination('platesPagination', data.pagination.pages, page);
-      } catch (error) {
+      } catch (error) { // 统一的错误处理
         loading.style.display = 'none';
         tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
         showError('加载车牌数据失败: ' + error.message);
@@ -1313,7 +1313,6 @@
         document.getElementById('modalPlateUid').value = uids;
         document.getElementById('modalPlateRemark').value = remark;
         document.getElementById('modalMessage').textContent = '';
-        document.getElementById('modalMessage').className = 'message';
         
         // 重置通知渠道选择
         document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
@@ -1324,9 +1323,9 @@
           item.querySelector('input').value = '';
         });
         
-        // 解析通知配置（注意：这里的参数已经转义过双引号，需要先替换回来再解析）
-        const channels = JSON.parse(notificationChannels.replace(/\\"/g, '"') || '[]');
-        const configs = JSON.parse(notificationConfigs.replace(/\\"/g, '"') || '{}');
+        // 解析通知配置
+        const channels = JSON.parse(notificationChannels.replace(/\\\"/g, '"') || '[]');
+        const configs = JSON.parse(notificationConfigs.replace(/\\\"/g, '"') || '{}');
         
         // 设置复选框状态
         channels.forEach(channel => {
@@ -1352,6 +1351,7 @@
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
         showError('打开编辑窗口失败: ' + error.message);
+        console.error('编辑窗口打开失败详情:', error);
       }
     }
     
@@ -1382,7 +1382,7 @@
         
         // 验证车牌格式
         if (!plateRegex.test(plateNumber)) {
-          messageEl.textContent = '车牌号格式不正确：\\n标准车牌7位（如：云A12345）\\n新能源车牌8位（如：云A1234567）\\n第一位必须为汉字，后续为字母或数字';
+          messageEl.textContent = '车牌号格式不正确：\n标准车牌7位（如：云A12345）\n新能源车牌8位（如：云A1234567）\n第一位必须为汉字，后续为字母或数字';
           messageEl.className = 'message error';
           return;
         }
@@ -1451,38 +1451,74 @@
         const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
         const method = plateId ? 'PUT' : 'POST';
         
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-          },
-          body: JSON.stringify({
-            plate: plateNumber,
-            uids: uidsArray,
-            remark: remark,
-            notification_channels: channels,
-            notification_configs: configs
-          })
-        });
+        // 显示加载状态
+        const saveButton = document.getElementById('savePlateBtn');
+        const originalText = saveButton.innerHTML;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<div class="loading" style="width: 16px; height: 16px;"></div> 处理中...';
         
-        const data = await response.json();
-        
-        if (response.ok) {
-          messageEl.textContent = plateId ? '车牌更新成功' : '车牌添加成功';
-          messageEl.className = 'message success';
+        try {
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            body: JSON.stringify({
+              plate: plateNumber,
+              uids: uidsArray,
+              remark: remark,
+              notification_channels: channels,
+              notification_configs: configs
+            })
+          });
           
-          // 关闭模态框并重新加载车牌数据
-          setTimeout(() => {
-            closePlateModal();
-            loadPlates(currentPlatesPage, currentSearchTerm);
-          }, 1000);
-        } else {
-          messageEl.textContent = data.msg || (plateId ? '更新失败' : '添加失败');
+          // 无论响应状态如何，先尝试解析JSON响应
+          let data;
+          try {
+            data = await response.json();
+          } catch (jsonError) {
+            // 处理非JSON响应
+            throw new Error(`服务器返回无效响应: ${await response.text()}`);
+          }
+          
+          if (response.ok) {
+            messageEl.textContent = plateId ? '车牌更新成功' : '车牌添加成功';
+            messageEl.className = 'message success';
+            
+            // 关闭模态框并重新加载车牌数据
+            setTimeout(() => {
+              closePlateModal();
+              loadPlates(currentPlatesPage, currentSearchTerm);
+            }, 1000);
+          } else {
+            // 详细的错误信息处理
+            messageEl.textContent = `操作失败: ${data.msg || '未知错误'}`;
+            messageEl.className = 'message error';
+            
+            // 特定错误类型的详细提示
+            if (response.status === 401 || response.status === 403) {
+              messageEl.textContent += '\n登录已过期，请重新登录';
+              setTimeout(() => {
+                logout();
+              }, 3000);
+            } else if (response.status === 409) {
+              messageEl.textContent = '该车牌号已存在，请更换车牌号';
+            }
+          }
+        } catch (error) {
+          // 网络错误或其他异常
+          messageEl.textContent = `请求失败: ${error.message}`;
           messageEl.className = 'message error';
+          console.error('保存车牌请求错误:', error);
+        } finally {
+          // 恢复按钮状态
+          saveButton.disabled = false;
+          saveButton.innerHTML = originalText;
         }
       } catch (error) {
         showError('保存车牌失败: ' + error.message);
+        console.error('保存车牌异常:', error);
       }
     }
     
@@ -1526,7 +1562,7 @@
     
     // 加载系统设置
     async function loadSystemSettings() {
-      try { // 获取所有系统设置
+      try { 
         const response = await fetch('/api/system-settings', {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -1568,7 +1604,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + localStorage.getItem('token') || ''
           },
           body: JSON.stringify(settings)
         });
