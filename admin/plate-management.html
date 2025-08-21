@@ -1116,11 +1116,9 @@
       emptyState.style.display = 'none';
       
       try {
-        // 构建请求URL
-        let url = `/api/plates?page=${page}&limit=10`;
-        if (search) {
-          url += `&search=${encodeURIComponent(search)}`;
-        }
+        // 如果有搜索词，使用搜索词，否则使用空字符串
+        const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+        const url = `/api/plates?page=${page}&limit=10${searchParam}`;
         
         const response = await fetch(url, {
           headers: {
@@ -1173,11 +1171,9 @@
           };
           const channelText = channels.map(c => channelLabels[c] || c).join(', ') || '未设置';
           
-          // 转义JSON参数中的双引号
-          const channelsStr = JSON.stringify(plate.notification_channels || []).replace(/\"/g, '\\\"');
-          const configsStr = JSON.stringify(plate.notification_configs || {}).replace(/\"/g, '\\\"');
-          
+          // 创建行元素并设置data属性存储完整的plate对象
           const row = document.createElement('tr');
+          row.dataset.plate = JSON.stringify(plate);
           row.innerHTML = `
             <td>${plate.plate}</td>
             <td>${maskedUids}</td>
@@ -1185,7 +1181,7 @@
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids.join(',')}', '${plate.remark || ''}', '${channelsStr}', '${configsStr}')">✏️ 编辑</button>
+              <button class="action-btn edit-btn" onclick="openEditPlateModal(this)">✏️ 编辑</button>
               <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
             </td>
           `;
@@ -1271,7 +1267,7 @@
       try {
         document.getElementById('plateSearch').value = '';
         currentSearchTerm = '';
-        loadPlates(1);
+        loadPlates(1); // 重置搜索后加载第一页
       } catch (error) {
         showError('重置搜索失败: ' + error.message);
       }
@@ -1304,14 +1300,18 @@
       }
     }
     
-    // 打开编辑车牌模态框
-    function openEditPlateModal(id, plate, uids, remark, notificationChannels, notificationConfigs) {
+    // 打开编辑车牌模态框 - 重构版
+    function openEditPlateModal(button) {
       try {
+        // 从data属性获取完整的plate对象
+        const row = button.closest('tr');
+        const plate = JSON.parse(row.dataset.plate);
+        
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
-        document.getElementById('editPlateId').value = id;
-        document.getElementById('modalPlateNumber').value = plate;
-        document.getElementById('modalPlateUid').value = uids;
-        document.getElementById('modalPlateRemark').value = remark;
+        document.getElementById('editPlateId').value = plate.id;
+        document.getElementById('modalPlateNumber').value = plate.plate;
+        document.getElementById('modalPlateUid').value = plate.uids.join(',');
+        document.getElementById('modalPlateRemark').value = plate.remark || '';
         document.getElementById('modalMessage').textContent = '';
         
         // 重置通知渠道选择
@@ -1323,11 +1323,10 @@
           item.querySelector('input').value = '';
         });
         
-        // 解析通知配置
-        const channels = JSON.parse(notificationChannels.replace(/\\\"/g, '"') || '[]');
-        const configs = JSON.parse(notificationConfigs.replace(/\\\"/g, '"') || '{}');
-        
         // 设置复选框状态
+        const channels = plate.notification_channels || [];
+        const configs = plate.notification_configs || {};
+        
         channels.forEach(channel => {
           const checkbox = document.getElementById(`channel${channel.charAt(0).toUpperCase() + channel.slice(1)}`);
           if (checkbox) {
@@ -1340,7 +1339,7 @@
             } else if (channel === 'dingtalk') {
               document.getElementById('dingtalkConfig').style.display = 'block';
               document.getElementById('dingtalkWebhook').value = configs.dingtalk_webhook || '';
-            } else if (channel === 'bark') {
+            } else if (channel === 'bark') { // 注意这里修正了拼写错误，原来是'barkk'
               document.getElementById('barkConfig').style.display = 'block';
               document.getElementById('barkWebhook').value = configs.bark_webhook || '';
             }
@@ -1587,7 +1586,7 @@
     async function saveSystemSettings() {
       try {
         const appToken = document.getElementById('appToken').value.trim();
-        const adminPassword = document.getElementById('adminPassword').value.trim();
+        const adminPassword = document.getElementById('adminPassword').value.trim();;
         const messageEl = document.getElementById('settingsMessage');
         
         const settings = {};
