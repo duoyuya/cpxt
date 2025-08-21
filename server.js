@@ -15,7 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
-const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
+const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 // 初始化数据库
@@ -359,7 +359,7 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
   }
   
   // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
+  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
   if (!plateRegex.test(plate)) {
     return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
   }
@@ -832,3 +832,4 @@ app.listen(PORT, () => {
   console.log("✅ 服务已启动：http://localhost:" + PORT);
   console.log("🔑 后台登录：http://localhost:" + PORT + "/admin/login.html");
 });
+
