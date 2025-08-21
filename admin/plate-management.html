@@ -839,7 +839,7 @@
 
   <script>
     // 车牌号验证正则表达式（客户端验证，与后端保持一致）
-    const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
+    const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
     
     // 错误提示显示函数
     function showError(message) {
@@ -892,7 +892,7 @@
     }
     
     // 通知渠道复选框交互
-    document.querySelectorAll('#notificationChannels input[type=\"checkbox\"]').forEach(checkbox => {
+    document.querySelectorAll('#notificationChannels input[type=\\\"checkbox\\\"]').forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         const channel = this.value;
         const configId = channel === 'wechat_work' ? 'wechatWorkConfig' : 
@@ -998,7 +998,7 @@
     function bindSelectAllEvent() {
       // 全选复选框事件
       document.getElementById('selectAllLogs').addEventListener('change', function(e) {
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type=\"checkbox\"]');
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type=\\\"checkbox\\\"]');
         checkboxes.forEach(checkbox => {
           checkbox.checked = this.checked;
         });
@@ -1007,7 +1007,7 @@
       // 表头全选复选框同步
       document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
         document.getElementById('selectAllLogs').checked = this.checked;
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type=\"checkbox\"]');
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type=\\\"checkbox\\\"]');
         checkboxes.forEach(checkbox => {
           checkbox.checked = this.checked;
         });
@@ -1077,7 +1077,7 @@
         document.querySelectorAll('.tab').forEach(tab => {
           tab.classList.remove('active');
         });
-        document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        document.querySelector(`.tab[onclick=\"switchTab('${tabId}')\"]`).classList.add('active');
         
         // 更新内容显示
         document.querySelectorAll('.tab-content').forEach(content => {
@@ -1195,7 +1195,7 @@
         renderPagination('platesPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan=\"6\" style=\"text-align: center; color: var(--danger);\">加载失败: ${error.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan=\\\"6\\\" style=\\\"text-align: center; color: var(--danger);\\\">加载失败: ${error.message}</td></tr>`;
         showError('加载车牌数据失败: ' + error.message);
       }
     }
@@ -1288,7 +1288,7 @@
         document.getElementById('modalMessage').className = 'message';
         
         // 重置通知渠道选择
-        document.querySelectorAll('#notificationChannels input[type=\"checkbox\"]').forEach(checkbox => {
+        document.querySelectorAll('#notificationChannels input[type=\\\"checkbox\\\"]').forEach(checkbox => {
           checkbox.checked = false;
         });
         document.querySelectorAll('.notification-config-item').forEach(item => {
@@ -1315,7 +1315,7 @@
         document.getElementById('modalMessage').className = 'message';
         
         // 重置通知渠道选择
-        document.querySelectorAll('#notificationChannels input[type=\"checkbox\"]').forEach(checkbox => {
+        document.querySelectorAll('#notificationChannels input[type=\\\"checkbox\\\"]').forEach(checkbox => {
           checkbox.checked = false;
         });
         document.querySelectorAll('.notification-config-item').forEach(item => {
@@ -1381,7 +1381,7 @@
         
         // 验证车牌格式
         if (!plateRegex.test(plateNumber)) {
-          messageEl.textContent = '车牌号格式不正确：\n标准车牌7位（如：云A12345）\n新能源车牌8位（如：云A1234567）\n第一位必须为汉字，后续为字母或数字';
+          messageEl.textContent = '车牌号格式不正确：\\n标准车牌7位（如：云A12345）\\n新能源车牌8位（如：云A1234567）\\n第一位必须为汉字，后续为字母或数字';
           messageEl.className = 'message error';
           return;
         }
@@ -1525,7 +1525,7 @@
     
     // 加载系统设置
     async function loadSystemSettings() {
-      try {获取所有系统设置
+      try { // 获取所有系统设置
         const response = await fetch('/api/system-settings', {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -1606,7 +1606,7 @@
     // 删除选中日志
     async function deleteSelectedLogs() {
       try {
-        const selectedCheckboxes = document.querySelectorAll('#logsTableBody input[type=\"checkbox\"]:checked');
+        const selectedCheckboxes = document.querySelectorAll('#logsTableBody input[type=\\\"checkbox\\\"]:checked');
         if (selectedCheckboxes.length === 0) {
           showError('请先选择要删除的日志');
           return;
