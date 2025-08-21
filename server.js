@@ -15,6 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+// 正确的车牌号正则表达式：第一位汉字，后续6-7位字母或数字（总长度7-8位）
 const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -203,6 +204,13 @@ app.get('/api/generate-token', authenticateJWT, (req, res) => {
       return res.status(400).json({ msg: '车牌号必填' });
     }
     
+    // 验证车牌格式
+    if (!plateRegex.test(plate)) {
+      return res.status(400).json({ 
+        msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
+      });
+    }
+    
     // 验证车牌是否存在
     db.get("SELECT * FROM plates WHERE plate = ?;", [plate], (err, plateInfo) => {
       if (err) {
@@ -358,10 +366,11 @@ app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) =
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
-  // 验证车牌格式 - 第一位为汉字，总长度7-8位，后续为字母或数字
-  const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+  // 验证车牌格式
   if (!plateRegex.test(plate)) {
-    return res.status(400).json({ msg: '车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字' });
+    return res.status(400).json({ 
+      msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
+    });
   }
   
   // 验证通知渠道配置
@@ -398,16 +407,16 @@ app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res
     return res.status(400).json({ msg: '车牌号和 UID 必填' });
   }
   
+  // 验证车牌格式
+  if (!plateRegex.test(plate)) {
+    return res.status(400).json({ 
+      msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
+    });
+  }
+  
   // 验证通知渠道配置
   if (!notification_channels || !Array.isArray(notification_channels) || notification_channels.length === 0) {
     return res.status(400).json({ msg: '请至少选择一种通知渠道' });
-  }
-  
-  // 使用全局定义的车牌验证正则表达式
-  if (!plateRegex.test(plate)) {
-    return res.status(400).json({ 
-      msg: '车牌号格式不正确，第一位必须为汉字（标准车牌7位：如云A12345，新能源车牌8位：如云A1234567），后续为字母或数字' 
-    });
   }
   
   const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
@@ -626,6 +635,13 @@ app.post('/api/notify', logAction('发送通知'), async (req, res) => {
       return res.status(400).json({ msg: '请输入有效的11位手机号' });
     }
     
+    // 验证车牌格式
+    if (!plateRegex.test(plate)) {
+      return res.status(400).json({ 
+        msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
+      });
+    }
+    
     // 查询车牌信息（完整匹配）
     db.get("SELECT * FROM plates WHERE plate = ?;", [plate], (err, plateInfo) => {
       if (err) {
@@ -832,4 +848,3 @@ app.listen(PORT, () => {
   console.log("✅ 服务已启动：http://localhost:" + PORT);
   console.log("🔑 后台登录：http://localhost:" + PORT + "/admin/login.html");
 });
-
