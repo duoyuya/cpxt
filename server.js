@@ -360,85 +360,179 @@ app.get('/api/plates/:id', authenticateJWT, (req, res) => {
 });
 
 app.post('/api/plates', authenticateJWT, logAction('添加车牌'), (req, res) => {
-  const { plate, uids, remark, notification_channels, notification_configs } = req.body;
-  
-  if (!plate || !uids || !uids.length) {
-    return res.status(400).json({ msg: '车牌号和 UID 必填' });
-  }
-  
-  // 验证车牌格式
-  if (!plateRegex.test(plate)) {
-    return res.status(400).json({ 
-      msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
-    });
-  }
-  
-  // 验证通知渠道配置
-  if (!notification_channels || !Array.isArray(notification_channels) || notification_channels.length === 0) {
-    return res.status(400).json({ msg: '请至少选择一种通知渠道' });
-  }
-  
-  const plateId = uuidv4();
-  const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
-  
-  db.run(
-    "INSERT INTO plates (id, plate, uids, remark, notification_channels, notification_configs) VALUES (?, ?, ?, ?, ?, ?);",
-    [plateId, plate, uidsStr, remark || '', JSON.stringify(notification_channels), JSON.stringify(notification_configs || {})],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ msg:'该车牌号已存在' });
-        }
-        return res.status(500).json({ msg: '添加车牌失败', error: err.message });
-      }
-      
-      res.status(201).json({ 
-        msg: '车牌添加成功', 
-        id: plateId 
+  try {
+    const { plate, uids, remark, notification_channels, notification_configs } = req.body;
+    
+    // 验证必填字段
+    if (!plate) {
+      return res.status(400).json({ msg: '车牌号必填' });
+    }
+    
+    if (!uids || (!Array.isArray(uids) || uids.length === 0) && (!uids.split || uids.split(',').filter(uid => uid.trim()).length === 0)) {
+      return res.status(400).json({ msg: '用户UID必填且不能为空' });
+    }
+    
+    // 验证车牌格式
+    if (!plateRegex.test(plate)) {
+      return res.status(400).json({ 
+        msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
       });
     }
-  );
+    
+    // 验证通知渠道配置 (允许为空，使用默认值)
+    const channels = notification_channels || [];
+    if (!Array.isArray(channels)) {
+      return res.status(400).json({ msg: '通知渠道必须为数组格式' });
+    }
+    
+    const plateId = uuidv4();
+    const uidsStr = Array.isArray(uids) ? uids.join(',') : uids.split(',').map(uid => uid.trim()).filter(uid => uid).join(',');
+    
+    db.run(
+      "INSERT INTO plates (id, plate, uids, remark, notification_channels, notification_configs) VALUES (?, ?, ?, ?, ?, ?);",
+      [plateId, plate, uidsStr, remark || '', JSON.stringify(channels), JSON.stringify(notification_configs || {})],
+      function(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE constraint failed')) {
+            return res.status(400).json({ msg:'该车牌号已存在' });
+          }
+          return res.status(500).json({ msg: '添加车牌失败', error: err.message });
+        }
+        
+        // 查询刚添加的记录并返回
+        db.get("SELECT * FROM plates WHERE id = ?;", [plateId], (err, newPlate) => {
+          if (err) {
+            return res.status(500).json({ msg: '获取新添加车牌失败', error: err.message });
+          }
+          
+          res.status(201).json({ 
+            msg: '车牌添加成功', 
+            plate: {
+              ...newPlate,
+              uids: newPlate.uids.split(','),
+              notification_channels: newPlate.notification_channels ? JSON.parse(newPlate.notification_channels) : [],
+              notification_configs: newPlate.notification_configs ? JSON.parse(newPlate.notification_configs) : {}
+            }
+          });
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ msg: '服务器错误', error: error.message });
+  }
 });
 
+// 修改后的PUT接口 - 修复编辑功能问题
 app.put('/api/plates/:id', authenticateJWT, logAction('更新车牌'), (req, res) => {
-  const { plate, uids, remark, notification_channels, notification_configs } = req.body;
-  
-  if (!plate || !uids || !uids.length) {
-    return res.status(400).json({ msg: '车牌号和 UID 必填' });
-  }
-  
-  // 验证车牌格式
-  if (!plateRegex.test(plate)) {
-    return res.status(400).json({ 
-      msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
-    });
-  }
-  
-  // 验证通知渠道配置
-  if (!notification_channels || !Array.isArray(notification_channels) || notification_channels.length === 0) {
-    return res.status(400).json({ msg: '请至少选择一种通知渠道' });
-  }
-  
-  const uidsStr = Array.isArray(uids) ? uids.join(',') : uids;
-  
-  db.run(
-    "UPDATE plates SET plate = ?, uids = ?, remark = ?, notification_channels = ?, notification_configs = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
-    [plate, uidsStr, remark || '', JSON.stringify(notification_channels), JSON.stringify(notification_configs || {}), req.params.id],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ msg: '该车牌号已存在' });
-        }
-        return res.status(500).json({ msg: '更新车牌失败', error: err.message });
-      }
-      
-      if (this.changes === 0) {
-        return res.status(404).json({ msg: '车牌不存在' });
-      }
-      
-      res.json({ msg: '车牌更新成功' });
+  try {
+    const { plate, uids, remark, notification_channels, notification_configs } = req.body;
+    
+    // 验证必填字段
+    if (!plate) {
+      return res.status(400).json({ msg: '车牌号必填' });
     }
-  );
+    
+    if (!uids || (!Array.isArray(uids) || uids.length === 0) && (!uids.split || uids.split(',').filter(uid => uid.trim()).length === 0)) {
+      return res.status(400).json({ msg: '用户UID必填且不能为空' });
+    }
+    
+    // 验证车牌格式
+    if (!plateRegex.test(plate)) {
+      return res.status(400).json({ 
+        msg: '车牌号格式不正确：标准车牌7位（如：云A12345），新能源车牌8位（如：云A123456），第一位必须为汉字，后续为字母或数字' 
+      });
+    }
+    
+    // 验证通知渠道配置 (允许为空，使用默认值)
+    const channels = notification_channels || [];
+    if (!Array.isArray(channels)) {
+      return res.status(400).json({ msg: '通知渠道必须为数组格式' });
+    }
+    
+    const uidsStr = Array.isArray(uids) ? uids.join(',') : uids.split(',').map(uid => uid.trim()).filter(uid => uid).join(',');
+    
+    // 使用事务确保数据一致性
+    db.run("BEGIN TRANSACTION;", function(err) {
+      if (err) {
+        return res.status(500).json({ msg: '事务开始失败', error: err.message });
+      }
+      
+      // 先检查记录是否存在
+      db.get("SELECT * FROM plates WHERE id = ?;", [req.params.id], (err, existingPlate) => {
+        if (err) {
+          db.run("ROLLBACK;");
+          return res.status(500).json({ msg: '查询车牌失败', error: err.message });
+        }
+        
+        if (!existingPlate) {
+          db.run("ROLLBACK;");
+          return res.status(404).json({ msg: '车牌不存在' });
+        }
+        
+        // 检查车牌是否已被其他记录使用
+        if (plate !== existingPlate.plate) {
+          db.get("SELECT * FROM plates WHERE plate = ? AND id != ?;", [plate, req.params.id], (err, duplicatePlate) => {
+            if (err) {
+              db.run("ROLLBACK;");
+              return res.status(500).json({ msg: '检查重复车牌失败', error: err.message });
+            }
+            
+            if (duplicatePlate) {
+              db.run("ROLLBACK;");
+              return res.status(400).json({ msg:'该车牌号已被其他记录使用' });
+            }
+            
+            // 执行更新
+            performUpdate();
+          });
+        } else {
+          // 车牌未变更，直接更新
+          performUpdate();
+        }
+      });
+      
+      // 执行更新操作
+      function performUpdate() {
+        db.run(
+          "UPDATE plates SET plate = ?, uids = ?, remark = ?, notification_channels = ?, notification_configs = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+          [plate, uidsStr, remark || '', JSON.stringify(channels), JSON.stringify(notification_configs || {}), req.params.id],
+          function(err) {
+            if (err) {
+              db.run("ROLLBACK;");
+              return res.status(500).json({ msg: '更新车牌失败', error: err.message });
+            }
+            
+            if (this.changes === 0) {
+              db.run("ROLLBACK;");
+              return res.status(404).json({ msg: '车牌不存在或未做任何更改' });
+            }
+            
+            // 查询更新后的记录
+            db.get("SELECT * FROM plates WHERE id = ?;", [req.params.id], (err, updatedPlate) => {
+              if (err) {
+                db.run("ROLLBACK;");
+                return res.status(500).json({ msg: '获取更新后车牌失败', error: err.message });
+              }
+              
+              db.run("COMMIT;");
+              
+              res.json({ 
+                msg: '车牌更新成功', 
+                plate: {
+                  ...updatedPlate,
+                  uids: updatedPlate.uids.split(','),
+                  notification_channels: updatedPlate.notification_channels ? JSON.parse(updatedPlate.notification_channels) : [],
+                  notification_configs: updatedPlate.notification_configs ? JSON.parse(updatedPlate.notification_configs) : {}
+                }
+              });
+            });
+          }
+        );
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ msg: '服务器错误', error: error.message });
+  }
 });
 
 app.delete('/api/plates/:id', authenticateJWT, logAction('删除车牌'), (req, res) => {
@@ -451,7 +545,7 @@ app.delete('/api/plates/:id', authenticateJWT, logAction('删除车牌'), (req, 
       return res.status(404).json({ msg: '车牌不存在' });
     }
     
-    res.json({ msg: '车牌删除成功' });
+    res.json({ msg: '车牌删除成功', deletedId: req.params.id });
   });
 });
 
@@ -840,7 +934,35 @@ app.get('/', (req, res) => {
 
 // 404 处理
 app.use((req, res) => {
-  res.status(404).json({ msg: '接口不存在' });
+  res.status(404).json({ msg: '接口不存在', path: req.path, method: req.method });
+});
+
+// 全局错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('未捕获的异常:', err);
+  
+  // 记录错误日志
+  const logId = uuidv4();
+  const details = {
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    error: err.toString(),
+    stack: err.stack
+  };
+  
+  db.run(
+    "INSERT INTO logs (id, action, details, ip) VALUES (?, ?, ?, ?);",
+    [logId, 'server_error', JSON.stringify(details), req.ip],
+    (err) => {
+      if (err) console.error('错误日志记录失败:', err.message);
+    }
+  );
+  
+  res.status(500).json({ 
+    msg: '服务器内部错误', 
+    error: process.env.NODE_ENV === 'development' ? err.message : '请联系管理员获取帮助'
+  });
 });
 
 // 启动服务器
