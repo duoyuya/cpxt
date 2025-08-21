@@ -1,10 +1,5 @@
-# 使用包含时区数据的基础镜像
-FROM node:14-buster
-
-# 直接设置时区（无需安装任何包）
-ENV TZ=Asia/Shanghai
-RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
-    echo ${TZ} > /etc/timezone
+# 不使用-alpine后缀
+FROM node:14
 
 WORKDIR /app
 
