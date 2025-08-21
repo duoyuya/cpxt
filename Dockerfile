@@ -1,6 +1,9 @@
 # 不使用-alpine后缀
 FROM node:14
 
+# 添加时区配置
+ENV TZ=Asia/Shanghai
+
 WORKDIR /app
 
 # 切换npm镜像源
