@@ -96,7 +96,7 @@
     }
     
     /* 错误提示 */
-    .error-toast {
+    .error-toast { 
       position: fixed;
       bottom: 20px;
       left: 50%;
@@ -794,11 +794,11 @@
           </small>
         </div>
         <div class="form-group">
-          <label for="modalPlateUid">用户UID</label>
+          <label for="modalPlateUid">用户UID(不用wxp随便填就行)</label>
           <input type="text" id="modalPlateUid" placeholder="多个UID用逗号分隔">
         </div>
         <div class="form-group">
-          <label>通知渠道配置</label>
+          <label>通知渠道配置(链接后不用带/)</label>
           <div class="checkbox-group" id="notificationChannels">
             <div class="checkbox-item">
               <input type="checkbox" id="channelWxpusher" value="wxpusher">
@@ -892,7 +892,7 @@
     }
     
     // 通知渠道复选框交互
-    document.querySelectorAll('#notificationChannels input[type=\\\"checkbox\\\"]').forEach(checkbox => {
+    document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         const channel = this.value;
         const configId = channel === 'wechat_work' ? 'wechatWorkConfig' : 
@@ -972,11 +972,8 @@
             <td>${new Date(log.created_at).toLocaleString()}</td>
             <td>${log.ip}</td>
             <td>
-              <div class="details-bubble">
-                查看详情
-                <div class="details-popup">
-                  ${detailsHtml}
-                </div>
+              <div class="details-bubble">查看详情
+                <div class="details-popup">${detailsHtml}</div>
               </div>
             </td>
           `;
@@ -998,7 +995,7 @@
     function bindSelectAllEvent() {
       // 全选复选框事件
       document.getElementById('selectAllLogs').addEventListener('change', function(e) {
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type=\\\"checkbox\\\"]');
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
           checkbox.checked = this.checked;
         });
@@ -1007,7 +1004,7 @@
       // 表头全选复选框同步
       document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
         document.getElementById('selectAllLogs').checked = this.checked;
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type=\\\"checkbox\\\"]');
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
           checkbox.checked = this.checked;
         });
@@ -1046,7 +1043,7 @@
           }
           
           // 验证长度
-          if (this.value.length > 8) {
+          if (this.value.length > 8) { // 限制最大长度为8位
             this.value = this.value.slice(0, 8);
           }
           
@@ -1077,7 +1074,7 @@
         document.querySelectorAll('.tab').forEach(tab => {
           tab.classList.remove('active');
         });
-        document.querySelector(`.tab[onclick=\"switchTab('${tabId}')\"]`).classList.add('active');
+        document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
         
         // 更新内容显示
         document.querySelectorAll('.tab-content').forEach(content => {
@@ -1176,6 +1173,10 @@
           };
           const channelText = channels.map(c => channelLabels[c] || c).join(', ') || '未设置';
           
+          // 转义JSON参数中的双引号
+          const channelsStr = JSON.stringify(plate.notification_channels || []).replace(/"/g, '\\"');
+          const configsStr = JSON.stringify(plate.notification_configs || {}).replace(/"/g, '\\"');
+          
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${plate.plate}</td>
@@ -1184,7 +1185,7 @@
             <td>${plate.remark || '-'}</td>
             <td>${new Date(plate.created_at).toLocaleString()}</td>
             <td class="action-buttons">
-              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids.join(',')}', '${plate.remark || ''}', '${JSON.stringify(plate.notification_channels || [])}', '${JSON.stringify(plate.notification_configs || {})}')">✏️ 编辑</button>
+              <button class="action-btn edit-btn" onclick="openEditPlateModal('${plate.id}', '${plate.plate}', '${plate.uids.join(',')}', '${plate.remark || ''}', '${channelsStr}', '${configsStr}')">✏️ 编辑</button>
               <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
             </td>
           `;
@@ -1195,7 +1196,7 @@
         renderPagination('platesPagination', data.pagination.pages, page);
       } catch (error) {
         loading.style.display = 'none';
-        tableBody.innerHTML = `<tr><td colspan=\\\"6\\\" style=\\\"text-align: center; color: var(--danger);\\\">加载失败: ${error.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
         showError('加载车牌数据失败: ' + error.message);
       }
     }
@@ -1288,7 +1289,7 @@
         document.getElementById('modalMessage').className = 'message';
         
         // 重置通知渠道选择
-        document.querySelectorAll('#notificationChannels input[type=\\\"checkbox\\\"]').forEach(checkbox => {
+        document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
           checkbox.checked = false;
         });
         document.querySelectorAll('.notification-config-item').forEach(item => {
@@ -1315,7 +1316,7 @@
         document.getElementById('modalMessage').className = 'message';
         
         // 重置通知渠道选择
-        document.querySelectorAll('#notificationChannels input[type=\\\"checkbox\\\"]').forEach(checkbox => {
+        document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
           checkbox.checked = false;
         });
         document.querySelectorAll('.notification-config-item').forEach(item => {
@@ -1323,9 +1324,9 @@
           item.querySelector('input').value = '';
         });
         
-        // 解析通知配置
-        const channels = JSON.parse(notificationChannels || '[]');
-        const configs = JSON.parse(notificationConfigs || '{}');
+        // 解析通知配置（注意：这里的参数已经转义过双引号，需要先替换回来再解析）
+        const channels = JSON.parse(notificationChannels.replace(/\\"/g, '"') || '[]');
+        const configs = JSON.parse(notificationConfigs.replace(/\\"/g, '"') || '{}');
         
         // 设置复选框状态
         channels.forEach(channel => {
@@ -1606,7 +1607,7 @@
     // 删除选中日志
     async function deleteSelectedLogs() {
       try {
-        const selectedCheckboxes = document.querySelectorAll('#logsTableBody input[type=\\\"checkbox\\\"]:checked');
+        const selectedCheckboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]:checked');
         if (selectedCheckboxes.length === 0) {
           showError('请先选择要删除的日志');
           return;
