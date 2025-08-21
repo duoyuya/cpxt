@@ -1,12 +1,14 @@
 # 不使用-alpine后缀
 FROM node:14
 
-# 安装时区数据并配置时区
-RUN apt-get update && apt-get install -y tzdata \
-    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && echo "Asia/Shanghai" > /etc/timezone
+# 非交互式安装tzdata并配置时区
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata && \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    rm -rf /var/lib/apt/lists/*  # 清理缓存减小镜像体积
 
-# 设置环境变量（双重保险）
+# 设置环境变量
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app
