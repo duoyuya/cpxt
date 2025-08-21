@@ -1289,7 +1289,7 @@
           checkbox.checked = false;
         });
         document.querySelectorAll('.notification-config-item').forEach(item => {
-          item.style.display = 'none';
+          item.style.display = 'none'; 
           item.querySelector('input').value = '';
         });
         
@@ -1300,7 +1300,7 @@
       }
     }
     
-    // 打开编辑车牌模态框 - 重构版
+    // 打开编辑车牌模态框 - 增强版（修复企业微信配置丢失问题）
     function openEditPlateModal(button) {
       try {
         // 从data属性获取完整的plate对象
@@ -1323,25 +1323,35 @@
           item.querySelector('input').value = '';
         });
         
-        // 设置复选框状态
+        // 设置复选框状态和配置值
         const channels = plate.notification_channels || [];
         const configs = plate.notification_configs || {};
         
+        // 企业微信配置特殊处理（防止配置丢失）
+        if (configs.wechat_work_webhook) {
+          document.getElementById('channelWechatWork').checked = true;
+          document.getElementById('wechatWorkConfig').style.display = 'block';
+          document.getElementById('wechatWorkWebhook').value = configs.wechat_work_webhook;
+        }
+        
+        // 处理其他渠道配置
         channels.forEach(channel => {
+          // 跳过已经处理过的企业微信
+          if (channel === 'wechat_work') return;
+          
           const checkbox = document.getElementById(`channel${channel.charAt(0).toUpperCase() + channel.slice(1)}`);
           if (checkbox) {
             checkbox.checked = true;
             
             // 显示对应配置项并填充值
-            if (channel === 'wechat_work') {
-              document.getElementById('wechatWorkConfig').style.display = 'block';
-              document.getElementById('wechatWorkWebhook').value = configs.wechat_work_webhook || '';
-            } else if (channel === 'dingtalk') {
+            if (channel === 'dingtalk') {
               document.getElementById('dingtalkConfig').style.display = 'block';
               document.getElementById('dingtalkWebhook').value = configs.dingtalk_webhook || '';
-            } else if (channel === 'bark') { // 注意这里修正了拼写错误，原来是'barkk'
+            } else if (channel === 'bark') {
               document.getElementById('barkConfig').style.display = 'block';
               document.getElementById('barkWebhook').value = configs.bark_webhook || '';
+            } else if (channel === 'wxpusher') {
+              // WxPusher不需要额外配置
             }
           }
         });
@@ -1396,10 +1406,12 @@
         const channels = [];
         const configs = {};
         
+        // WxPusher配置
         if (document.getElementById('channelWxpusher').checked) {
           channels.push('wxpusher');
         }
         
+        // 企业微信配置（重点处理）
         if (document.getElementById('channelWechatWork').checked) {
           const webhook = document.getElementById('wechatWorkWebhook').value.trim();
           if (!webhook) {
@@ -1411,6 +1423,7 @@
           configs.wechat_work_webhook = webhook;
         }
         
+        // 钉钉配置
         if (document.getElementById('channelDingtalk').checked) {
           const webhook = document.getElementById('dingtalkWebhook').value.trim();
           if (!webhook) {
@@ -1422,6 +1435,7 @@
           configs.dingtalk_webhook = webhook;
         }
         
+        // Bark配置
         if (document.getElementById('channelBark').checked) {
           const webhook = document.getElementById('barkWebhook').value.trim();
           if (!webhook) {
@@ -1586,7 +1600,7 @@
     async function saveSystemSettings() {
       try {
         const appToken = document.getElementById('appToken').value.trim();
-        const adminPassword = document.getElementById('adminPassword').value.trim();;
+        const adminPassword = document.getElementById('adminPassword').value.trim();
         const messageEl = document.getElementById('settingsMessage');
         
         const settings = {};
