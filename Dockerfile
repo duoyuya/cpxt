@@ -1,7 +1,12 @@
 # 不使用-alpine后缀
 FROM node:14
 
-# 添加时区配置
+# 安装时区数据并配置时区
+RUN apt-get update && apt-get install -y tzdata \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone
+
+# 设置环境变量（双重保险）
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app
