@@ -1,0 +1,26 @@
+# 排除版本控制文件
+.git
+.github
+.gitignore
+
+# 排除依赖目录
+node_modules
+
+# 排除环境变量示例文件
+.env.example
+
+# 排除日志和缓存
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 排除编辑器配置
+.idea
+.vscode
+*.swp
+*.swo
+
+# 排除压缩包
+*.zip
