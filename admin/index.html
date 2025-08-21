@@ -317,7 +317,7 @@
       }
       
       // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
-      const plateRegex = /^[\\u4e00-\\u9fa5][A-Z0-9]{6,7}$/;
+      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
       if (!plateRegex.test(plateNumber)) {
         updateMessage('车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字', 'error');
         return;
