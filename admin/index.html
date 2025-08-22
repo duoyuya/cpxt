@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>车辆通知系统 - 发送通知</title>
+  <title>车辆挪车通知</title>
   <style>
     :root {
       --primary: #007bff;
@@ -11,6 +11,7 @@
       --primary-dark: #0056b3;
       --success: #28a745;
       --danger: #dc3545;
+      --warning: #ffc107;
       --text: #333;
       --text-secondary: #6c757d;
       --bg: #f8f9fa;
@@ -104,10 +105,6 @@
       background-color: var(--primary-dark);
     }
     
-    .btn i {
-      font-size: 18px;
-    }
-    
     .message {
       margin-top: 15px;
       padding: 12px;
@@ -156,20 +153,9 @@
       to { transform: rotate(360deg); }
     }
     
-    .btn-loading .text {
-      display: none;
-    }
-    
-    .redirect-message {
-      margin-top: 15px;
-      text-align: center;
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-    
     /* 虚拟键盘样式 */
     .keyboard-container {
-      display: block;
+      display: none;
       margin-top: 15px;
       padding: 10px;
       background-color: var(--card-bg);
@@ -227,6 +213,13 @@
       margin: 10px 0 5px 10px;
       text-align: left;
     }
+    
+    .plate-length-indicator {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 <body>
@@ -236,7 +229,12 @@
     </div>
     
     <div class="form-group">
-      <input type="text" id="plateNumber" placeholder="请输入车牌号（第一位为汉字，共7-8位）" maxlength="8" autocomplete="off">
+      <input type="text" id="plateNumber" placeholder="请输入车牌号（支持7-8位）" maxlength="8" autocomplete="off">
+      
+      <!-- 车牌长度指示器 -->
+      <div class="plate-length-indicator">
+        当前长度: <span id="currentLength">0</span>/8位 (支持7-8位车牌号)
+      </div>
       
       <!-- 虚拟键盘 -->
       <div class="keyboard-container" id="plateKeyboard">
@@ -244,7 +242,9 @@
         <div class="keyboard-row" id="chineseCharsRow"></div>
         
         <div class="keyboard-section-title">字母</div>
-        <div class="keyboard-row" id="lettersRow"></div>
+        <div class="keyboard-row" id="lettersRow">
+          <!-- 动态生成字母按键 -->
+        </div>
         
         <div class="keyboard-section-title">数字</div>
         <div class="keyboard-row">
@@ -277,9 +277,6 @@
     </button>
     
     <div class="message" id="message"></div>
-    <div class="redirect-message" id="redirectMessage" style="display: none;">
-      3秒后将跳转到普通输入页面...
-    </div>
     
     <div class="footer">
       北沐车辆通知系统 © 2025 | 便捷 · 高效
@@ -291,80 +288,103 @@
     const phoneInput = document.getElementById('phoneNumber');
     const sendBtn = document.getElementById('sendBtn');
     const messageEl = document.getElementById('message');
-    const redirectMessageEl = document.getElementById('redirectMessage');
     const loadingEl = sendBtn.querySelector('.loading');
     const textEl = sendBtn.querySelector('.text');
+    const currentLengthEl = document.getElementById('currentLength');
     
     // 存储车牌数据
     let plateData = {
-      provinces: []
+      provinces: [
+        {"name":"北京市","abbr":"京","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","Y"]},
+        {"name":"天津市","abbr":"津","letters":["A","B","C","D","E","F","G","H","J","K","L"]},
+        {"name":"河北省","abbr":"冀","letters":["A","B","C","D","E","F","G","H","J","R","T"]},
+        {"name":"山西省","abbr":"晋","letters":["A","B","C","D","E","F","H","J","K","L","M"]},
+        {"name":"内蒙古自治区","abbr":"蒙","letters":["A","B","C","D","E","F","G","H","J","K","L","M"]},
+        {"name":"辽宁省","abbr":"辽","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","V"]},
+        {"name":"吉林省","abbr":"吉","letters":["A","B","C","D","E","F","G","H","J","K"]},
+        {"name":"黑龙江省","abbr":"黑","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","R"]},
+        {"name":"上海市","abbr":"沪","letters":["A","B","D","E","F","G","H","J","K","L","M","N","R"]},
+        {"name":"江苏省","abbr":"苏","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","U"]},
+        {"name":"浙江省","abbr":"浙","letters":["A","B","C","D","E","F","G","H","J","K","L"]},
+        {"name":"安徽省","abbr":"皖","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S"]},
+        {"name":"福建省","abbr":"闽","letters":["A","B","C","D","E","F","G","H","J","K"]},
+        {"name":"江西省","abbr":"赣","letters":["A","B","C","D","E","F","G","H","J","K","L"]},
+        {"name":"山东省","abbr":"鲁","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S","U","V","Y"]},
+        {"name":"河南省","abbr":"豫","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S","U"]},
+        {"name":"湖北省","abbr":"鄂","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S"]},
+        {"name":"湖南省","abbr":"湘","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","U"]},
+        {"name":"广东省","abbr":"粤","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S","T","U","V","W","X","Y","Z"]},
+        {"name":"广西壮族自治区","abbr":"桂","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","R"]},
+        {"name":"海南省","abbr":"琼","letters":["A","B","C","D","E","F"]},
+        {"name":"重庆市","abbr":"渝","letters":["A","B","C","D","F","G","H"]},
+        {"name":"四川省","abbr":"川","letters":["A","B","C","D","E","F","H","J","K","L","Q","R","S","T","U","V","W"]},
+        {"name":"贵州省","abbr":"贵","letters":["A","B","C","D","E","F","G","H","J"]},
+        {"name":"云南省","abbr":"云","letters":["A","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S"]},
+        {"name":"西藏自治区","abbr":"藏","letters":["A","B","C","D","E","F","G"]},
+        {"name":"陕西省","abbr":"陕","letters":["A","B","C","D","E","F","G","H","J","K","V"]},
+        {"name":"甘肃省","abbr":"甘","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P"]},
+        {"name":"青海省","abbr":"青","letters":["A","B","C","D","E","F","G","H"]},
+        {"name":"宁夏回族自治区","abbr":"宁","letters":["A","B","C","D","E"]},
+        {"name":"新疆维吾尔自治区","abbr":"新","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R"]}
+      ]
     };
     let selectedProvince = null;
     
-    // 页面加载时加载车牌数据
+    // 页面加载时初始化
     document.addEventListener('DOMContentLoaded', () => {
-      loadPlateDataAndInitKeyboard();
+      // 初始化虚拟键盘
+      initKeyboard();
       
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const plateParam = urlParams.get('plate');
+      // 输入框聚焦时显示键盘
+      plateInput.addEventListener('focus', () => {
+        document.getElementById('plateKeyboard').style.display = 'block';
+      });
       
-      // 优先处理token参数
-      if (token) {
-        validateTokenAndLoadPlate(token);
-      } else if (plateParam) {
-        // 兼容旧模式
-        plateInput.value = plateParam;
-      }
+      // 初始化长度显示
+      updatePlateLengthIndicator();
     });
     
-    // 加载车牌数据并初始化虚拟键盘
-    async function loadPlateDataAndInitKeyboard() {
-      try {
-        // 加载省份数据
-        const response = await fetch('/data/plates.json');
-        if (!response.ok) {
-          throw new Error('加载车牌数据失败');
-        }
-        
-        plateData = await response.json();
-        
-        // 生成省份简称按键
-        const chineseCharsRow = document.getElementById('chineseCharsRow');
-        chineseCharsRow.innerHTML = '';
-        
-        // 按省份名称排序
-        plateData.provinces.sort((a, b) => a.name.localeCompare(b.name));
-        
-        // 生成按键
-        plateData.provinces.forEach(province => {
-          const button = document.createElement('button');
-          button.className = 'keyboard-key';
-          button.textContent = province.abbr;
-          button.title = province.name;
-          button.onclick = function() {
-            // 清除之前选中的省份按键样式
-            document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-              btn.classList.remove('active');
-            });
-            
-            // 设置当前选中省份
-            selectedProvince = province;
-            button.classList.add('active');
-            
-            // 更新字母行
-            updateLettersRow();
-            
-            // 将省份简称添加到输入框
-            plateInput.value = province.abbr;
-          };
-          chineseCharsRow.appendChild(button);
-        });
-        
-      } catch (error) {
-        updateMessage('初始化键盘失败: ' + error.message, 'error');
-        console.error('加载车牌数据错误:', error);
-      }
+    // 初始化虚拟键盘
+    function initKeyboard() {
+      // 生成省份简称按键
+      const chineseCharsRow = document.getElementById('chineseCharsRow');
+      chineseCharsRow.innerHTML = '';
+      
+      // 按省份名称排序
+      plateData.provinces.sort((a, b) => a.name.localeCompare(b.name));
+      
+      // 生成省份按键
+      plateData.provinces.forEach(province => {
+        const button = document.createElement('button');
+        button.className = 'keyboard-key';
+        button.textContent = province.abbr;
+        button.title = province.name;
+        button.onclick = () => {
+          // 清除之前选中的省份
+          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          // 设置当前选中省份
+          selectedProvince = province;
+          button.classList.add('active');
+          
+          // 更新字母行
+          updateLettersRow();
+          
+          // 清空输入框并填入省份简称
+          plateInput.value = province.abbr;
+          updatePlateLengthIndicator();
+          validatePlateFormat();
+        };
+        chineseCharsRow.appendChild(button);
+      });
+      
+      // 初始化字母行
+      updateLettersRow();
+      
+      // 显示虚拟键盘
+      document.getElementById('plateKeyboard').style.display = 'block';
     }
     
     // 更新字母行
@@ -372,85 +392,97 @@
       const lettersRow = document.getElementById('lettersRow');
       lettersRow.innerHTML = '';
       
-      if (!selectedProvince) {
-        // 如果没有选择省份，显示提示信息
-        const infoText = document.createElement('div');
-        infoText.style.color = 'var(--text-secondary)';
-        infoText.style.fontSize = '12px';
-        infoText.textContent = '请先选择省份';
-        lettersRow.appendChild(infoText);
-        return;
+      // 如果已选择省份，显示该省份的字母
+      if (selectedProvince && selectedProvince.letters) {
+        selectedProvince.letters.forEach(letter => {
+          const button = document.createElement('button');
+          button.className = 'keyboard-key';
+          button.textContent = letter;
+          button.onclick = () => appendToPlate(letter);
+          lettersRow.appendChild(button);
+        });
       }
-      
-      // 添加字母按键
-      selectedProvince.letters.forEach(letter => {
-        const button = document.createElement('button');
-        button.className = 'keyboard-key';
-        button.textContent = letter;
-        button.onclick = function() {
-          appendToPlate(letter);
-        };
-        lettersRow.appendChild(button);
-      });
     }
     
     // 向车牌号输入框添加字符
     function appendToPlate(char) {
       const currentValue = plateInput.value;
-      
-      // 限制车牌长度（普通车牌7位，新能源8位）
-      const maxLength = currentValue.startsWith(selectedProvince?.abbr || '') && 
-                        (currentValue[1] === 'D' || currentValue[1] === 'F') ? 8 : 7;
-      
-      if (currentValue.length < maxLength) {
+      // 限制最大长度为8位
+      if (currentValue.length < 8) {
         plateInput.value = currentValue + char;
+        updatePlateLengthIndicator();
+        validatePlateFormat();
       }
     }
     
-    // 删除车牌号输入框最后一个字符
+    // 删除最后一个字符
     function deleteLastChar() {
       const currentValue = plateInput.value;
-      plateInput.value = currentValue.slice(0, -1);
-      
-      // 如果删除后第一位不是汉字，重置选中的省份
-      if (currentValue.length === 0 || !/^[\u4e00-\u9fa5]/.test(currentValue)) {
-        selectedProvince = null;
-        document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-          btn.classList.remove('active');
-        });
-        updateLettersRow();
+      if (currentValue.length > 0) {
+        plateInput.value = currentValue.slice(0, -1);
+        updatePlateLengthIndicator();
+        validatePlateFormat();
+        
+        // 如果删除后第一位不是汉字，重置省份选择
+        if (plateInput.value.length === 0 || !/^[\u4e00-\u9fa5]/.test(plateInput.value)) {
+          selectedProvince = null;
+          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          updateLettersRow();
+        }
       }
     }
     
-    // 清空车牌号输入框
+    // 清空输入框
     function clearPlateInput() {
       plateInput.value = '';
-      
-      // 重置选择的省份
       selectedProvince = null;
       document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
         btn.classList.remove('active');
       });
       updateLettersRow();
+      updatePlateLengthIndicator();
+      validatePlateFormat();
+    }
+    
+    // 更新车牌长度指示器
+    function updatePlateLengthIndicator() {
+      currentLengthEl.textContent = plateInput.value.length;
+    }
+    
+    // 验证车牌号格式（支持7-8位）
+    function validatePlateFormat() {
+      const plateValue = plateInput.value;
+      if (plateValue.length === 0) {
+        updateMessage('', '');
+        return;
+      }
+      
+      // 简化版验证：第一位为汉字，后接6-7位字母/数字（总长度7-8位）
+      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+      
+      if (plateRegex.test(plateValue)) {
+        updateMessage(`车牌号格式正确（${plateValue.length}位）`, 'success');
+      } else if (plateValue.length >= 1 && plateValue.length < 7) {
+        updateMessage(`请继续输入${7 - plateValue.length}位字符（共7-8位）`, 'info');
+      } else if (plateValue.length === 7 || plateValue.length === 8) {
+        updateMessage('车牌号格式不正确（第一位为汉字，后接6-7位字母或数字）', 'error');
+      } else if (plateValue.length > 8) {
+        updateMessage('车牌号最长为8位，请删除多余字符', 'error');
+      }
     }
     
     // 手机号输入处理
     phoneInput.addEventListener('input', function(e) {
-      // 只保留数字
       this.value = this.value.replace(/[^0-9]/g, '');
       
-      // 验证长度
       if (this.value.length > 11) {
         this.value = this.value.slice(0, 11);
       }
       
-      // 验证格式
       if (this.value.length === 11) {
-        if (this.value.startsWith('1')) {
-          updateMessage('手机号格式正确', 'success');
-        } else {
-          updateMessage('手机号必须以1开头', 'error');
-        }
+        updateMessage(this.value.startsWith('1') ? '手机号格式正确' : '手机号必须以1开头', this.value.startsWith('1') ? 'success' : 'error');
       } else if (this.value.length > 0) {
         updateMessage(`请输入完整的11位手机号，已输入${this.value.length}位`, 'info');
       } else {
@@ -458,7 +490,7 @@
       }
     });
     
-    // 输入处理：第一位保留汉字，后续字母数字转大写
+    // 车牌号输入处理
     plateInput.addEventListener('input', function(e) {
       if (this.value.length > 0) {
         const firstChar = this.value.charAt(0);
@@ -466,132 +498,56 @@
         this.value = firstChar + restChars;
       }
       
-      // 验证长度
-      if (this.value.length > 8) { // 限制最大长度为8位
+      // 限制最大长度为8位
+      if (this.value.length > 8) {
         this.value = this.value.slice(0, 8);
       }
       
-      // 实时验证格式
-      if (this.value.length > 0) {
-        const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
-        if (plateRegex.test(this.value)) {
-          updateMessage('车牌号格式正确', 'success');
-        } else {
-          const remaining = 7 - this.value.length;
-          if (remaining > 0) {
-            updateMessage(`请继续输入${remaining}位字符（共7-8位）`, 'info');
-          } else {
-            updateMessage('车牌号格式不正确：第一位必须为汉字，后续为字母或数字', 'error');
-          }
-        }
-      } else {
-        updateMessage('', '');
-      }
+      // 更新长度指示器
+      updatePlateLengthIndicator();
       
-      // 尝试根据输入的首字符匹配省份
-      const currentValue = this.value;
-      if (currentValue.length > 0) {
-        const firstChar = currentValue.charAt(0);
+      // 验证格式
+      validatePlateFormat();
+      
+      // 自动匹配省份简称
+      const firstChar = this.value.charAt(0);
+      if (firstChar) {
         const matchedProvince = plateData.provinces.find(p => p.abbr === firstChar);
-        
         if (matchedProvince && matchedProvince !== selectedProvince) {
           selectedProvince = matchedProvince;
-          
-          // 更新省份按键选中状态
           document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-            if (btn.textContent === selectedProvince.abbr) {
-              btn.classList.add('active');
-            } else {
-              btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.textContent === selectedProvince.abbr);
           });
-          
-          // 更新字母行
           updateLettersRow();
-        } else if (!matchedProvince && /^[\u4e00-\u9fa5]/.test(firstChar)) {
-          // 首字符是汉字但未匹配到省份
-          updateMessage('未找到对应的省份简称', 'error');
         }
-      } else {
-        // 输入框为空时重置选择的省份
-        selectedProvince = null;
-        document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-          btn.classList.remove('active');
-        });
-        updateLettersRow();
       }
     });
-    
-    // 令牌验证函数
-    async function validateTokenAndLoadPlate(token) {
-      try {
-        const response = await fetch(`/api/validate-token?token=${token}`);
-        const data = await response.json();
-        
-        if (!response.ok || !data.valid) {
-          showMessage(data.msg || '无效的访问链接', 'error');
-          // 3秒后重定向到普通输入页面
-          redirectMessageEl.style.display = 'block';
-          setTimeout(() => {
-            window.location.href = '/admin/index.html';
-          }, 3000);
-          return;
-        }
-        
-        // 验证成功，加载车牌信息
-        plateInput.value = data.plate;
-        plateInput.disabled = true; // 禁止修改车牌
-        
-        // 尝试根据车牌首字符匹配省份
-        const firstChar = data.plate.charAt(0);
-        const matchedProvince = plateData.provinces.find(p => p.abbr === firstChar);
-        if (matchedProvince) {
-          selectedProvince = matchedProvince;
-          // 更新省份按键选中状态
-          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-            if (btn.textContent === selectedProvince.abbr) {
-              btn.classList.add('active');
-            } else {
-              btn.classList.remove('active');
-            }
-          });
-          updateLettersRow();
-        }
-        
-        phoneInput.focus();
-      } catch (error) {
-        showMessage('链接验证失败', 'error');
-        redirectMessageEl.style.display = 'block';
-        setTimeout(() => {
-          window.location.href = '/admin/index.html';
-        }, 3000);
-      }
-    }
     
     // 发送通知
     async function sendNotification() {
       const plateNumber = plateInput.value.trim();
       const phoneNumber = phoneInput.value.trim();
       
-      // 验证输入
+      // 验证车牌号格式（支持7-8位）
+      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+      
       if (!plateNumber) {
-        updateMessage('请输入车牌号后再发送', 'error');
+        updateMessage('请输入车牌号', 'error');
         return;
       }
       
+      if (!plateRegex.test(plateNumber)) {
+        updateMessage('车牌号格式不正确（第一位为汉字，后接6-7位字母或数字，共7-8位）', 'error');
+        return;
+      }
+      
+      // 验证手机号
       if (!phoneNumber || phoneNumber.length !== 11 || !phoneNumber.startsWith('1')) {
         updateMessage('请输入有效的11位手机号', 'error');
         return;
       }
       
-      // 验证车牌格式：第一位为汉字，总长度7-8位，后续为字母或数字
-      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
-      if (!plateRegex.test(plateNumber)) {
-        updateMessage('车牌号格式不正确，第一位必须为汉字，总长度7-8位，后续为字母或数字', 'error');
-        return;
-      }
-      
-      // 准备发送
+      // 发送请求
       sendBtn.disabled = true;
       loadingEl.style.display = 'inline-block';
       textEl.textContent = '发送中...';
@@ -600,9 +556,7 @@
       try {
         const response = await fetch('/api/notify', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             plate: plateNumber,
             phone: phoneNumber
@@ -613,21 +567,18 @@
         
         if (response.ok) {
           updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
-          plateInput.value = ''; // 清空输入
+          plateInput.value = '';
           phoneInput.value = '';
-          // 重置选择的省份
           selectedProvince = null;
-          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-            btn.classList.remove('active');
-          });
+          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => btn.classList.remove('active'));
           updateLettersRow();
+          updatePlateLengthIndicator();
         } else {
           updateMessage(data.msg || '发送失败，请稍后重试', 'error');
         }
       } catch (error) {
         updateMessage('网络错误，请检查网络连接', 'error');
       } finally {
-        // 恢复按钮状态
         sendBtn.disabled = false;
         loadingEl.style.display = 'none';
         textEl.textContent = '发送挪车通知';
@@ -638,32 +589,12 @@
     function updateMessage(text, type) {
       messageEl.textContent = text;
       messageEl.className = 'message';
-      if (type) {
-        messageEl.classList.add(type);
-      }
-    }
-    
-    // 显示消息
-    function showMessage(text, type) {
-      updateMessage(text, type);
-      // 禁用输入和按钮
-      plateInput.disabled = true;
-      phoneInput.disabled = true;
-      sendBtn.disabled = true;
+      if (type) messageEl.classList.add(type);
     }
     
     // 回车发送
-    plateInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendNotification();
-      }
-    });
-    
-    phoneInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendNotification();
-      }
-    });
+    plateInput.addEventListener('keypress', e => e.key === 'Enter' && sendNotification());
+    phoneInput.addEventListener('keypress', e => e.key === 'Enter' && sendNotification());
   </script>
 </body>
 </html>
