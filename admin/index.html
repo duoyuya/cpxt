@@ -427,35 +427,96 @@
     const textEl = sendBtn.querySelector('.text');
     const dataLoadStatus = document.getElementById('dataLoadStatus');
     
-    // 完整的省份和城市数据
+    // 2025年最新全国省份和城市数据
     const provinceCityData = {
-      "京": [{"letter":"A","city":"北京市区"},{"letter":"C","city":"北京市区"},{"letter":"E","city":"北京市区"},{"letter":"F","city":"北京市区"},{"letter":"H","city":"北京市区"},{"letter":"J","city":"北京市区"},{"letter":"K","city":"北京市区"},{"letter":"L","city":"北京市区"},{"letter":"M","city":"北京市区"},{"letter":"N","city":"北京市区"},{"letter":"P","city":"北京市区"},{"letter":"Q","city":"北京市区"},{"letter":"Y","city":"北京市区"},{"letter":"G","city":"北京郊县"}],
-      "津": [{"letter":"A","city":"天津市"},{"letter":"B","city":"天津市"},{"letter":"C","city":"天津市"},{"letter":"D","city":"天津市"},{"letter":"F","city":"天津市"},{"letter":"G","city":"天津市"},{"letter":"H","city":"天津市"},{"letter":"J","city":"天津市"},{"letter":"K","city":"天津市"},{"letter":"L","city":"天津市"}],
+      "京": [
+        {"letter":"A","city":"东城/西城"},
+        {"letter":"C","city":"朝阳区"},
+        {"letter":"E","city":"海淀区"},
+        {"letter":"F","city":"丰台区"},
+        {"letter":"H","city":"石景山区"},
+        {"letter":"J","city":"房山区"},
+        {"letter":"K","city":"通州区"},
+        {"letter":"L","city":"顺义区"},
+        {"letter":"M","city":"昌平区"},
+        {"letter":"N","city":"大兴区"},
+        {"letter":"P","city":"怀柔区"},
+        {"letter":"Q","city":"平谷区"},
+        {"letter":"Y","city":"延庆区"},
+        {"letter":"G","city":"密云区"}
+      ],
+      "津": [
+        {"letter":"A","city":"和平/河东/河西"},
+        {"letter":"B","city":"南开/河北/红桥"},
+        {"letter":"C","city":"东丽/西青/津南"},
+        {"letter":"D","city":"北辰/武清"},
+        {"letter":"F","city":"宝坻区"},
+        {"letter":"G","city":"滨海新区"},
+        {"letter":"H","city":"宁河区"},
+        {"letter":"J","city":"静海区"},
+        {"letter":"K","city":"蓟州区"},
+        {"letter":"L","city":"天津市辖区"}
+      ],
+      "沪": [
+        {"letter":"A","city":"黄浦/徐汇/长宁"},
+        {"letter":"B","city":"静安/普陀"},
+        {"letter":"D","city":"虹口/杨浦"},
+        {"letter":"E","city":"闵行/宝山"},
+        {"letter":"F","city":"嘉定/浦东"},
+        {"letter":"G","city":"金山/松江"},
+        {"letter":"H","city":"青浦"},
+        {"letter":"J","city":"奉贤"},
+        {"letter":"K","city":"崇明"},
+        {"letter":"L","city":"上海市辖区"},
+        {"letter":"M","city":"上海市辖区"},
+        {"letter":"N","city":"上海市辖区"},
+        {"letter":"R","city":"上海市辖区"}
+      ],
+      "渝": [
+        {"letter":"A","city":"渝中/江北/沙坪坝"},
+        {"letter":"B","city":"南岸/九龙坡/大渡口"},
+        {"letter":"C","city":"永川/江津/合川"},
+        {"letter":"F","city":"万州/梁平/城口"},
+        {"letter":"G","city":"涪陵/垫江/丰都"},
+        {"letter":"H","city":"黔江/酉阳/秀山"},
+        {"letter":"J","city":"石柱/彭水/武隆"}
+      ],
+      "琼": [
+        {"letter":"A","city":"海口市"},
+        {"letter":"B","city":"三亚市"},
+        {"letter":"C","city":"琼海市/文昌市/万宁市"},
+        {"letter":"D","city":"五指山市/东方市"},
+        {"letter":"E","city":"洋浦经济开发区"},
+        {"letter":"F","city":"儋州市"},
+        {"letter":"G","city":"定安县/屯昌县"},
+        {"letter":"H","city":"澄迈县/临高县"},
+        {"letter":"J","city":"白沙县/昌江县"},
+        {"letter":"K","city":"乐东县/陵水县"},
+        {"letter":"L","city":"保亭县/琼中县"},
+        {"letter":"M","city":"三沙市"}
+      ],
       "冀": [{"letter":"A","city":"石家庄市"},{"letter":"B","city":"唐山市"},{"letter":"C","city":"秦皇岛市"},{"letter":"D","city":"邯郸市"},{"letter":"E","city":"邢台市"},{"letter":"F","city":"保定市"},{"letter":"G","city":"张家口市"},{"letter":"H","city":"承德市"},{"letter":"J","city":"沧州市"},{"letter":"R","city":"廊坊市"},{"letter":"T","city":"衡水市"}],
       "晋": [{"letter":"A","city":"太原市"},{"letter":"B","city":"大同市"},{"letter":"C","city":"阳泉市"},{"letter":"D","city":"长治市"},{"letter":"E","city":"晋城市"},{"letter":"F","city":"朔州市"},{"letter":"H","city":"忻州市"},{"letter":"J","city":"吕梁市"},{"letter":"K","city":"晋中市"},{"letter":"L","city":"临汾市"},{"letter":"M","city":"运城市"}],
       "蒙": [{"letter":"A","city":"呼和浩特市"},{"letter":"B","city":"包头市"},{"letter":"C","city":"乌海市"},{"letter":"D","city":"赤峰市"},{"letter":"E","city":"呼伦贝尔市"},{"letter":"F","city":"兴安盟"},{"letter":"G","city":"通辽市"},{"letter":"H","city":"锡林郭勒盟"},{"letter":"J","city":"乌兰察布市"},{"letter":"K","city":"鄂尔多斯市"},{"letter":"L","city":"巴彦淖尔市"},{"letter":"M","city":"阿拉善盟"}],
       "辽": [{"letter":"A","city":"沈阳市"},{"letter":"B","city":"大连市"},{"letter":"C","city":"鞍山市"},{"letter":"D","city":"抚顺市"},{"letter":"E","city":"本溪市"},{"letter":"F","city":"丹东市"},{"letter":"G","city":"锦州市"},{"letter":"H","city":"营口市"},{"letter":"J","city":"阜新市"},{"letter":"K","city":"辽阳市"},{"letter":"L","city":"盘锦市"},{"letter":"M","city":"铁岭市"},{"letter":"N","city":"朝阳市"},{"letter":"P","city":"葫芦岛市"}],
       "吉": [{"letter":"A","city":"长春市"},{"letter":"B","city":"吉林市"},{"letter":"C","city":"四平市"},{"letter":"D","city":"辽源市"},{"letter":"E","city":"通化市"},{"letter":"F","city":"白山市"},{"letter":"G","city":"白城市"},{"letter":"H","city":"延边朝鲜族自治州"},{"letter":"J","city":"松原市"}],
       "黑": [{"letter":"A","city":"哈尔滨市"},{"letter":"B","city":"齐齐哈尔市"},{"letter":"C","city":"牡丹江市"},{"letter":"D","city":"佳木斯市"},{"letter":"E","city":"大庆市"},{"letter":"F","city":"伊春市"},{"letter":"G","city":"鸡西市"},{"letter":"H","city":"鹤岗市"},{"letter":"J","city":"双鸭山市"},{"letter":"K","city":"七台河市"},{"letter":"L","city":"松花江地区"},{"letter":"M","city":"绥化市"},{"letter":"N","city":"黑河市"},{"letter":"P","city":"大兴安岭地区"}],
-      "沪": [{"letter":"A","city":"上海市"},{"letter":"B","city":"上海市"},{"letter":"D","city":"上海市"},{"letter":"E","city":"上海市"},{"letter":"F","city":"上海市"},{"letter":"G","city":"上海市"},{"letter":"H","city":"上海市"},{"letter":"J","city":"上海市"},{"letter":"K","city":"上海市"},{"letter":"L","city":"上海市"},{"letter":"M","city":"上海市"},{"letter":"N","city":"上海市"},{"letter":"R","city":"上海市"}],
       "苏": [{"letter":"A","city":"南京市"},{"letter":"B","city":"无锡市"},{"letter":"C","city":"徐州市"},{"letter":"D","city":"常州市"},{"letter":"E","city":"苏州市"},{"letter":"F","city":"南通市"},{"letter":"G","city":"连云港市"},{"letter":"H","city":"淮安市"},{"letter":"J","city":"盐城市"},{"letter":"K","city":"扬州市"},{"letter":"L","city":"镇江市"},{"letter":"M","city":"泰州市"},{"letter":"N","city":"宿迁市"}],
       "浙": [{"letter":"A","city":"杭州市"},{"letter":"B","city":"宁波市"},{"letter":"C","city":"温州市"},{"letter":"D","city":"绍兴市"},{"letter":"E","city":"湖州市"},{"letter":"F","city":"嘉兴市"},{"letter":"G","city":"金华市"},{"letter":"H","city":"衢州市"},{"letter":"J","city":"台州市"},{"letter":"K","city":"丽水市"},{"letter":"L","city":"舟山市"}],
       "皖": [{"letter":"A","city":"合肥市"},{"letter":"B","city":"芜湖市"},{"letter":"C","city":"蚌埠市"},{"letter":"D","city":"淮南市"},{"letter":"E","city":"马鞍山市"},{"letter":"F","city":"淮北市"},{"letter":"G","city":"铜陵市"},{"letter":"H","city":"安庆市"},{"letter":"J","city":"黄山市"},{"letter":"K","city":"阜阳市"},{"letter":"L","city":"宿州市"},{"letter":"M","city":"滁州市"},{"letter":"N","city":"六安市"},{"letter":"P","city":"宣城市"},{"letter":"Q","city":"巢湖市"},{"letter":"R","city":"池州市"},{"letter":"S","city":"亳州市"}],
-      "闽": [{"letter":"A","city":"福州市"},{"letter":"B","city":"莆田市"},{"letter":"C","city":"泉州市"},{"letter":"D","city":"厦门市"},{"letter":"E","city":"漳州市"},{"letter":"F","city":"龙岩市"},{"letter":"G","city":"三明市"},{"letter":"H","city":"南平市"},{"letter":"J","city":"宁德市"}],
+      "闽": [{"letter":"A","city":"福州市"},{"letter":"B","city":"莆田市"},{"letter":"C","city":"泉州市"},{"letter":"D","city":"厦门市"},{"letter":"E","city":"漳州市"},{"letter":"F","city":"龙岩市"},{"letter":"G","city":"三明市"},{"letter":"H","city":"南平市"},{"letter":"J","city":"宁德市"},{"letter":"K","city":"平潭综合实验区"}],
       "赣": [{"letter":"A","city":"南昌市"},{"letter":"B","city":"赣州市"},{"letter":"C","city":"宜春市"},{"letter":"D","city":"吉安市"},{"letter":"E","city":"上饶市"},{"letter":"F","city":"抚州市"},{"letter":"G","city":"九江市"},{"letter":"H","city":"景德镇市"},{"letter":"J","city":"萍乡市"},{"letter":"K","city":"新余市"},{"letter":"L","city":"鹰潭市"}],
-      "鲁": [{"letter":"A","city":"济南市"},{"letter":"B","city":"青岛市"},{"letter":"C","city":"淄博市"},{"letter":"D","city":"枣庄市"},{"letter":"E","city":"东营市"},{"letter":"F","city":"烟台市"},{"letter":"G","city":"潍坊市"},{"letter":"H","city":"济宁市"},{"letter":"J","city":"泰安市"},{"letter":"K","city":"威海市"},{"letter":"L","city":"日照市"},{"letter":"M","city":"滨州市"},{"letter":"N","city":"德州市"},{"letter":"P","city":"聊城市"},{"letter":"Q","city":"临沂市"},{"letter":"R","city":"菏泽市"}],
+      "鲁": [{"letter":"A","city":"济南市"},{"letter":"B","city":"青岛市"},{"letter":"C","city":"淄博市"},{"letter":"D","city":"枣庄市"},{"letter":"E","city":"东营市"},{"letter":"F","city":"烟台市"},{"letter":"G","city":"潍坊市"},{"letter":"H","city":"济宁市"},{"letter":"J","city":"泰安市"},{"letter":"K","city":"威海市"},{"letter":"L","city":"日照市"},{"letter":"M","city":"滨州市"},{"letter":"N","city":"德州市"},{"letter":"P","city":"聊城市"},{"letter":"Q","city":"临沂市"},{"letter":"R","city":"菏泽市"},{"letter":"S","city":"莱芜市"},{"letter":"U","city":"青岛增补"},{"letter":"Y","city":"烟台增补"}],
       "豫": [{"letter":"A","city":"郑州市"},{"letter":"B","city":"开封市"},{"letter":"C","city":"洛阳市"},{"letter":"D","city":"平顶山市"},{"letter":"E","city":"安阳市"},{"letter":"F","city":"鹤壁市"},{"letter":"G","city":"新乡市"},{"letter":"H","city":"焦作市"},{"letter":"J","city":"濮阳市"},{"letter":"K","city":"许昌市"},{"letter":"L","city":"漯河市"},{"letter":"M","city":"三门峡市"},{"letter":"N","city":"商丘市"},{"letter":"P","city":"周口市"},{"letter":"Q","city":"驻马店市"},{"letter":"R","city":"南阳市"},{"letter":"S","city":"信阳市"},{"letter":"U","city":"济源市"}],
       "鄂": [{"letter":"A","city":"武汉市"},{"letter":"B","city":"黄石市"},{"letter":"C","city":"十堰市"},{"letter":"D","city":"荆州市"},{"letter":"E","city":"宜昌市"},{"letter":"F","city":"襄阳市"},{"letter":"G","city":"鄂州市"},{"letter":"H","city":"荆门市"},{"letter":"J","city":"黄冈市"},{"letter":"K","city":"孝感市"},{"letter":"L","city":"咸宁市"},{"letter":"M","city":"仙桃市"},{"letter":"N","city":"潜江市"},{"letter":"P","city":"神农架林区"},{"letter":"Q","city":"恩施土家族苗族自治州"},{"letter":"R","city":"天门市"},{"letter":"S","city":"随州市"}],
       "湘": [{"letter":"A","city":"长沙市"},{"letter":"B","city":"株洲市"},{"letter":"C","city":"湘潭市"},{"letter":"D","city":"衡阳市"},{"letter":"E","city":"邵阳市"},{"letter":"F","city":"岳阳市"},{"letter":"G","city":"张家界市"},{"letter":"H","city":"益阳市"},{"letter":"J","city":"常德市"},{"letter":"K","city":"娄底市"},{"letter":"L","city":"郴州市"},{"letter":"M","city":"永州市"},{"letter":"N","city":"怀化市"},{"letter":"U","city":"湘西土家族苗族自治州"}],
-      "粤": [{"letter":"A","city":"广州市"},{"letter":"B","city":"深圳市"},{"letter":"C","city":"珠海市"},{"letter":"D","city":"汕头市"},{"letter":"E","city":"佛山市"},{"letter":"F","city":"韶关市"},{"letter":"G","city":"湛江市"},{"letter":"H","city":"肇庆市"},{"letter":"J","city":"江门市"},{"letter":"K","city":"茂名市"},{"letter":"L","city":"惠州市"},{"letter":"M","city":"梅州市"},{"letter":"N","city":"汕尾市"},{"letter":"P","city":"河源市"},{"letter":"Q","city":"阳江市"},{"letter":"R","city":"清远市"},{"letter":"S","city":"东莞市"},{"letter":"T","city":"中山市"},{"letter":"U","city":"潮州市"},{"letter":"V","city":"揭阳市"},{"letter":"W","city":"云浮市"}],
+      "粤": [{"letter":"A","city":"广州市"},{"letter":"B","city":"深圳市"},{"letter":"C","city":"珠海市"},{"letter":"D","city":"汕头市"},{"letter":"E","city":"佛山市"},{"letter":"F","city":"韶关市"},{"letter":"G","city":"湛江市"},{"letter":"H","city":"肇庆市"},{"letter":"J","city":"江门市"},{"letter":"K","city":"茂名市"},{"letter":"L","city":"惠州市"},{"letter":"M","city":"梅州市"},{"letter":"N","city":"汕尾市"},{"letter":"P","city":"河源市"},{"letter":"Q","city":"阳江市"},{"letter":"R","city":"清远市"},{"letter":"S","city":"东莞市"},{"letter":"T","city":"中山市"},{"letter":"U","city":"潮州市"},{"letter":"V","city":"揭阳市"},{"letter":"W","city":"云浮市"},{"letter":"X","city":"佛山顺德区"},{"letter":"Y","city":"佛山南海区"}],
       "桂": [{"letter":"A","city":"南宁市"},{"letter":"B","city":"柳州市"},{"letter":"C","city":"桂林市"},{"letter":"D","city":"梧州市"},{"letter":"E","city":"北海市"},{"letter":"F","city":"崇左市"},{"letter":"G","city":"来宾市"},{"letter":"H","city":"桂林地区"},{"letter":"J","city":"贺州市"},{"letter":"K","city":"玉林市"},{"letter":"L","city":"百色市"},{"letter":"M","city":"河池市"},{"letter":"N","city":"钦州市"},{"letter":"P","city":"防城港市"}],
-      "琼": [{"letter":"A","city":"海口市"},{"letter":"B","city":"三亚市"},{"letter":"C","city":"琼北车管所"},{"letter":"D","city":"琼南车管所"},{"letter":"E","city":"洋浦开发区"}],
-      "渝": [{"letter":"A","city":"直属车管所"},{"letter":"B","city":"江南车管所"},{"letter":"C","city":"永川车管所"},{"letter":"F","city":"万州车管所"},{"letter":"G","city":"涪陵车管所"},{"letter":"H","city":"黔江车管所"}],
-      "川": [{"letter":"A","city":"成都市"},{"letter":"B","city":"绵阳市"},{"letter":"C","city":"自贡市"},{"letter":"D","city":"攀枝花市"},{"letter":"E","city":"泸州市"},{"letter":"F","city":"德阳市"},{"letter":"H","city":"广元市"},{"letter":"J","city":"遂宁市"},{"letter":"K","city":"内江市"},{"letter":"L","city":"乐山市"},{"letter":"M","city":"资阳市"},{"letter":"Q","city":"宜宾市"},{"letter":"R","city":"南充市"},{"letter":"S","city":"达州市"},{"letter":"T","city":"雅安市"},{"letter":"U","city":"阿坝藏族羌族自治州"},{"letter":"V","city":"甘孜藏族自治州"},{"letter":"W","city":"凉山彝族自治州"}],
+      "川": [{"letter":"A","city":"成都市"},{"letter":"B","city":"绵阳市"},{"letter":"C","city":"自贡市"},{"letter":"D","city":"攀枝花市"},{"letter":"E","city":"泸州市"},{"letter":"F","city":"德阳市"},{"letter":"H","city":"广元市"},{"letter":"J","city":"遂宁市"},{"letter":"K","city":"内江市"},{"letter":"L","city":"乐山市"},{"letter":"M","city":"资阳市"},{"letter":"Q","city":"宜宾市"},{"letter":"R","city":"南充市"},{"letter":"S","city":"达州市"},{"letter":"T","city":"雅安市"},{"letter":"U","city":"阿坝藏族羌族自治州"},{"letter":"V","city":"甘孜藏族自治州"},{"letter":"W","city":"凉山彝族自治州"},{"letter":"X","city":"广安市"},{"letter":"Y","city":"巴中市"},{"letter":"Z","city":"眉山市"}],
       "贵": [{"letter":"A","city":"贵阳市"},{"letter":"B","city":"六盘水市"},{"letter":"C","city":"遵义市"},{"letter":"D","city":"铜仁市"},{"letter":"E","city":"黔西南布依族苗族自治州"},{"letter":"F","city":"毕节市"},{"letter":"G","city":"安顺市"},{"letter":"H","city":"黔东南苗族侗族自治州"},{"letter":"J","city":"黔南布依族苗族自治州"}],
       "云": [{"letter":"A","city":"昆明市"},{"letter":"C","city":"昭通市"},{"letter":"D","city":"曲靖市"},{"letter":"E","city":"楚雄彝族自治州"},{"letter":"F","city":"玉溪市"},{"letter":"G","city":"红河哈尼族彝族自治州"},{"letter":"H","city":"文山壮族苗族自治州"},{"letter":"J","city":"普洱市"},{"letter":"K","city":"西双版纳傣族自治州"},{"letter":"L","city":"大理白族自治州"},{"letter":"M","city":"保山市"},{"letter":"N","city":"德宏傣族景颇族自治州"},{"letter":"P","city":"丽江市"},{"letter":"Q","city":"怒江傈僳族自治州"},{"letter":"R","city":"迪庆藏族自治州"},{"letter":"S","city":"临沧市"}],
-      "藏": [{"letter":"A","city":"拉萨市"},{"letter":"B","city":"昌都市"},{"letter":"C","city":"山南市"},{"letter":"D","city":"日喀则市"},{"letter":"E","city":"那曲市"},{"letter":"F","city":"阿里地区"},{"letter":"G","city":"林芝市"}],
-      "陕": [{"letter":"A","city":"西安市"},{"letter":"B","city":"铜川市"},{"letter":"C","city":"宝鸡市"},{"letter":"D","city":"咸阳市"},{"letter":"E","city":"渭南市"},{"letter":"F","city":"汉中市"},{"letter":"G","city":"安康市"},{"letter":"H","city":"商洛市"},{"letter":"J","city":"延安市"},{"letter":"K","city":"榆林市"}],
+      "藏": [{"letter":"A","city":"拉萨市"},{"letter":"B","city":"昌都市"},{"letter":"C","city":"山南市"},{"letter":"D","city":"日喀则市"},{"letter":"E","city":"那曲市"},{"letter":"F","city":"阿里地区"},{"letter":"G","city":"林芝市"},{"letter":"H","city":"四川天全县车管所"},{"letter":"J","city":"青海格尔木车管所"}],
+      "陕": [{"letter":"A","city":"西安市"},{"letter":"B","city":"铜川市"},{"letter":"C","city":"宝鸡市"},{"letter":"D","city":"咸阳市"},{"letter":"E","city":"渭南市"},{"letter":"F","city":"汉中市"},{"letter":"G","city":"安康市"},{"letter":"H","city":"商洛市"},{"letter":"J","city":"延安市"},{"letter":"K","city":"榆林市"},{"letter":"V","city":"杨凌农业高新技术产业示范区"}],
       "甘": [{"letter":"A","city":"兰州市"},{"letter":"B","city":"嘉峪关市"},{"letter":"C","city":"金昌市"},{"letter":"D","city":"白银市"},{"letter":"E","city":"天水市"},{"letter":"F","city":"酒泉市"},{"letter":"G","city":"张掖市"},{"letter":"H","city":"武威市"},{"letter":"J","city":"定西市"},{"letter":"K","city":"陇南市"},{"letter":"L","city":"平凉市"},{"letter":"M","city":"庆阳市"},{"letter":"N","city":"临夏回族自治州"},{"letter":"P","city":"甘南藏族自治州"}],
       "青": [{"letter":"A","city":"西宁市"},{"letter":"B","city":"海东市"},{"letter":"C","city":"海北藏族自治州"},{"letter":"D","city":"黄南藏族自治州"},{"letter":"E","city":"海南藏族自治州"},{"letter":"F","city":"果洛藏族自治州"},{"letter":"G","city":"玉树藏族自治州"},{"letter":"H","city":"海西蒙古族藏族自治州"}],
       "宁": [{"letter":"A","city":"银川市"},{"letter":"B","city":"石嘴山市"},{"letter":"C","city":"吴忠市"},{"letter":"D","city":"固原市"}],
@@ -467,7 +528,7 @@
       phoneInput.addEventListener('input', formatPhoneNumber);
     });
     
-    // 手机号格式化（添加分隔符）
+    // 手机号格式化（添加分隔符）xx
     function formatPhoneNumber(e) {
       let value = e.target.value.replace(/\D/g, '');
       
@@ -476,7 +537,7 @@
         value = '1' + value;
       }
       
-      // 限制长度为11位数字
+      // xx限制长度为11位数字
       if (value.length > 11) {
         value = value.slice(0, 11);
       }
@@ -626,8 +687,8 @@
       }
       
       // 验证手机号
-      if (!validatePhoneNumber()) {
-        updateMessage('请输入以1开头的11位有效手机号', 'error');
+      if (!phoneNumber || phoneNumber.length !== 11 || !/^1[3-9]\d{9}$/.test(phoneNumber)) {
+        updateMessage('请输入有效的11位手机号', 'error');
         phoneInput.focus();
         return;
       }
@@ -659,7 +720,7 @@
             plateSuffix.value = '';
             phoneInput.value = '';
             phoneInput.classList.remove('input-success');
-          }, 3000);
+          }, 3000);xx
         } else {
           updateMessage(data.msg || '发送失败，请稍后重试', 'error');
         }
