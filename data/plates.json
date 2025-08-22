@@ -1,2 +1,35 @@
-[
-]
+{
+  "provinces": [
+    {"name": "北京市", "abbr": "京", "letters": ["A", "C", "E", "F", "H", "J", "K", "L", "M", "N", "P", "Q", "Y"]},
+    {"name": "天津市", "abbr": "津", "letters": ["A", "B", "C", "D", "F", "G", "H", "J", "K", "L"]},
+    {"name": "河北省", "abbr": "冀", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "R", "T"]},
+    {"name": "山西省", "abbr": "晋", "letters": ["A", "B", "C", "D", "E", "F", "H", "J", "K", "L", "M"]},
+    {"name": "内蒙古自治区", "abbr": "蒙", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M"]},
+    {"name": "辽宁省", "abbr": "辽", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "V"]},
+    {"name": "吉林省", "abbr": "吉", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"]},
+    {"name": "黑龙江省", "abbr": "黑", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R"]},
+    {"name": "上海市", "abbr": "沪", "letters": ["A", "B", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "R"]},
+    {"name": "江苏省", "abbr": "苏", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "U"]},
+    {"name": "浙江省", "abbr": "浙", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L"]},
+    {"name": "安徽省", "abbr": "皖", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S"]},
+    {"name": "福建省", "abbr": "闽", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"]},
+    {"name": "江西省", "abbr": "赣", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L"]},
+    {"name": "山东省", "abbr": "鲁", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "U", "V", "Y"]},
+    {"name": "河南省", "abbr": "豫", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "U"]},
+    {"name": "湖北省", "abbr": "鄂", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S"]},
+    {"name": "湖南省", "abbr": "湘", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "U"]},
+    {"name": "广东省", "abbr": "粤", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]},
+    {"name": "广西壮族自治区", "abbr": "桂", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R"]},
+    {"name": "海南省", "abbr": "琼", "letters": ["A", "B", "C", "D", "E", "F"]},
+    {"name": "重庆市", "abbr": "渝", "letters": ["A", "B", "C", "D", "F", "G", "H"]},
+    {"name": "四川省", "abbr": "川", "letters": ["A", "B", "C", "D", "E", "F", "H", "J", "K", "L", "Q", "R", "S", "T", "U", "V", "W"]},
+    {"name": "贵州省", "abbr": "贵", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J"]},
+    {"name": "云南省", "abbr": "云", "letters": ["A", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S"]},
+    {"name": "西藏自治区", "abbr": "藏", "letters": ["A", "B", "C", "D", "E", "F", "G"]},
+    {"name": "陕西省", "abbr": "陕", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "V"]},
+    {"name": "甘肃省", "abbr": "甘", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P"]},
+    {"name": "青海省", "abbr": "青", "letters": ["A", "B", "C", "D", "E", "F", "G", "H"]},
+    {"name": "宁夏回族自治区", "abbr": "宁", "letters": ["A", "B", "C", "D", "E"]},
+    {"name": "新疆维吾尔自治区", "abbr": "新", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R"]}
+  ]
+}
