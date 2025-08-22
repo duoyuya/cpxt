@@ -1,35 +1,591 @@
 {
   "provinces": [
-    {"name": "北京市", "abbr": "京", "letters": ["A", "C", "E", "F", "H", "J", "K", "L", "M", "N", "P", "Q", "Y"]},
-    {"name": "天津市", "abbr": "津", "letters": ["A", "B", "C", "D", "F", "G", "H", "J", "K", "L"]},
-    {"name": "河北省", "abbr": "冀", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "R", "T"]},
-    {"name": "山西省", "abbr": "晋", "letters": ["A", "B", "C", "D", "E", "F", "H", "J", "K", "L", "M"]},
-    {"name": "内蒙古自治区", "abbr": "蒙", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M"]},
-    {"name": "辽宁省", "abbr": "辽", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "V"]},
-    {"name": "吉林省", "abbr": "吉", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"]},
-    {"name": "黑龙江省", "abbr": "黑", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R"]},
-    {"name": "上海市", "abbr": "沪", "letters": ["A", "B", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "R"]},
-    {"name": "江苏省", "abbr": "苏", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "U"]},
-    {"name": "浙江省", "abbr": "浙", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L"]},
-    {"name": "安徽省", "abbr": "皖", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S"]},
-    {"name": "福建省", "abbr": "闽", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"]},
-    {"name": "江西省", "abbr": "赣", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L"]},
-    {"name": "山东省", "abbr": "鲁", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "U", "V", "Y"]},
-    {"name": "河南省", "abbr": "豫", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "U"]},
-    {"name": "湖北省", "abbr": "鄂", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S"]},
-    {"name": "湖南省", "abbr": "湘", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "U"]},
-    {"name": "广东省", "abbr": "粤", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]},
-    {"name": "广西壮族自治区", "abbr": "桂", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R"]},
-    {"name": "海南省", "abbr": "琼", "letters": ["A", "B", "C", "D", "E", "F"]},
-    {"name": "重庆市", "abbr": "渝", "letters": ["A", "B", "C", "D", "F", "G", "H"]},
-    {"name": "四川省", "abbr": "川", "letters": ["A", "B", "C", "D", "E", "F", "H", "J", "K", "L", "Q", "R", "S", "T", "U", "V", "W"]},
-    {"name": "贵州省", "abbr": "贵", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J"]},
-    {"name": "云南省", "abbr": "云", "letters": ["A", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S"]},
-    {"name": "西藏自治区", "abbr": "藏", "letters": ["A", "B", "C", "D", "E", "F", "G"]},
-    {"name": "陕西省", "abbr": "陕", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "V"]},
-    {"name": "甘肃省", "abbr": "甘", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P"]},
-    {"name": "青海省", "abbr": "青", "letters": ["A", "B", "C", "D", "E", "F", "G", "H"]},
-    {"name": "宁夏回族自治区", "abbr": "宁", "letters": ["A", "B", "C", "D", "E"]},
-    {"name": "新疆维吾尔自治区", "abbr": "新", "letters": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R"]}
+    {
+      "name": "北京市",
+      "abbr": "京",
+      "cities": [
+        {"letter": "A", "city": "北京市区"},
+        {"letter": "C", "city": "北京市区"},
+        {"letter": "E", "city": "北京市区"},
+        {"letter": "F", "city": "北京市区"},
+        {"letter": "H", "city": "北京市区"},
+        {"letter": "J", "city": "北京市区"},
+        {"letter": "K", "city": "北京市区"},
+        {"letter": "L", "city": "北京市区"},
+        {"letter": "M", "city": "北京市区"},
+        {"letter": "N", "city": "北京市区"},
+        {"letter": "P", "city": "北京市区"},
+        {"letter": "Q", "city": "北京市区"},
+        {"letter": "Y", "city": "北京市区"},
+        {"letter": "G", "city": "北京郊县"}
+      ]
+    },
+    {
+      "name": "天津市",
+      "abbr": "津",
+      "cities": [
+        {"letter": "A", "city": "天津市"},
+        {"letter": "B", "city": "天津市"},
+        {"letter": "C", "city": "天津市"},
+        {"letter": "D", "city": "天津市"},
+        {"letter": "F", "city": "天津市"},
+        {"letter": "G", "city": "天津市"},
+        {"letter": "H", "city": "天津市"},
+        {"letter": "J", "city": "天津市"},
+        {"letter": "K", "city": "天津市"},
+        {"letter": "L", "city": "天津市"}
+      ]
+    },
+    {
+      "name": "河北省",
+      "abbr": "冀",
+      "cities": [
+        {"letter": "A", "city": "石家庄市"},
+        {"letter": "B", "city": "唐山市"},
+        {"letter": "C", "city": "秦皇岛市"},
+        {"letter": "D", "city": "邯郸市"},
+        {"letter": "E", "city": "邢台市"},
+        {"letter": "F", "city": "保定市"},
+        {"letter": "G", "city": "张家口市"},
+        {"letter": "H", "city": "承德市"},
+        {"letter": "J", "city": "沧州市"},
+        {"letter": "R", "city": "廊坊市"},
+        {"letter": "T", "city": "衡水市"}
+      ]
+    },
+    {
+      "name": "山西省",
+      "abbr": "晋",
+      "cities": [
+        {"letter": "A", "city": "太原市"},
+        {"letter": "B", "city": "大同市"},
+        {"letter": "C", "city": "阳泉市"},
+        {"letter": "D", "city": "长治市"},
+        {"letter": "E", "city": "晋城市"},
+        {"letter": "F", "city": "朔州市"},
+        {"letter": "H", "city": "忻州市"},
+        {"letter": "J", "city": "吕梁市"},
+        {"letter": "K", "city": "晋中市"},
+        {"letter": "L", "city": "临汾市"},
+        {"letter": "M", "city": "运城市"}
+      ]
+    },
+    {
+      "name": "内蒙古自治区",
+      "abbr": "蒙",
+      "cities": [
+        {"letter": "A", "city": "呼和浩特市"},
+        {"letter": "B", "city": "包头市"},
+        {"letter": "C", "city": "乌海市"},
+        {"letter": "D", "city": "赤峰市"},
+        {"letter": "E", "city": "呼伦贝尔市"},
+        {"letter": "F", "city": "兴安盟"},
+        {"letter": "G", "city": "通辽市"},
+        {"letter": "H", "city": "锡林郭勒盟"},
+        {"letter": "J", "city": "乌兰察布市"},
+        {"letter": "K", "city": "鄂尔多斯市"},
+        {"letter": "L", "city": "巴彦淖尔市"},
+        {"letter": "M", "city": "阿拉善盟"}
+      ]
+    },
+    {
+      "name": "辽宁省",
+      "abbr": "辽",
+      "cities": [
+        {"letter": "A", "city": "沈阳市"},
+        {"letter": "B", "city": "大连市"},
+        {"letter": "C", "city": "鞍山市"},
+        {"letter": "D", "city": "抚顺市"},
+        {"letter": "E", "city": "本溪市"},
+        {"letter": "F", "city": "丹东市"},
+        {"letter": "G", "city": "锦州市"},
+        {"letter": "H", "city": "营口市"},
+        {"letter": "J", "city": "阜新市"},
+        {"letter": "K", "city": "辽阳市"},
+        {"letter": "L", "city": "盘锦市"},
+        {"letter": "M", "city": "铁岭市"},
+        {"letter": "N", "city": "朝阳市"},
+        {"letter": "P", "city": "葫芦岛市"}, 
+        {"letter": "V", "city": "省直机关"}
+      ]
+    },
+    {
+      "name": "吉林省",
+      "abbr": "吉",
+      "cities": [
+        {"letter": "A", "city": "长春市"},
+        {"letter": "B", "city": "吉林市"},
+        {"letter": "C", "city": "四平市"},
+        {"letter": "D", "city": "辽源市"},
+        {"letter": "E", "city": "通化市"},
+        {"letter": "F", "city": "白山市"},
+        {"letter": "G", "city": "白城市"},
+        {"letter": "H", "city": "延边朝鲜族自治州"},
+        {"letter": "J", "city": "松原市"}
+      ]
+    },
+    {
+      "name": "黑龙江省",
+      "abbr": "黑",
+      "cities": [
+        {"letter": "A", "city": "哈尔滨市"},
+        {"letter": "B", "city": "齐齐哈尔市"},
+        {"letter": "C", "city": "牡丹江市"},
+        {"letter": "D", "city": "佳木斯市"},
+        {"letter": "E", "city": "大庆市"},
+        {"letter": "F", "city": "伊春市"},
+        {"letter": "G", "city": "鸡西市"},
+        {"letter": "H", "city": "鹤岗市"},
+        {"letter": "J", "city": "双鸭山市"},
+        {"letter": "K", "city": "七台河市"},
+        {"letter": "L", "city": "松花江地区"},
+        {"letter": "M", "city": "绥化市"},
+        {"letter": "N", "city": "黑河市"},
+        {"letter": "P", "city": "大兴安岭地区"},
+        {"letter": "R", "city": "农垦系统"}
+      ]
+    },
+    {
+      "name": "上海市",
+      "abbr": "沪",
+      "cities": [
+        {"letter": "A", "city": "上海市"},
+        {"letter": "B", "city": "上海市"},
+        {"letter": "D", "city": "上海市"},
+        {"letter": "E", "city": "上海市"},
+        {"letter": "F", "city": "上海市"},
+        {"letter": "G", "city": "上海市"},
+        {"letter": "H", "city": "上海市"},
+        {"letter": "J", "city": "上海市"},
+        {"letter": "K", "city": "上海市"},
+        {"letter": "L", "city": "上海市"},
+        {"letter": "M", "city": "上海市"},
+        {"letter": "N", "city": "上海市"},
+        {"letter": "R", "city": "上海市"}
+      ]
+    },
+    {
+      "name": "江苏省",
+      "abbr": "苏",
+      "cities": [
+        {"letter": "A", "city": "南京市"},
+        {"letter": "B", "city": "无锡市"},
+        {"letter": "C", "city": "徐州市"},
+        {"letter": "D", "city": "常州市"},
+        {"letter": "E", "city": "苏州市"},
+        {"letter": "F", "city": "南通市"},
+        {"letter": "G", "city": "连云港市"},
+        {"letter": "H", "city": "淮安市"},
+        {"letter": "J", "city": "盐城市"},
+        {"letter": "K", "city": "扬州市"},
+        {"letter": "L", "city": "镇江市"},
+        {"letter": "M", "city": "泰州市"},
+        {"letter": "N", "city": "宿迁市"}
+      ]
+    },
+    {
+      "name": "浙江省",
+      "abbr": "浙",
+      "cities": [
+        {"letter": "A", "city": "杭州市"},
+        {"letter": "B", "city": "宁波市"},
+        {"letter": "C", "city": "温州市"},
+        {"letter": "D", "city": "绍兴市"},
+        {"letter": "E", "city": "湖州市"},
+        {"letter": "F", "city": "嘉兴市"},
+        {"letter": "G", "city": "金华市"},
+        {"letter": "H", "city": "衢州市"},
+        {"letter": "J", "city": "台州市"},
+        {"letter": "K", "city": "丽水市"},
+        {"letter": "L", "city": "舟山市"}
+      ]
+    },
+    {
+      "name": "安徽省",
+      "abbr": "皖",
+      "cities": [
+        {"letter": "A", "city": "合肥市"},
+        {"letter": "B", "city": "芜湖市"},
+        {"letter": "C", "city": "蚌埠市"},
+        {"letter": "D", "city": "淮南市"},
+        {"letter": "E", "city": "马鞍山市"},
+        {"letter": "F", "city": "淮北市"},
+        {"letter": "G", "city": "铜陵市"},
+        {"letter": "H", "city": "安庆市"},
+        {"letter": "J", "city": "黄山市"},
+        {"letter": "K", "city": "阜阳市"},
+        {"letter": "L", "city": "宿州市"},
+        {"letter": "M", "city": "滁州市"},
+        {"letter": "N", "city": "六安市"},
+        {"letter": "P", "city": "宣城市"},
+        {"letter": "Q", "city": "巢湖市"},
+        {"letter": "R", "city": "池州市"},
+        {"letter": "S", "city": "亳州市"}
+      ]
+    },
+    {
+      "name": "福建省",
+      "abbr": "闽",
+      "cities": [
+        {"letter": "A", "city": "福州市"},
+        {"letter": "B", "city": "莆田市"},
+        {"letter": "C", "city": "泉州市"},
+        {"letter": "D", "city": "厦门市"},
+        {"letter": "E", "city": "漳州市"},
+        {"letter": "F", "city": "龙岩市"},
+        {"letter": "G", "city": "三明市"},
+        {"letter": "H", "city": "南平市"},
+        {"letter": "J", "city": "宁德市"},
+        {"letter": "K", "city": "省直机关"}
+      ]
+    },
+    {
+      "name": "江西省",
+      "abbr": "赣",
+      "cities": [
+        {"letter": "A", "city": "南昌市"},
+        {"letter": "B", "city": "赣州市"},
+        {"letter": "C", "city": "宜春市"},
+        {"letter": "D", "city": "吉安市"},
+        {"letter": "E", "city": "上饶市"},
+        {"letter": "F", "city": "抚州市"},
+        {"letter": "G", "city": "九江市"},
+        {"letter": "H", "city": "景德镇市"},
+        {"letter": "J", "city": "萍乡市"},
+        {"letter": "K", "city": "新余市"},
+        {"letter": "L", "city": "鹰潭市"},
+        {"letter": "M", "city": "南昌省直机关"}
+      ]
+    },
+    {
+      "name": "山东省",
+      "abbr": "鲁",
+      "cities": [
+        {"letter": "A", "city": "济南市"},
+        {"letter": "B", "city": "青岛市"},
+        {"letter": "C", "city": "淄博市"},
+        {"letter": "D", "city": "枣庄市"},
+        {"letter": "E", "city": "东营市"},
+        {"letter": "F", "city": "烟台市"},
+        {"letter": "G", "city": "潍坊市"},
+        {"letter": "H", "city": "济宁市"},
+        {"letter": "J", "city": "泰安市"},
+        {"letter": "K", "city": "威海市"},
+        {"letter": "L", "city": "日照市"},
+        {"letter": "M", "city": "滨州市"},
+        {"letter": "N", "city": "德州市"},
+        {"letter": "P", "city": "聊城市"},
+        {"letter": "Q", "city": "临沂市"},
+        {"letter": "R", "city": "菏泽市"},
+        {"letter": "S", "city": "莱芜市"},
+        {"letter": "U", "city": "青岛市增补"},
+        {"letter": "Y", "city": "烟台市增补"}
+      ]
+    },
+    {
+      "name": "河南省",
+      "abbr": "豫",
+      "cities": [
+        {"letter": "A", "city": "郑州市"},
+        {"letter": "B", "city": "开封市"},
+        {"letter": "C", "city": "洛阳市"},
+        {"letter": "D", "city": "平顶山市"},
+        {"letter": "E", "city": "安阳市"},
+        {"letter": "F", "city": "鹤壁市"},
+        {"letter": "G", "city": "新乡市"},
+        {"letter": "H", "city": "焦作市"},
+        {"letter": "J", "city": "濮阳市"},
+        {"letter": "K", "city": "许昌市"},
+        {"letter": "L", "city": "漯河市"},
+        {"letter": "M", "city": "三门峡市"},
+        {"letter": "N", "city": "商丘市"},
+        {"letter": "P", "city": "周口市"},
+        {"letter": "Q", "city": "驻马店市"},
+        {"letter": "R", "city": "南阳市"},
+        {"letter": "S", "city": "信阳市"},
+        {"letter": "U", "city": "济源市"}
+      ]
+    },
+    {
+      "name": "湖北省",
+      "abbr": "鄂",
+      "cities": [
+        {"letter": "A", "city": "武汉市"},
+        {"letter": "B", "city": "黄石市"},
+        {"letter": "C", "city": "十堰市"},
+        {"letter": "D", "city": "荆州市"},
+        {"letter": "E", "city": "宜昌市"},
+        {"letter": "F", "city": "襄阳市"},
+        {"letter": "G", "city": "鄂州市"},
+        {"letter": "H", "city": "荆门市"},
+        {"letter": "J", "city": "黄冈市"},
+        {"letter": "K", "city": "孝感市"},
+        {"letter": "L", "city": "咸宁市"},
+        {"letter": "M", "city": "仙桃市"},
+        {"letter": "N", "city": "潜江市"},
+        {"letter": "P", "city": "神农架林区"},
+        {"letter": "Q", "city": "恩施土家族苗族自治州"},
+        {"letter": "R", "city": "天门市"},
+        {"letter": "S", "city": "随州市"}
+      ]
+    },
+    {
+      "name": "湖南省",
+      "abbr": "湘",
+      "cities": [
+        {"letter": "A", "city": "长沙市"},
+        {"letter": "B", "city": "株洲市"},
+        {"letter": "C", "city": "湘潭市"},
+        {"letter": "D", "city": "衡阳市"},
+        {"letter": "E", "city": "邵阳市"},
+        {"letter": "F", "city": "岳阳市"},
+        {"letter": "G", "city": "张家界市"},
+        {"letter": "H", "city": "益阳市"},
+        {"letter": "J", "city": "常德市"},
+        {"letter": "K", "city": "娄底市"},
+        {"letter": "L", "city": "郴州市"},
+        {"letter": "M", "city": "永州市"},
+        {"letter": "N", "city": "怀化市"},
+        {"letter": "U", "city": "湘西土家族苗族自治州"},
+        {"letter": "S", "city": "省直机关"}
+      ]
+    },
+    {
+      "name": "广东省",
+      "abbr": "粤",
+      "cities": [
+        {"letter": "A", "city": "广州市"},
+        {"letter": "B", "city": "深圳市"},
+        {"letter": "C", "city": "珠海市"},
+        {"letter": "D", "city": "汕头市"},
+        {"letter": "E", "city": "佛山市"},
+        {"letter": "F", "city": "韶关市"},
+        {"letter": "G", "city": "湛江市"},
+        {"letter": "H", "city": "肇庆市"},
+        {"letter": "J", "city": "江门市"},
+        {"letter": "K", "city": "茂名市"},
+        {"letter": "L", "city": "惠州市"},
+        {"letter": "M", "city": "梅州市"},
+        {"letter": "N", "city": "汕尾市"},
+        {"letter": "P", "city": "河源市"},
+        {"letter": "Q", "city": "阳江市"},
+        {"letter": "R", "city": "清远市"},
+        {"letter": "S", "city": "东莞市"},
+        {"letter": "T", "city": "中山市"},
+        {"letter": "U", "city": "潮州市"},
+        {"letter": "V", "city": "揭阳市"},
+        {"letter": "W", "city": "云浮市"},
+        {"letter": "X", "city": "佛山市顺德区"},
+        {"letter": "Y", "city": "佛山市南海区"},
+        {"letter": "Z", "city": "港澳进入内地车辆"}
+      ]
+    },
+    {
+      "name": "广西壮族自治区",
+      "abbr": "桂",
+      "cities": [
+        {"letter": "A", "city": "南宁市"},
+        {"letter": "B", "city": "柳州市"},
+        {"letter": "C", "city": "桂林市"},
+        {"letter": "D", "city": "梧州市"},
+        {"letter": "E", "city": "北海市"},
+        {"letter": "F", "city": "崇左市"},
+        {"letter": "G", "city": "来宾市"},
+        {"letter": "H", "city": "桂林市增补"},
+        {"letter": "J", "city": "贺州市"},
+        {"letter": "K", "city": "玉林市"},
+        {"letter": "L", "city": "百色市"},
+        {"letter": "M", "city": "河池市"},
+        {"letter": "N", "city": "钦州市"},
+        {"letter": "P", "city": "防城港市"}
+      ]
+    },
+    {
+      "name": "海南省",
+      "abbr": "琼",
+      "cities": [
+        {"letter": "A", "city": "海口市"},
+        {"letter": "B", "city": "三亚市"},
+        {"letter": "C", "city": "琼北车管所"},
+        {"letter": "D", "city": "琼南车管所"},
+        {"letter": "E", "city": "洋浦开发区"},
+        {"letter": "F", "city": "儋州市"}
+      ]
+    },
+    {
+      "name": "重庆市",
+      "abbr": "渝",
+      "cities": [
+        {"letter": "A", "city": "直属车管所"},
+        {"letter": "B", "city": "江南车管所"},
+        {"letter": "C", "city": "永川车管所"},
+        {"letter": "F", "city": "万州车管所"},
+        {"letter": "G", "city": "涪陵车管所"},
+        {"letter": "H", "city": "黔江车管所"}
+      ]
+    },
+    {
+      "name": "四川省",
+      "abbr": "川",
+      "cities": [
+        {"letter": "A", "city": "成都市"},
+        {"letter": "B", "city": "绵阳市"},
+        {"letter": "C", "city": "自贡市"},
+        {"letter": "D", "city": "攀枝花市"},
+        {"letter": "E", "city": "泸州市"},
+        {"letter": "F", "city": "德阳市"},
+        {"letter": "H", "city": "广元市"},
+        {"letter": "J", "city": "遂宁市"},
+        {"letter": "K", "city": "内江市"},
+        {"letter": "L", "city": "乐山市"},
+        {"letter": "M", "city": "资阳市"},
+        {"letter": "Q", "city": "宜宾市"},
+        {"letter": "R", "city": "南充市"},
+        {"letter": "S", "city": "达州市"},
+        {"letter": "T", "city": "雅安市"},
+        {"letter": "U", "city": "阿坝藏族羌族自治州"},
+        {"letter": "V", "city": "甘孜藏族自治州"},
+        {"letter": "W", "city": "凉山彝族自治州"},
+        {"letter": "X", "city": "广安市"},
+        {"letter": "Y", "city": "巴中市"},
+        {"letter": "Z", "city": "眉山市"}
+      ]
+    },
+    {
+      "name": "贵州省",
+      "abbr": "贵",
+      "cities": [
+        {"letter": "A", "city": "贵阳市"},
+        {"letter": "B", "city": "六盘水市"},
+        {"letter": "C", "city": "遵义市"},
+        {"letter": "D", "city": "铜仁市"},
+        {"letter": "E", "city": "黔西南布依族苗族自治州"},
+        {"letter": "F", "city": "毕节市"},
+        {"letter": "G", "city": "安顺市"},
+        {"letter": "H", "city": "黔东南苗族侗族自治州"},
+        {"letter": "J", "city": "黔南布依族苗族自治州"}
+      ]
+    },
+    {
+      "name": "云南省",
+      "abbr": "云",
+      "cities": [
+        {"letter": "A", "city": "昆明市"},
+        {"letter": "C", "city": "昭通市"},
+        {"letter": "D", "city": "曲靖市"},
+        {"letter": "E", "city": "楚雄彝族自治州"},
+        {"letter": "F", "city": "玉溪市"},
+        {"letter": "G", "city": "红河哈尼族彝族自治州"},
+        {"letter": "H", "city": "文山壮族苗族自治州"},
+        {"letter": "J", "city": "普洱市"},
+        {"letter": "K", "city": "西双版纳傣族自治州"},
+        {"letter": "L", "city": "大理白族自治州"},
+        {"letter": "M", "city": "保山市"},
+        {"letter": "N", "city": "德宏傣族景颇族自治州"},
+        {"letter": "P", "city": "丽江市"},
+        {"letter": "Q", "city": "怒江傈僳族自治州"},
+        {"letter": "R", "city": "迪庆藏族自治州"},
+        {"letter": "S", "city": "临沧市"}
+      ]
+    },
+    {
+      "name": "西藏自治区",
+      "abbr": "藏",
+      "cities": [
+        {"letter": "A", "city": "拉萨市"},
+        {"letter": "B", "city": "昌都市"},
+        {"letter": "C", "city": "山南市"},
+        {"letter": "D", "city": "日喀则市"},
+        {"letter": "E", "city": "那曲市"},
+        {"letter": "F", "city": "阿里地区"},
+        {"letter": "G", "city": "林芝市"},
+        {"letter": "H", "city": "四川天全县车管所"},
+        {"letter": "J", "city": "青海格尔木车管所"}
+      ]
+    },
+    {
+      "name": "陕西省",
+      "abbr": "陕",
+      "cities": [
+        {"letter": "A", "city": "西安市"},
+        {"letter": "B", "city": "铜川市"},
+        {"letter": "C", "city": "宝鸡市"},
+        {"letter": "D", "city": "咸阳市"},
+        {"letter": "E", "city": "渭南市"},
+        {"letter": "F", "city": "汉中市"},
+        {"letter": "G", "city": "安康市"},
+        {"letter": "H", "city": "商洛市"},
+        {"letter": "J", "city": "延安市"},
+        {"letter": "K", "city": "榆林市"},
+        {"letter": "U", "city": "省直机关"},
+        {"letter": "V", "city": "杨凌农业高新技术产业示范区"}
+      ]
+    },
+    {
+      "name": "甘肃省",
+      "abbr": "甘",
+      "cities": [
+        {"letter": "A", "city": "兰州市"},
+        {"letter": "B", "city": "嘉峪关市"},
+        {"letter": "C", "city": "金昌市"},
+        {"letter": "D", "city": "白银市"},
+        {"letter": "E", "city": "天水市"},
+        {"letter": "F", "city": "酒泉市"},
+        {"letter": "G", "city": "张掖市"},
+        {"letter": "H", "city": "武威市"},
+        {"letter": "J", "city": "定西市"},
+        {"letter": "K", "city": "陇南市"},
+        {"letter": "L", "city": "平凉市"},
+        {"letter": "M", "city": "庆阳市"},
+        {"letter": "N", "city": "临夏回族自治州"},
+        {"letter": "P", "city": "甘南藏族自治州"}
+      ]
+    },
+    {
+      "name": "青海省",
+      "abbr": "青",
+      "cities": [
+        {"letter": "A", "city": "西宁市"},
+        {"letter": "B", "city": "海东市"},
+        {"letter": "C", "city": "海北藏族自治州"},
+        {"letter": "D", "city": "黄南藏族自治州"},
+        {"letter": "E", "city": "海南藏族自治州"},
+        {"letter": "F", "city": "果洛藏族自治州"},
+        {"letter": "G", "city": "玉树藏族自治州"},
+        {"letter": "H", "city": "海西蒙古族藏族自治州"}
+      ]
+    },
+    {
+      "name": "宁夏回族自治区",
+      "abbr": "宁",
+      "cities": [
+        {"letter": "A", "city": "银川市"},
+        {"letter": "B", "city": "石嘴山市"},
+        {"letter": "C", "city": "吴忠市"},
+        {"letter": "D", "city": "固原市"}
+      ]
+    },
+    {
+      "name": "新疆维吾尔自治区",
+      "abbr": "新",
+      "cities": [
+        {"letter": "A", "city": "乌鲁木齐市"},
+        {"letter": "B", "city": "昌吉回族自治州"},
+        {"letter": "C", "city": "石河子市"},
+        {"letter": "D", "city": "奎屯市"},
+        {"letter": "E", "city": "博尔塔拉蒙古自治州"},
+        {"letter": "F", "city": "伊犁哈萨克自治州"},
+        {"letter": "G", "city": "塔城地区"},
+        {"letter": "H", "city": "阿勒泰地区"},
+        {"letter": "J", "city": "克拉玛依市"},
+        {"letter": "K", "city": "吐鲁番市"},
+        {"letter": "L", "city": "哈密市"},
+        {"letter": "M", "city": "巴音郭楞蒙古自治州"},
+        {"letter": "N", "city": "阿克苏地区"},
+        {"letter": "P", "city": "克孜勒苏柯尔克孜自治州"},
+        {"letter": "Q", "city": "喀什地区"},
+        {"letter": "R", "city": "和田地区"}
+      ]
+    }
   ]
 }
