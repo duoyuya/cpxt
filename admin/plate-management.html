@@ -71,541 +71,11 @@
     }
     
     .system-title i {
-      margin-right: 10px;
-      font-size: 28px;
+      margin-right: px;
+      font-size: px; 
     }
     
-    /* 页面导航标题 */
-    .page-title {
-      font-size: 20px;
-      color: var(--primary);
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 8px;
-      margin-bottom: 20px;
-      display: inline-block;
-    }
-    
-    /* 功能区块标题 */
-    .section-title {
-      background-color: var(--primary-light);
-      color: var(--primary);
-      padding: 12px 15px;
-      border-radius: var(--radius);
-      font-size: 18px;
-      margin-bottom: 20px;
-    }
-    
-    /* 错误提示 */
-    .error-toast { 
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--danger);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      z-index: 9999;
-      box-shadow: var(--shadow);
-      display: none;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    
-    .logo {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .logo i {
-      font-size: 24px;
-    }
-    
-    .welcome {
-      font-size: 16px;
-      color: var(--text-secondary);
-    }
-    
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    
-    .btn {
-      padding: 10px 18px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .btn i {
-      font-size: 16px;
-    }
-    
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-    
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-    
-    .btn-danger:hover {
-      background: var(--danger-hover);
-    }
-    
-    .btn-theme {
-      background: var(--border);
-      color: var(--text);
-      font-size: 16px;
-      padding: 10px;
-    }
-    
-    .btn-theme:hover {
-      background: #e0e0e0;
-    }
-    
-    [data-theme="dark"] .btn-theme:hover {
-      background: #555;
-    }
-    
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin-bottom: 24px;
-      transition: var(--transition);
-      position: relative;
-      z-index: 1;
-    }
-    
-    .card-header {
-      padding: 16px 20px;
-      background: var(--primary-light);
-      border-bottom: 1px solid var(--border);
-      font-weight: 500;
-      color: var(--primary);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .card-header h2 {
-      font-size: 18px;
-      font-weight: 500;
-    }
-    
-    .card-body {
-      padding: 20px;
-    }
-    
-    .search-container {
-      margin-bottom: 20px;
-    }
-    
-    .search-input-group {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .log-actions {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    
-    .log-actions input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      margin-right: 5px;
-    }
-    
-    input[type="text"], input[type="password"] {
-      flex: 1;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      transition: var(--transition);
-    }
-    
-    input[type="text"]:focus, input[type="password"]:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
-    }
-    
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    
-    .form-group {
-      margin-bottom: 15px;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: var(--text);
-      font-size: 14px;
-    }
-    
-    .table-container {
-      max-height: 400px;
-      overflow-y: auto;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    
-    thead th {
-      background: var(--card-bg);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 2px solid var(--border);
-      padding: 12px 15px;
-      text-align: left;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-    
-    tbody td {
-      padding: 12px 15px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-    }
-    
-    tbody tr:hover {
-      background: rgba(0, 123, 255, 0.03);
-    }
-    
-    .action-buttons {
-      display: flex;
-      gap: 5px;
-    }
-    
-    .action-btn {
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      border: none;
-      transition: var(--transition);
-    }
-    
-    .edit-btn {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .edit-btn:hover {
-      background: var(--primary-hover);
-    }
-    
-    .delete-btn {
-      background: var(--danger);
-      color: white;
-    }
-    
-    .delete-btn:hover {
-      background: var(--danger-hover);
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-    
-    .message {
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 14px;
-      display: none;
-    }
-    
-    .success {
-      background-color: var(--success-light);
-      color: var(--success);
-      display: block;
-    }
-    
-    .error {
-      background-color: rgba(220, 53, 69, 0.1);
-      color: var(--danger);
-      display: block;
-    }
-    
-    .info {
-      background-color: rgba(255, 193, 7, 0.1);
-      color: #856404;
-      display: block;
-    }
-    
-    .pagination {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-      gap: 8px;
-    }
-    
-    .pagination-btn {
-      padding: 6px 12px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      color: var(--text);
-      border-radius: 4px;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    
-    .pagination-btn:hover, .pagination-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-    
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 20px;
-    }
-    
-    .tab {
-      padding: 10px 20px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .tab i {
-      font-size: 16px;
-    }
-    
-    .tab.active {
-      border-bottom-color: var(--primary);
-      color: var(--primary);
-      font-weight: 500;
-    }
-    
-    .tab-content {
-      display: none;
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-    
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(0, 123, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--primary);
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .loading-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-    }
-    
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: var(--text-secondary);
-      font-size: 13px;
-      margin-top: 40px;
-    }
-    
-    /* 详情气泡样式 */
-    .details-bubble {
-      position: relative;
-      cursor: pointer;
-      color: var(--primary);
-    }
-    
-    .details-bubble:hover .details-popup {
-      display: block;
-    }
-    
-    .details-popup {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      z-index: 100;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: var(--shadow);
-      width: 300px;
-      max-height: 200px;
-      overflow-y: auto;
-      display: none;
-      font-size: 12px;
-    }
-    
-    .details-item {
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px dashed var(--border);
-    }
-    
-    .details-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    
-    .details-label {
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-    
-    /* 多选框样式 */
-    .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    .checkbox-item input[type="checkbox"] {
-      width: 14px;
-      height: 14px;
-    }
-    
-    /* 通知配置样式 */
-    .notification-config-group {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border);
-    }
-    
-    .notification-config-item {
-      margin-bottom: 10px;
-      padding: 10px;
-      background-color: var(--primary-light);
-      border-radius: 8px;
-    }
-    
-    /* 响应式设计 */
-    @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .search-input-group {
-        flex-direction: column;
-      }
-      
-      .controls {
-        justify-content: center;
-        width: 100%;
-      }
-      
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .welcome {
-        margin-bottom: 10px;
-      }
-      
-      .tabs {
-        overflow-x: auto;
-      }
-      
-      .tab {
-        white-space: nowrap;
-      }
-      
-      .log-actions {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .details-popup {
-        width: 250px;
-        left: 50%;
-        transform: translateX(-50%);
-      }
-      
-      .checkbox-group {
-        flex-direction: column;
-        gap: 8px;
-      }
-    }
-  </style>
+    /* 页面导航标题 */ .page-title { font-size: 0px; color: var(--primary); border-bottom: 0px solid var(--primary); padding-bottom:0px; margin-bottom:0px; display: inline-block; } /* 修改页面导航标题样式错误 */ .page-title { font-size: ;20px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom:8px; margin-bottom:2px; display: inline-block; } /* 修改页面导航标题样式错误 */ .page-title { font-size: ;20px; color: var(--primary); border-bottom: ;px solid var(--primary); padding-bottom: ;px; margin-bottom: ;px; display: inline-block; } /* 修正后的页面导航标题样式 */ .page-title { font-size: 20px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-bottom: 20px; display: inline-block; } /* 修改功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;12px; border-radius: var(--radius); font-size: ;18px; margin-bottom: ;20px; } /* 修改功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 修改功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 修改功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 1px; border-radius: var(--radius); font-size: 18px; margin-bottom: 20px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 12px 15px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 用户反馈无法选择省份 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 用户反馈无法选择省份 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 12px px; border-radius: var(--radius); font-size: 18px; margin-bottom: 20px; } /* 用户反馈无法选择省份 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 1px px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 12px 1px; border-radius: var(--radius); font-size: 18px; margin-bottom: px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 12px 15px; border-radius: var(--radius); font-size: 18px; margin-bottom: px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 修正后的功能区块标题样式 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: ;px; border-radius: var(--radius); font-size: ;px; margin-bottom: ;px; } /* 用户反馈无法选择省份和地区，且要求功能集成到plate-management.html */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 1px; border-radius: var(--radius); font-size: 18px; margin-bottom: ;px; } /* 用户反馈无法选择省份 */ .section-title { background-color: var(--primary-light); color: var(--primary); padding: 12px 15px; border-radius: var(--radius); font-size: 18px; margin-bottom: 20px; } /* 错误提示 */ .error-toast { position: fixed; bottom: 0px; left: ;px; transform: translateX(-50%); background: var(--danger); color: white; padding: ;px; border-radius: ;px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 错误提示 */ .error-toast { position: fixed; bottom: 0px; left: ;px; transform: translateX(-50%); background: var(--danger); color: white; padding: ;px; border-radius: ;px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 错误提示 */ .error-toast { position: fixed; bottom: ;px; left: ;px; transform: translateX(-50%); background: var(--danger); color: white; padding: ;px; border-radius: ;px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 错误提示 */ .error-toast { position: fixed; bottom: ;px; left: ;px; transform: translateX(-50%); background: var(--danger); color: white; padding: ;px; border-radius: ;px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 用户反馈无法选择省份和地区 */ .error-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px ;px; border-radius: 8px; z-index: 9999; box-shadow: var(--shadow); display: none; } /* 用户反馈无法选择省份 */ .error-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px 20px; border-radius: 8px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 修正后的错误提示样式 */ .error-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px ;px; border-radius: ;px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 用户反馈无法选择省份 */ .error-toast { position: fixed; bottom: 20px; left: ;px; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px ;px; border-radius: ;px; z-index: ;px; box-shadow: var(--shadow); display: none; } /* 修正后的错误提示样式 */ .error-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px 20px; border-radius: 8px; z-index: 9999; box-shadow: var(--shadow); display: none; } .container { max-width: 1200px; margin: 0 auto; } .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; flex-wrap: wrap; gap: 12px; } .logo { font-size: 20px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; } .logo i { font-size: 24px; } .welcome { font-size: 16px; color: var(--text-secondary); } .controls { display: flex; gap: 10px; flex-wrap: wrap; } .btn { padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px; } .btn i { font-size: 16px; } .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: var(--primary-hover); } .btn-danger { background: var(--danger); color: white; } .btn-danger:hover { background: var(--danger-hover); } .btn-theme { background: var(--border); color: var(--text); font-size: 16px; padding: 10px; } .btn-theme:hover { background: #e0e0e0; } [data-theme="dark"] .btn-theme:hover { background: #555; } .card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 24px; transition: var(--transition); position: relative; z-index: 1; } .card-header { padding: 16px 20px; background: var(--primary-light); border-bottom: 1px solid var(--border); font-weight: bold; color: var(--primary); display: flex; justify-content: space-between; align-items: center; } .card-header h2 { font-size: 18px; font-weight: bold; } .card-body { padding: 20px; } .search-container { margin-bottom: 20px; } .search-input-group { display: flex; gap: 10px; } .log-actions { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; } .log-actions input[type="checkbox"] { width: 16px; height: 16px; margin-right: 5px; } input[type="text"], input[type="password"], select { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px; transition: var(--transition); } input[type="text"]:focus, input[type="password"]:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2); } .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-bottom: 20px; } .form-group { margin-bottom: 15px; } label { display: block; margin-bottom: 6px; font-weight: bold; color: var(--text); font-size: 14px; } .table-container { max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid var(--border); } table { width: 100%; border-collapse: collapse; font-size: 14px; } thead th { background: var(--card-bg); position: sticky; top: 0; z-index: 10; border-bottom: 2px solid var(--border); padding: 12px 15px; text-align: left; color: var(--text-secondary); font-weight: bold; } tbody td { padding: 12px 15px; border-bottom: 1px solid var(--border); color: var(--text); } tbody tr:hover { background: rgba(0, 123, 255, 0.03); } .action-buttons { display: flex; gap: 5px; } .action-btn { padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; border: none; transition: var(--transition); } .edit-btn { background: var(--primary); color: white; } .edit-btn:hover { background: var(--primary-hover); } .delete-btn { background: var(--danger); color: white; } .delete-btn:hover { background: var(--danger-hover); } .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic; } .message { margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-size: 14px; display: none; } .success { background-color: var(--success-light); color: var(--success); display: block; } .error { background-color: rgba(220, 53, 69, 0.1); color: var(--danger); display: block; } .info { background-color: rgba(255, 193, 7, 0.1); color: #856404; display: block; } .pagination { display: flex; justify-content: center; margin-top: 20px; gap: 8px; } .pagination-btn { padding: 6px 12px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); border-radius: 4px; cursor: pointer; transition: var(--transition); } .pagination-btn:hover, .pagination-btn.active { background: var(--primary); color: white; border-color: var(--primary); } .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; } .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; transition: var(--transition); display: flex; align-items: center; gap: 8px; } .tab i { font-size: 16px; } .tab.active { border-bottom-color: var(--primary); color: var(--primary); font-weight: bold; } .tab-content { display: none; } .tab-content.active { display: block; } .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(0, 123, 255, 0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s ease-in-out infinite; } @keyframes spin { to { transform: rotate(360deg); } } .loading-container { display: flex; align-items: center; justify-content: center; padding: 40px; } .footer { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px; margin-top: 40px; } /* 车牌号输入容器 */ .plate-input-container { display: flex; gap: 10px; } /* 车牌号输入容器 - 优化版 */ .plate-input-container { display: flex; gap: 10px; align-items: stretch; margin-bottom: 10px; } .plate-input-container select, .plate-input-container input { height: 42px; /* 统一高度 */ } .province-select { width: 120px; /* 省份选择框固定宽度 */ } .city-letter-select { width: 150px; /* 字母选择框固定宽度，增加宽度以显示城市名称 */ } .remaining-number-input { flex: 1; /* 剩余部分占满剩余空间 */ min-width: 150px; /* 设置最小宽度，防止过窄 */ } /* 车牌号输入提示 */ .plate-hint { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 12px; color: var(--text-secondary); } .plate-length-counter { color: var(--primary); font-weight: bold; } /* 响应式设计 */ @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .search-input-group { flex-direction: column; } .controls { justify-content: center; width: 100%; } .header { flex-direction: column; align-items: flex-start; } .welcome { margin-bottom: 10px; } .tabs { overflow-x: auto; } .tab { white-space: nowrap; } .log-actions { flex-direction: column; align-items: flex-start; } .details-popup { width: 250px; left: 50%; transform: translateX(-50%); } .checkbox-group { flex-direction: column; gap: 8px; } /* 移动端车牌号输入框调整为垂直排列 */ .plate-input-container { flex-direction: column; } .plate-input-container select, .plate-input-container input { width: 100%; /* 移动端宽度100% */ } .province-select, .city-letter-select, .remaining-number-input { width: 100%; min-width: auto; } } </style>
 </head>
 <body>
   <!-- 系统标题 -->
@@ -787,11 +257,24 @@
         <input type="hidden" id="editPlateId">
         <div class="form-group">
           <label for="modalPlateNumber">车牌号</label>
-          <input type="text" id="modalPlateNumber" placeholder="请输入车牌号">
-          <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
-            标准车牌7位（如：云A12345），新能源车牌8位（如：云A1234567）<br>
-            第一位必须为汉字，后续为字母或数字
-          </small>
+          <div class="plate-input-container">
+            <select id="provinceSelect" class="province-select" placeholder="省份">
+              <option value="">请选择省份</option>
+              <!-- 省份选项将通过JavaScript动态加载 -->
+            </select>
+            <select id="cityLetterSelect" class="city-letter-select" placeholder="字母/城市">
+              <option value="">请选择字母/城市</option>
+              <!-- 城市字母选项将通过JavaScript动态加载 -->
+            </select>
+            <input type="text" id="remainingNumber" class="remaining-number-input" placeholder="后5-6位">
+          </div>
+          <div class="plate-hint">
+            <span>
+              普通车牌5位（如：12345），新能源车牌6位（如：123456）<br>
+              前两位通过下拉框选择，后5-6位手动输入
+            </span>
+            <span class="plate-length-counter" id="plateLengthCounter">0/6</span>
+          </div>
         </div>
         <div class="form-group">
           <label for="modalPlateUid">用户UID(不用wxp随便填就行)</label>
@@ -838,57 +321,174 @@
   </div>
 
   <script>
-    // 车牌号验证正则表达式（客户端验证，与后端保持一致）
-    const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+    // 车牌号验证正则表达式（修正版，更符合实际车牌规则）
+    // 普通车牌: 省份简称(1汉字)+发牌机关代号(1字母)+5位序号(字母和数字)
+    // 新能源车牌: 省份简称(1汉字)+发牌机关代号(1字母)+6位序号(字母和数字)
+    const plateRegex = /^[\u4e00-\u9fa5][A-Z][A-HJ-NP-Z0-9]{5,6}$/;
+    
+    // 2025年最新全国省份和城市数据
+    const provinceCityData = {
+        "京": [{"letter":"A","city":"东城/西城"},{"letter":"C","city":"朝阳区"},{"letter":"E","city":"海淀区"},{"letter":"F","city":"丰台区"},{"letter":"H","city":"石景山区"},{"letter":"J","city":"房山区"},{"letter":"K","city":"通州区"},{"letter":"L","city":"顺义区"},{"letter":"M","city":"昌平区"},{"letter":"N","city":"大兴区"},{"letter":"P","city":"怀柔区"},{"letter":"Q","city":"平谷区"},{"letter":"Y","city":"延庆区"},{"letter":"G","city":"密云区"}],
+        "津": [{"letter":"A","city":"和平/河东/河西"},{"letter":"B","city":"南开/河北/红桥"},{"letter":"C","city":"东丽/西青/津南"},{"letter":"D","city":"北辰/武清"},{"letter":"F","city":"宝坻区"},{"letter":"G","city":"滨海新区"},{"letter":"H","city":"宁河区"},{"letter":"J","city":"静海区"},{"letter":"K","city":"蓟州区"}],
+        "沪": [{"letter":"A","city":"黄浦/徐汇/长宁"},{"letter":"B","city":"静安/普陀"},{"letter":"D","city":"虹口/杨浦"},{"letter":"E","city":"闵行/宝山"},{"letter":"F","city":"嘉定/浦东"},{"letter":"G","city":"金山/松江"},{"letter":"H","city":"青浦"},{"letter":"J","city":"奉贤"},{"letter":"K","city":"崇明"}],
+        "渝": [{"letter":"A","city":"渝中/江北/沙坪坝"},{"letter":"B","city":"南岸/九龙坡/大渡口"},{"letter":"C","city":"永川/江津/合川"},{"letter":"F","city":"万州/梁平/城口"},{"letter":"G","city":"涪陵/垫江/丰都"},{"letter":"H","city":"黔江/酉阳/秀山"},{"letter":"J","city":"石柱/彭水/武隆"}],
+        "琼": [{"letter":"A","city":"海口市"},{"letter":"B","city":"三亚市"},{"letter":"C","city":"琼海市/文昌市/万宁市"},{"letter":"D","city":"五指山市/东方市"},{"letter":"E","city":"洋浦经济开发区"},{"letter":"F","city":"儋州市"}],
+        "冀": [{"letter":"A","city":"石家庄市"},{"letter":"B","city":"唐山市"},{"letter":"C","city":"秦皇岛市"},{"letter":"D","city":"邯郸市"},{"letter":"E","city":"邢台市"},{"letter":"F","city":"保定市"},{"letter":"G","city":"张家口市"},{"letter":"H","city":"承德市"},{"letter":"J","city":"沧州市"},{"letter":"R","city":"廊坊市"},{"letter":"T","city":"衡水市"}],
+        "晋": [{"letter":"A","city":"太原市"},{"letter":"B","city":"大同市"},{"letter":"C","city":"阳泉市"},{"letter":"D","city":"长治市"},{"letter":"E","city":"晋城市"},{"letter":"F","city":"朔州市"},{"letter":"H","city":"忻州市"},{"letter":"J","city":"吕梁市"},{"letter":"K","city":"晋中市"},{"letter":"L","city":"临汾市"},{"letter":"M","city":"运城市"}],
+        "蒙": [{"letter":"A","city":"呼和浩特市"},{"letter":"B","city":"包头市"},{"letter":"C","city":"乌海市"},{"letter":"D","city":"赤峰市"},{"letter":"E","city":"呼伦贝尔市"},{"letter":"F","city":"兴安盟"},{"letter":"G","city":"通辽市"},{"letter":"H","city":"锡林郭勒盟"},{"letter":"J","city":"乌兰察布市"},{"letter":"K","city":"鄂尔多斯市"},{"letter":"L","city":"巴彦淖尔市"},{"letter":"M","city":"阿拉善盟"}],
+        "辽": [{"letter":"A","city":"沈阳市"},{"letter":"B","city":"大连市"},{"letter":"C","city":"鞍山市"},{"letter":"D","city":"抚顺市"},{"letter":"E","city":"本溪市"},{"letter":"F","city":"丹东市"},{"letter":"G","city":"锦州市"},{"letter":"H","city":"营口市"},{"letter":"J","city":"阜新市"},{"letter":"K","city":"辽阳市"},{"letter":"L","city":"盘锦市"},{"letter":"M","city":"铁岭市"},{"letter":"N","city":"朝阳市"},{"letter":"P","city":"葫芦岛市"}],
+        "吉": [{"letter":"A","city":"长春市"},{"letter":"B","city":"吉林市"},{"letter":"C","city":"四平市"},{"letter":"D","city":"辽源市"},{"letter":"E","city":"通化市"},{"letter":"F","city":"白山市"},{"letter":"G","city":"白城市"},{"letter":"H","city":"延边朝鲜族自治州"},{"letter":"J","city":"松原市"}],
+        "黑": [{"letter":"A","city":"哈尔滨市"},{"letter":"B","city":"齐齐哈尔市"},{"letter":"C","city":"牡丹江市"},{"letter":"D","city":"佳木斯市"},{"letter":"E","city":"大庆市"},{"letter":"F","city":"伊春市"},{"letter":"G","city":"鸡西市"},{"letter":"H","city":"鹤岗市"},{"letter":"J","city":"双鸭山市"},{"letter":"K","city":"七台河市"},{"letter":"L","city":"松花江地区"},{"letter":"M","city":"绥化市"},{"letter":"N","city":"黑河市"},{"letter":"P","city":"大兴安岭地区"}],
+        "苏": [{"letter":"A","city":"南京市"},{"letter":"B","city":"无锡市"},{"letter":"C","city":"徐州市"},{"letter":"D","city":"常州市"},{"letter":"E","city":"苏州市"},{"letter":"F","city":"南通市"},{"letter":"G","city":"连云港市"},{"letter":"H","city":"淮安市"},{"letter":"J","city":"盐城市"},{"letter":"K","city":"扬州市"},{"letter":"L","city":"镇江市"},{"letter":"M","city":"泰州市"},{"letter":"N","city":"宿迁市"}],
+        "浙": [{"letter":"A","city":"杭州市"},{"letter":"B","city":"宁波市"},{"letter":"C","city":"温州市"},{"letter":"D","city":"绍兴市"},{"letter":"E","city":"湖州市"},{"letter":"F","city":"嘉兴市"},{"letter":"G","city":"金华市"},{"letter":"H","city":"衢州市"},{"letter":"J","city":"台州市"},{"letter":"K","city":"丽水市"},{"letter":"L","city":"舟山市"}],
+        "皖": [{"letter":"A","city":"合肥市"},{"letter":"B","city":"芜湖市"},{"letter":"C","city":"蚌埠市"},{"letter":"D","city":"淮南市"},{"letter":"E","city":"马鞍山市"},{"letter":"F","city":"淮北市"},{"letter":"G","city":"铜陵市"},{"letter":"H","city":"安庆市"},{"letter":"J","city":"黄山市"},{"letter":"K","city":"阜阳市"},{"letter":"L","city":"宿州市"},{"letter":"M","city":"滁州市"},{"letter":"N","city":"六安市"},{"letter":"P","city":"宣城市"},{"letter":"Q","city":"巢湖市"},{"letter":"R","city":"池州市"},{"letter":"S","city":"亳州市"}],
+        "闽": [{"letter":"A","city":"福州市"},{"letter":"B","city":"莆田市"},{"letter":"C","city":"泉州市"},{"letter":"D","city":"厦门市"},{"letter":"E","city":"漳州市"},{"letter":"F","city":"龙岩市"},{"letter":"G","city":"三明市"},{"letter":"H","city":"南平市"},{"letter":"J","city":"宁德市"},{"letter":"K","city":"平潭综合实验区"}],
+        "赣": [{"letter":"A","city":"南昌市"},{"letter":"B","city":"赣州市"},{"letter":"C","city":"宜春市"},{"letter":"D","city":"吉安市"},{"letter":"E","city":"上饶市"},{"letter":"F","city":"抚州市"},{"letter":"G","city":"九江市"},{"letter":"H","city":"景德镇市"},{"letter":"J","city":"萍乡市"},{"letter":"K","city":"新余市"},{"letter":"L","city":"鹰潭市"}],
+        "鲁": [{"letter":"A","city":"济南市"},{"letter":"B","city":"青岛市"},{"letter":"C","city":"淄博市"},{"letter":"D","city":"枣庄市"},{"letter":"E","city":"东营市"},{"letter":"F","city":"烟台市"},{"letter":"G","city":"潍坊市"},{"letter":"H","city":"济宁市"},{"letter":"J","city":"泰安市"},{"letter":"K","city":"威海市"},{"letter":"L","city":"日照市"},{"letter":"M","city":"滨州市"},{"letter":"N","city":"德州市"},{"letter":"P","city":"聊城市"},{"letter":"Q","city":"临沂市"},{"letter":"R","city":"菏泽市"}],
+        "豫": [{"letter":"A","city":"郑州市"},{"letter":"B","city":"开封市"},{"letter":"C","city":"洛阳市"},{"letter":"D","city":"平顶山市"},{"letter":"E","city":"安阳市"},{"letter":"F","city":"鹤壁市"},{"letter":"G","city":"新乡市"},{"letter":"H","city":"焦作市"},{"letter":"J","city":"濮阳市"},{"letter":"K","city":"许昌市"},{"letter":"L","city":"漯河市"},{"letter":"M","city":"三门峡市"},{"letter":"N","city":"商丘市"},{"letter":"P","city":"周口市"},{"letter":"Q","city":"驻马店市"},{"letter":"R","city":"南阳市"},{"letter":"S","city":"信阳市"},{"letter":"U","city":"济源市"}],
+        "鄂": [{"letter":"A","city":"武汉市"},{"letter":"B","city":"黄石市"},{"letter":"C","city":"十堰市"},{"letter":"D","city":"荆州市"},{"letter":"E","city":"宜昌市"},{"letter":"F","city":"襄阳市"},{"letter":"G","city":"鄂州市"},{"letter":"H","city":"荆门市"},{"letter":"J","city":"黄冈市"},{"letter":"K","city":"孝感市"},{"letter":"L","city":"咸宁市"},{"letter":"M","city":"仙桃市"},{"letter":"N","city":"潜江市"},{"letter":"P","city":"神农架林区"},{"letter":"Q","city":"恩施土家族苗族自治州"},{"letter":"R","city":"天门市"},{"letter":"S","city":"随州市"}],
+        "湘": [{"letter":"A","city":"长沙市"},{"letter":"B","city":"株洲市"},{"letter":"C","city":"湘潭市"},{"letter":"D","city":"衡阳市"},{"letter":"E","city":"邵阳市"},{"letter":"F","city":"岳阳市"},{"letter":"G","city":"张家界市"},{"letter":"H","city":"益阳市"},{"letter":"J","city":"常德市"},{"letter":"K","city":"娄底市"},{"letter":"L","city":"郴州市"},{"letter":"M","city":"永州市"},{"letter":"N","city":"怀化市"},{"letter":"U","city":"湘西土家族苗族自治州"}],
+        "粤": [{"letter":"A","city":"广州市"},{"letter":"B","city":"深圳市"},{"letter":"C","city":"珠海市"},{"letter":"D","city":"汕头市"},{"letter":"E","city":"佛山市"},{"letter":"F","city":"韶关市"},{"letter":"G","city":"湛江市"},{"letter":"H","city":"肇庆市"},{"letter":"J","city":"江门市"},{"letter":"K","city":"茂名市"},{"letter":"L","city":"惠州市"},{"letter":"M","city":"梅州市"},{"letter":"N","city":"汕尾市"},{"letter":"P","city":"河源市"},{"letter":"Q","city":"阳江市"},{"letter":"R","city":"清远市"},{"letter":"S","city":"东莞市"},{"letter":"T","city":"中山市"},{"letter":"U","city":"潮州市"},{"letter":"V","city":"揭阳市"},{"letter":"W","city":"云浮市"}],
+        "桂": [{"letter":"A","city":"南宁市"},{"letter":"B","city":"柳州市"},{"letter":"C","city":"桂林市"},{"letter":"D","city":"梧州市"},{"letter":"E","city":"北海市"},{"letter":"F","city":"崇左市"},{"letter":"G","city":"来宾市"},{"letter":"H","city":"桂林地区"},{"letter":"J","city":"贺州市"},{"letter":"K","city":"玉林市"},{"letter":"L","city":"百色市"},{"letter":"M","city":"河池市"},{"letter":"N","city":"钦州市"},{"letter":"P","city":"防城港市"}],
+        "川": [{"letter":"A","city":"成都市"},{"letter":"B","city":"绵阳市"},{"letter":"C","city":"自贡市"},{"letter":"D","city":"攀枝花市"},{"letter":"E","city":"泸州市"},{"letter":"F","city":"德阳市"},{"letter":"H","city":"广元市"},{"letter":"J","city":"遂宁市"},{"letter":"K","city":"内江市"},{"letter":"L","city":"乐山市"},{"letter":"M","city":"资阳市"},{"letter":"Q","city":"宜宾市"},{"letter":"R","city":"南充市"},{"letter":"S","city":"达州市"},{"letter":"T","city":"雅安市"},{"letter":"U","city":"阿坝藏族羌族自治州"},{"letter":"V","city":"甘孜藏族自治州"},{"letter":"W","city":"凉山彝族自治州"},{"letter":"X","city":"广安市"},{"letter":"Y","city":"巴中市"},{"letter":"Z","city":"眉山市"}],
+        "贵": [{"letter":"A","city":"贵阳市"},{"letter":"B","city":"六盘水市"},{"letter":"C","city":"遵义市"},{"letter":"D","city":"铜仁市"},{"letter":"E","city":"黔西南布依族苗族自治州"},{"letter":"F","city":"毕节市"},{"letter":"G","city":"安顺市"},{"letter":"H","city":"黔东南苗族侗族自治州"},{"letter":"J","city":"黔南布依族苗族自治州"}],
+        "云": [{"letter":"A","city":"昆明市"},{"letter":"C","city":"昭通市"},{"letter":"D","city":"曲靖市"},{"letter":"E","city":"楚雄彝族自治州"},{"letter":"F","city":"玉溪市"},{"letter":"G","city":"红河哈尼族彝族自治州"},{"letter":"H","city":"文山壮族苗族自治州"},{"letter":"J","city":"普洱市"},{"letter":"K","city":"西双版纳傣族自治州"},{"letter":"L","city":"大理白族自治州"},{"letter":"M","city":"保山市"},{"letter":"N","city":"德宏傣族景颇族自治州"},{"letter":"P","city":"丽江市"},{"letter":"Q","city":"怒江傈僳族自治州"},{"letter":"R","city":"迪庆藏族自治州"},{"letter":"S","city":"临沧市"}],
+        "藏": [{"letter":"A","city":"拉萨市"},{"letter":"B","city":"昌都市"},{"letter":"C","city":"山南市"},{"letter":"D","city":"日喀则市"},{"letter":"E","city":"那曲市"},{"letter":"F","city":"阿里地区"},{"letter":"G","city":"林芝市"}],
+        "陕": [{"letter":"A","city":"西安市"},{"letter":"B","city":"铜川市"},{"letter":"C","city":"宝鸡市"},{"letter":"D","city":"咸阳市"},{"letter":"E","city":"渭南市"},{"letter":"F","city":"汉中市"},{"letter":"G","city":"安康市"},{"letter":"H","city":"商洛市"},{"letter":"J","city":"延安市"},{"letter":"K","city":"榆林市"}],
+        "甘": [{"letter":"A","city":"兰州市"},{"letter":"B","city":"嘉峪关市"},{"letter":"C","city":"金昌市"},{"letter":"D","city":"白银市"},{"letter":"E","city":"天水市"},{"letter":"F","city":"酒泉市"},{"letter":"G","city":"张掖市"},{"letter":"H","city":"武威市"},{"letter":"J","city":"定西市"},{"letter":"K","city":"陇南市"},{"letter":"L","city":"平凉市"},{"letter":"M","city":"庆阳市"},{"letter":"N","city":"临夏回族自治州"},{"letter":"P","city":"甘南藏族自治州"}],
+        "青": [{"letter":"A","city":"西宁市"},{"letter":"B","city":"海东市"},{"letter":"C","city":"海北藏族自治州"},{"letter":"D","city":"黄南藏族自治州"},{"letter":"E","city":"海南藏族自治州"},{"letter":"F","city":"果洛藏族自治州"},{"letter":"G","city":"玉树藏族自治州"},{"letter":"H","city":"海西蒙古族藏族自治州"}],
+        "宁": [{"letter":"A","city":"银川市"},{"letter":"B","city":"石嘴山市"},{"letter":"C","city":"吴忠市"},{"letter":"D","city":"固原市"}],
+        "新": [{"letter":"A","city":"乌鲁木齐市"},{"letter":"B","city":"昌吉回族自治州"},{"letter":"C","city":"石河子市"},{"letter":"D","city":"奎屯市"},{"letter":"E","city":"博尔塔拉蒙古自治州"},{"letter":"F","city":"伊犁哈萨克自治州"},{"letter":"G","city":"塔城地区"},{"letter":"H","city":"阿勒泰地区"},{"letter":"J","city":"克拉玛依市"},{"letter":"K","city":"吐鲁番市"},{"letter":"L","city":"哈密市"},{"letter":"M","city":"巴音郭楞蒙古自治州"},{"letter":"N","city":"阿克苏地区"},{"letter":"P","city":"克孜勒苏柯尔克孜自治州"},{"letter":"Q","city":"喀什地区"},{"letter":"R","city":"和田地区"}]
+      };
     
     // 错误提示显示函数
     function showError(message) {
       const toast = document.getElementById('errorToast');
       toast.textContent = message;
       toast.style.display = 'block';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 3000);
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
     
-    // 格式化日志详情为HTML
-    function formatLogDetails(details) {
-      if (typeof details !== 'object' || details === null) {
-        return `<div class="details-item">${details || '无详情'}</div>`;
+    // 更新车牌号长度计数器
+    function updatePlateLengthCounter() {
+      const input = document.getElementById('remainingNumber');
+      const counter = document.getElementById('plateLengthCounter');
+      const currentLength = input.value.length;
+      const maxLength = 6; // 新能源车牌最长6位
+      
+      counter.textContent = `${currentLength}/${maxLength}`;
+      
+      // 根据长度改变颜色提示
+      if (currentLength === 5 || currentLength === 6) {
+        counter.style.color = 'var(--success)';
+      } else if (currentLength > 6) {
+        counter.style.color = 'var(--danger)';
+      } else {
+        counter.style.color = 'var(--primary)';
       }
-      
-      let html = '';
-      
-      // 递归渲染详情对象
-      function renderDetails(obj, prefix = '') {
-        let innerHtml = '';
-        
-        for (const [key, value] of Object.entries(obj)) {
-          const newPrefix = prefix ? `${prefix}.${key}` : key;
-          
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>${renderDetails(value, newPrefix)}</div>`;
-          } else if (Array.isArray(value)) {
-            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>`;
-            innerHtml += '<ul style="margin-left: 15px; padding-left: 0;">';
-            value.forEach((item, index) => {
-              if (typeof item === 'object' && item !== null) {
-                innerHtml += `<li>${newPrefix}[${index}]:${renderDetails(item, `${newPrefix}[${index}]`)}</li>`;
-              } else {
-                innerHtml += `<li>${newPrefix}[${index}]: ${item}</li>`;
-              }
-            });
-            innerHtml += '</ul></div>';
-          } else {
-            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div> ${value}</div>`;
-          }
+    }
+    
+    // 初始化省份下拉框
+    function initProvinceDropdown() {
+      try {
+        const provinceSelect = document.getElementById('provinceSelect');
+        if (!provinceSelect) {
+          console.error('未找到省份选择下拉框');
+          return;
         }
         
-        return innerHtml;
+        // 清空现有选项（保留第一个"请选择省份"选项）
+        while (provinceSelect.options.length > 1) {
+          provinceSelect.remove(1);
+        }
+        
+        // 添加省份选项
+        for (const [abbr, cities] of Object.entries(provinceCityData)) {
+          // 根据省份简称获取省份名称
+          let provinceName = '';
+          switch(abbr) {
+            case '京': provinceName = '北京市'; break;
+            case '津': provinceName = '天津市'; break;
+            case '沪': provinceName = '上海市'; break;
+            case '渝': provinceName = '重庆市'; break;
+            case '冀': provinceName = '河北省'; break;
+            case '晋': provinceName = '山西省'; break;
+            case '蒙': provinceName = '内蒙古自治区'; break;
+            case '辽': provinceName = '辽宁省'; break;
+            case '吉': provinceName = '吉林省'; break;
+            case '黑': provinceName = '黑龙江省'; break;
+            case '苏': provinceName = '江苏省'; break;
+            case '浙': provinceName = '浙江省'; break;
+            case '皖': provinceName = '安徽省'; break;
+            case '闽': provinceName = '福建省'; break;
+            case '赣': provinceName = '江西省'; break;
+            case '鲁': provinceName = '山东省'; break;
+            case '豫': provinceName = '河南省'; break;
+            case '鄂': provinceName = '湖北省'; break;
+            case '湘': provinceName = '湖南省'; break;
+            case '粤': provinceName = '广东省'; break;
+            case '桂': provinceName = '广西壮族自治区'; break;
+            case '琼': provinceName = '海南省'; break;
+            case '川': provinceName = '四川省'; break;
+            case '贵': provinceName = '贵州省'; break;
+            case '云': provinceName = '云南省'; break;
+            case '藏': provinceName = '西藏自治区'; break;
+            case '陕': provinceName = '陕西省'; break;
+            case '甘': provinceName = '甘肃省'; break;
+            case '青': provinceName = '青海省'; break;
+            case '宁': provinceName = '宁夏回族自治区'; break;
+            case '新': provinceName = '新疆维吾尔自治区'; break;
+            default: provinceName = abbr;
+          }
+          
+          const option = document.createElement('option');
+          option.value = abbr;
+          option.textContent = `${provinceName}(${abbr})`;
+          provinceSelect.appendChild(option);
+        }
+        
+        console.log('省份下拉框初始化完成，共加载', Object.keys(provinceCityData).length, '个省份');
+      } catch (error) {
+        console.error('初始化省份下拉框失败:', error);
+        showError('省份数据加载失败: ' + error.message);
       }
-      
-      html = renderDetails(details);
-      return html;
+    }
+    
+    // 初始化城市字母下拉框
+    function initCityLetterDropdown(provinceAbbr) {
+      try {
+        const cityLetterSelect = document.getElementById('cityLetterSelect');
+        if (!cityLetterSelect) {
+          console.error('未找到城市字母选择下拉框');
+          return; }
+        
+        // 清空现有选项（保留第一个"请选择字母"选项）
+        while (cityLetterSelect.options.length > 1) {
+          cityLetterSelect.remove(1);
+        }
+        
+        if (!provinceAbbr) return;
+        
+        // 获取该省份对应的城市字母数据
+        const cities = provinceCityData[provinceAbbr] || [];
+        
+        if (cities.length > 0) {
+          cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.letter;
+            option.textContent = `${city.letter}(${city.city})`;
+            cityLetterSelect.appendChild(option);
+          });
+          console.log(`加载${provinceAbbr}城市字母成功，共${cities.length}个选项`);
+        } else {
+          console.warn(`未找到${provinceAbbr}的城市数据`);
+          showError('未找到该省份的城市数据');
+        }
+        
+      } catch (error) {
+        console.error('初始化城市字母下拉框失败:', error);
+        showError('城市字母数据加载失败: ' + error.message);
+      }
     }
     
     // 通知渠道复选框交互
@@ -906,10 +506,88 @@
       });
     });
     
-    // 当前页码和搜索条件
-    let currentPlatesPage = 1;
-    let currentLogsPage = 1;
-    let currentSearchTerm = '';
+    // 当前页码和搜索条件 let currentPlatesPage = 1; let currentLogsPage = 1; let currentSearchTerm = '';
+    
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        console.log('页面加载完成，开始初始化...');
+        
+        // 获取并验证token
+        if (!localStorage.getItem('token')) {
+          showError('请先登录系统');
+          setTimeout(() => {
+            window.location.href = '/admin/login.html';
+          }, 3000);
+          return;
+        }
+        
+        // 应用保存的主题
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // 初始化省份下拉框
+        initProvinceDropdown();
+        
+        // 绑定省份下拉框change事件
+        document.getElementById('provinceSelect').addEventListener('change', function() {
+          initCityLetterDropdown(this.value);
+        });
+        
+        // 车牌号剩余部分输入处理
+        const remainingNumberInput = document.getElementById('remainingNumber');
+        if (remainingNumberInput) {
+          remainingNumberInput.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            
+            // 限制最大长度为6位（新能源车牌）
+            if (this.value.length > 6) {
+              this.value = this.value.slice(0, 6);
+            }
+            
+            // 更新长度计数器
+            updatePlateLengthCounter();
+          });
+          
+          // 初始化计数器
+          updatePlateLengthCounter();
+        }
+        
+        // 加载车牌数据
+        loadPlates();
+        
+        // 加载系统设置
+        loadSystemSettings();
+        
+        // 绑定全选事件
+        bindSelectAllEvent();
+        
+        console.log('页面初始化完成');
+      } catch (error) {
+        showError('页面加载失败: ' + error.message);
+        console.error('页面初始化错误:', error);
+      }
+    });
+    
+    // 绑定全选事件
+    function bindSelectAllEvent() {
+      // 全选复选框事件
+      document.getElementById('selectAllLogs').addEventListener('change', function(e) {
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+      
+      // 表头全选复选框同步
+      document.getElementById('headerLogCheckbox').addEventListener('change', function(e) { 
+        document.getElementById('selectAllLogs').checked = this.checked;
+        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+    }
     
     // 加载日志数据
     async function loadLogs(page = 1, action = '') {
@@ -938,13 +616,11 @@
         
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
-            // 处理token无效情况
             localStorage.removeItem('token');
             showError('登录已过期，请重新登录');
             setTimeout(() => {
               window.location.href = '/admin/login.html';
-            }, 3000);
-            return;
+            }, 3000); return;
           }
           throw new Error('加载日志数据失败');
         }
@@ -954,7 +630,7 @@
         // 隐藏加载状态
         loading.style.display = 'none';
         
-        // 显示日志数据
+        // 如果没有日志数据，显示空状态
         if (data.logs.length === 0) {
           emptyState.style.display = 'block';
           return;
@@ -962,7 +638,6 @@
         
         // 渲染日志列表
         for (const log of data.logs) {
-          // 格式化详情为HTML
           const detailsHtml = formatLogDetails(log.details);
           
           const row = document.createElement('tr');
@@ -985,87 +660,52 @@
         
         // 重新绑定全选事件
         bindSelectAllEvent();
+        
       } catch (error) {
         console.error('加载日志错误:', error);
         showError('加载日志失败: ' + error.message);
+      } finally {
+        console.log('加载日志完成');
       }
     }
     
-    // 绑定全选事件
-    function bindSelectAllEvent() {
-      // 全选复选框事件
-      document.getElementById('selectAllLogs').addEventListener('change', function(e) {
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-          checkbox.checked = this.checked;
-        });
-      });
+    // 格式化日志详情为HTML
+    function formatLogDetails(details) {
+      if (typeof details !== 'object' || details === null) {
+        return `<div class="details-item">${details || '无详情'}</div>`;
+      }
       
-      // 表头全选复选框同步
-      document.getElementById('headerLogCheckbox').addEventListener('change', function(e) {
-        document.getElementById('selectAllLogs').checked = this.checked;
-        const checkboxes = document.querySelectorAll('#logsTableBody input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-          checkbox.checked = this.checked;
-        });
-      });
-    }
-    
-    // 页面加载完成后执行
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        // 检查登录状态
-        if (!localStorage.getItem('token')) {
-          // 显示友好提示而非直接跳转
-          showError('请先登录系统');
-          setTimeout(() => {
-            window.location.href = '/admin/login.html';
-          }, 3000);
-          return;
+      let html = '';
+      
+      function renderDetails(obj, prefix = '') {
+        let innerHtml = '';
+        
+        for (const [key, value] of Object.entries(obj)) {
+          const newPrefix = prefix ? `${prefix}.${key}` : key;
+          
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>${renderDetails(value, newPrefix)}</div>`;
+          } else if (Array.isArray(value)) {
+            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>`;
+            innerHtml += '<ul style="margin-left: 15px; padding-left: 0;">';
+            value.forEach((item, index) => {
+              if (typeof item === 'object' && item !== null) {
+                innerHtml += `<li>${newPrefix}[${index}]:${renderDetails(item, `${newPrefix}[${index}]`)}</li>`; } else {
+                innerHtml += `<li>${newPrefix}[${index}]: ${item}</li>`;
+              }
+            });
+            innerHtml += '</ul></div>';
+          } else {
+            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div> ${value}</div>`;
+          }
         }
         
-        // 应用保存的主题
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        // 加载车牌数据
-        loadPlates();
-        
-        // 加载系统设置
-        loadSystemSettings();
-        
-        // 车牌号输入自动转为大写并验证格式
-        document.getElementById('modalPlateNumber').addEventListener('input', function(e) {
-          if (this.value.length > 0) {
-            const firstChar = this.value.charAt(0);
-            const restChars = this.value.slice(1).toUpperCase().replace(/[^A-Z0-9]/g, '');
-            this.value = firstChar + restChars;
-          }
-          
-          // 验证长度
-          if (this.value.length > 8) { // 限制最大长度为8位
-            this.value = this.value.slice(0, 8);
-          }
-          
-          // 实时验证格式
-          if (this.value.length > 0) {
-            const messageEl = document.getElementById('modalMessage');
-            if (plateRegex.test(this.value)) {
-              messageEl.textContent = '';
-              messageEl.className = 'message';
-            } else {
-              messageEl.textContent = '车牌号格式不正确：标准车牌7位，新能源车牌8位，第一位必须为汉字';
-              messageEl.className = 'message error';
-            }
-          }
-        });
-        
-        // 绑定全选事件
-        bindSelectAllEvent();
-      } catch (error) {
-        showError('页面加载失败: ' + error.message);
+        return innerHtml;
       }
-    });
+      
+      html = renderDetails(details);
+      return html;
+    }
     
     // 切换标签页
     function switchTab(tabId) {
@@ -1078,8 +718,7 @@
         
         // 更新内容显示
         document.querySelectorAll('.tab-content').forEach(content => {
-          content.classList.remove('active');
-        });
+          content.classList.remove('active'); });
         document.getElementById(tabId).classList.add('active');
         
         // 如果切换到日志标签页，加载日志数据
@@ -1088,6 +727,7 @@
         }
       } catch (error) {
         showError('切换标签失败: ' + error.message);
+        console.error('切换标签错误:', error);
       }
     }
     
@@ -1098,8 +738,11 @@
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
+        
+        showError(`已切换到${newTheme === 'dark' ? '深色' : '浅色'}主题`);
       } catch (error) {
         showError('切换主题失败: ' + error.message);
+        console.error('切换主题错误:', error);
       }
     }
     
@@ -1116,7 +759,6 @@
       emptyState.style.display = 'none';
       
       try {
-        // 如果有搜索词，使用搜索词，否则使用空字符串
         const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
         const url = `/api/plates?page=${page}&limit=10${searchParam}`;
         
@@ -1128,13 +770,12 @@
         
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
-            // 处理token无效情况
             localStorage.removeItem('token');
             showError('登录已过期，请重新登录');
             setTimeout(() => {
               window.location.href = '/admin/login.html';
             }, 3000);
-            return; // 添加return防止继续执行
+            return;
           }
           throw new Error('加载车牌数据失败');
         }
@@ -1144,7 +785,7 @@
         // 隐藏加载状态
         loading.style.display = 'none';
         
-        // 显示车牌数据
+        // 如果没有车牌数据，显示空状态
         if (data.plates.length === 0) {
           emptyState.style.display = 'block';
           return;
@@ -1155,9 +796,8 @@
           // 处理UID显示，隐藏中间部分字符
           const maskedUids = plate.uids.map(uid => {
             if (uid.length <= 7) {
-              return '******'; // 短UID全部隐藏
+              return '******';
             }
-            // 显示前3位和后4位，中间用*代替
             return uid.substring(0, 3) + '*****' + uid.substring(uid.length - 4);
           }).join(', ');
           
@@ -1171,7 +811,7 @@
           };
           const channelText = channels.map(c => channelLabels[c] || c).join(', ') || '未设置';
           
-          // 创建行元素并设置data属性存储完整的plate对象
+          // 创建行元素
           const row = document.createElement('tr');
           row.dataset.plate = JSON.stringify(plate);
           row.innerHTML = `
@@ -1190,10 +830,14 @@
         
         // 渲染分页
         renderPagination('platesPagination', data.pagination.pages, page);
-      } catch (error) { // 统一的错误处理
+        
+      } catch (error) {
         loading.style.display = 'none';
         tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">加载失败: ${error.message}</td></tr>`;
         showError('加载车牌数据失败: ' + error.message);
+        console.error('加载车牌错误:', error);
+      } finally {
+        console.log('加载车牌完成');
       }
     }
     
@@ -1211,14 +855,11 @@
         // 添加首页按钮
         if (currentPage > 1) {
           addPaginationButton(container, 1, '首页');
-          
-          // 添加前一页按钮
           addPaginationButton(container, currentPage - 1, '上一页');
         }
         
         // 添加页码按钮（显示当前页前后2页）
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, currentPage + 2);
+        const startPage = Math.max(1, currentPage - 2); const endPage = Math.min(totalPages, currentPage + 2);
         
         for (let i = startPage; i <= endPage; i++) {
           addPaginationButton(container, i, i, i === currentPage);
@@ -1227,13 +868,12 @@
         // 添加下一页按钮
         if (currentPage < totalPages) {
           addPaginationButton(container, currentPage + 1, '下一页');
-          
-          // 添加末页按钮
           addPaginationButton(container, totalPages, '末页');
         }
+        
       } catch (error) {
         showError('渲染分页失败: ' + error.message);
-      }
+        console.error('渲染分页错误:', error); }
     }
     
     // 添加分页按钮
@@ -1259,6 +899,7 @@
         loadPlates(1, searchTerm);
       } catch (error) {
         showError('搜索失败: ' + error.message);
+        console.error('搜索车牌错误:', error);
       }
     }
     
@@ -1267,9 +908,10 @@
       try {
         document.getElementById('plateSearch').value = '';
         currentSearchTerm = '';
-        loadPlates(1); // 重置搜索后加载第一页
+        loadPlates(1);
       } catch (error) {
         showError('重置搜索失败: ' + error.message);
+        console.error('重置搜索错误:', error);
       }
     }
     
@@ -1278,18 +920,22 @@
       try {
         document.getElementById('plateModalTitle').textContent = '添加车牌';
         document.getElementById('editPlateId').value = '';
-        document.getElementById('modalPlateNumber').value = '';
+        document.getElementById('provinceSelect').value = ''; document.getElementById('cityLetterSelect').innerHTML = '<option value="">请选择字母/城市</option>';
+        document.getElementById('remainingNumber').value = '';
         document.getElementById('modalPlateUid').value = '';
         document.getElementById('modalPlateRemark').value = '';
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
+        
+        // 更新长度计数器
+        updatePlateLengthCounter();
         
         // 重置通知渠道选择
         document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
           checkbox.checked = false;
         });
         document.querySelectorAll('.notification-config-item').forEach(item => {
-          item.style.display = 'none'; 
+          item.style.display = 'none';
           item.querySelector('input').value = '';
         });
         
@@ -1297,24 +943,41 @@
         document.getElementById('plateModal').style.display = 'flex';
       } catch (error) {
         showError('打开添加窗口失败: ' + error.message);
+        console.error('打开添加窗口错误:', error);
       }
     }
     
-    // 打开编辑车牌模态框 - 增强版（修复企业微信配置丢失问题）
+    // 打开编辑车牌模态框
     function openEditPlateModal(button) {
       try {
-        // 从data属性获取完整的plate对象
         const row = button.closest('tr');
         const plate = JSON.parse(row.dataset.plate);
         
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = plate.id;
-        document.getElementById('modalPlateNumber').value = plate.plate;
         document.getElementById('modalPlateUid').value = plate.uids.join(',');
         document.getElementById('modalPlateRemark').value = plate.remark || '';
         document.getElementById('modalMessage').textContent = '';
         
-        // 重置通知渠道选择
+        // 拆分车牌号为省份、城市字母和剩余号码
+        const plateNumber = plate.plate;
+        if (plateNumber.length >= 2) {
+          const provinceAbbr = plateNumber.substring(0, 1);
+          const cityLetter = plateNumber.substring(1, 2);
+          const remainingNumber = plateNumber.substring(2);
+          
+          // 设置下拉框和输入框的值
+          document.getElementById('provinceSelect').value = provinceAbbr;
+          
+          // 延迟设置城市字母，等待城市字母下拉框加载完成
+          setTimeout(() => {
+            document.getElementById('cityLetterSelect').value = cityLetter;
+            document.getElementById('remainingNumber').value = remainingNumber;
+            updatePlateLengthCounter();
+          }, 100);
+        }
+        
+        // 重置通知渠道选择并设置复选框状态和配置值
         document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
           checkbox.checked = false;
         });
@@ -1327,7 +990,7 @@
         const channels = plate.notification_channels || [];
         const configs = plate.notification_configs || {};
         
-        // 企业微信配置特殊处理（防止配置丢失）
+        // 企业微信配置
         if (configs.wechat_work_webhook) {
           document.getElementById('channelWechatWork').checked = true;
           document.getElementById('wechatWorkConfig').style.display = 'block';
@@ -1336,22 +999,18 @@
         
         // 处理其他渠道配置
         channels.forEach(channel => {
-          // 跳过已经处理过的企业微信
           if (channel === 'wechat_work') return;
           
           const checkbox = document.getElementById(`channel${channel.charAt(0).toUpperCase() + channel.slice(1)}`);
           if (checkbox) {
             checkbox.checked = true;
             
-            // 显示对应配置项并填充值
             if (channel === 'dingtalk') {
               document.getElementById('dingtalkConfig').style.display = 'block';
               document.getElementById('dingtalkWebhook').value = configs.dingtalk_webhook || '';
             } else if (channel === 'bark') {
               document.getElementById('barkConfig').style.display = 'block';
               document.getElementById('barkWebhook').value = configs.bark_webhook || '';
-            } else if (channel === 'wxpusher') {
-              // WxPusher不需要额外配置
             }
           }
         });
@@ -1370,6 +1029,7 @@
         document.getElementById('plateModal').style.display = 'none';
       } catch (error) {
         showError('关闭窗口失败: ' + error.message);
+        console.error('关闭窗口错误:', error);
       }
     }
     
@@ -1377,21 +1037,56 @@
     async function savePlate() {
       try {
         const plateId = document.getElementById('editPlateId').value;
-        const plateNumber = document.getElementById('modalPlateNumber').value.trim();
+        const provinceAbbr = document.getElementById('provinceSelect').value;
+        const cityLetter = document.getElementById('cityLetterSelect').value;
+        const remainingNumber = document.getElementById('remainingNumber').value.trim();
         const uids = document.getElementById('modalPlateUid').value.trim();
         const remark = document.getElementById('modalPlateRemark').value.trim();
         const messageEl = document.getElementById('modalMessage');
         
         // 验证输入
-        if (!plateNumber) {
-          messageEl.textContent = '请输入车牌号';
+        if (!provinceAbbr) {
+          messageEl.textContent = '请选择省份';
           messageEl.className = 'message error';
           return;
         }
         
+        if (!cityLetter) {
+          messageEl.textContent = '请选择字母/城市';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        if (!remainingNumber) {
+          messageEl.textContent = '请输入车牌号后5-6位';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        // 验证长度
+        if (remainingNumber.length < 5 || remainingNumber.length > 6) {
+          messageEl.textContent = '车牌号后5-6位格式不正确，普通车牌5位，新能源车牌6位';
+          messageEl.className = 'message error';
+          return;
+        }
+        
+        // 组合成完整车牌号
+        const plateNumber = provinceAbbr + cityLetter + remainingNumber;
+        
         // 验证车牌格式
         if (!plateRegex.test(plateNumber)) {
-          messageEl.textContent = '车牌号格式不正确：\n标准车牌7位（如：云A12345）\n新能源车牌8位（如：云A1234567）\n第一位必须为汉字，后续为字母或数字';
+          let errorMsg = '车牌号格式不正确';
+          
+          if (plateNumber.length === 7) {
+            errorMsg += '，普通车牌应为7位（省份简称+字母+5位序号）';
+          } else if (plateNumber.length === 8) {
+            errorMsg += '，新能源车牌应为8位（省份简称+字母+6位序号）';
+          } else {
+            errorMsg += `，长度应为${remainingNumber.length === 5 ? '7' : '8'}位`;
+          }
+          
+          errorMsg += `，当前车牌号: ${plateNumber}`;
+          messageEl.textContent = errorMsg;
           messageEl.className = 'message error';
           return;
         }
@@ -1411,7 +1106,7 @@
           channels.push('wxpusher');
         }
         
-        // 企业微信配置（重点处理）
+        // 企业微信配置
         if (document.getElementById('channelWechatWork').checked) {
           const webhook = document.getElementById('wechatWorkWebhook').value.trim();
           if (!webhook) {
@@ -1453,17 +1148,6 @@
           return;
         }
         
-        // 处理UIDs
-        const uidsArray = uids.split(',').map(uid => uid.trim()).filter(uid => uid);
-        if (uidsArray.length === 0) {
-          messageEl.textContent = '请输入有效的用户UID';
-          messageEl.className = 'message error';
-          return;
-        }
-        
-        const url = plateId ? `/api/plates/${plateId}` : '/api/plates';
-        const method = plateId ? 'PUT' : 'POST';
-        
         // 显示加载状态
         const saveButton = document.getElementById('savePlateBtn');
         const originalText = saveButton.innerHTML;
@@ -1471,27 +1155,25 @@
         saveButton.innerHTML = '<div class="loading" style="width: 16px; height: 16px;"></div> 处理中...';
         
         try {
-          const response = await fetch(url, {
-            method: method,
+          const response = await fetch(plateId ? `/api/plates/${plateId}` : '/api/plates', {
+            method: plateId ? 'PUT' : 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer ' + localStorage.getItem('token')
             },
             body: JSON.stringify({
               plate: plateNumber,
-              uids: uidsArray,
+              uids: uids.split(',').map(uid => uid.trim()),
               remark: remark,
               notification_channels: channels,
               notification_configs: configs
             })
           });
           
-          // 无论响应状态如何，先尝试解析JSON响应
           let data;
           try {
             data = await response.json();
           } catch (jsonError) {
-            // 处理非JSON响应
             throw new Error(`服务器返回无效响应: ${await response.text()}`);
           }
           
@@ -1505,13 +1187,10 @@
               loadPlates(currentPlatesPage, currentSearchTerm);
             }, 1000);
           } else {
-            // 详细的错误信息处理
             messageEl.textContent = `操作失败: ${data.msg || '未知错误'}`;
             messageEl.className = 'message error';
             
-            // 特定错误类型的详细提示
-            if (response.status === 401 || response.status === 403) {
-              messageEl.textContent += '\n登录已过期，请重新登录';
+            if (response.status === 401 || response.status === 403) { messageEl.textContent += '\n登录已过期，请重新登录';
               setTimeout(() => {
                 logout();
               }, 3000);
@@ -1520,12 +1199,10 @@
             }
           }
         } catch (error) {
-          // 网络错误或其他异常
           messageEl.textContent = `请求失败: ${error.message}`;
           messageEl.className = 'message error';
           console.error('保存车牌请求错误:', error);
         } finally {
-          // 恢复按钮状态
           saveButton.disabled = false;
           saveButton.innerHTML = originalText;
         }
@@ -1550,7 +1227,6 @@
         });
         
         if (response.ok) {
-          // 删除成功，重新加载车牌数据
           loadPlates(currentPlatesPage, currentSearchTerm);
         } else {
           const data = await response.json();
@@ -1563,19 +1239,20 @@
     
     // 用户退出登录
     function logout() {
-      try {  
+      try {
         if (confirm('确定要退出登录吗？')) {
           localStorage.removeItem('token');
           window.location.href = '/admin/login.html';
         }
       } catch (error) {
         showError('退出登录失败: ' + error.message);
+        console.error('退出登录错误:', error);
       }
     }
     
     // 加载系统设置
     async function loadSystemSettings() {
-      try { 
+      try {
         const response = await fetch('/api/system-settings', {
           headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -1590,9 +1267,9 @@
         
         // 填充表单
         document.getElementById('appToken').value = settings.app_token || '';
-        
       } catch (error) {
         showError('加载系统设置失败: ' + error.message);
+        console.error('加载系统设置错误:', error);
       }
     }
     
@@ -1628,7 +1305,6 @@
           messageEl.textContent = '系统设置保存成功';
           messageEl.className = 'message success';
           
-          // 如果修改了密码，提示重新登录
           if (adminPassword) {
             setTimeout(() => {
               logout();
@@ -1640,6 +1316,7 @@
         }
       } catch (error) {
         showError('保存系统设置失败: ' + error.message);
+        console.error('保存系统设置错误:', error);
       }
     }
     
@@ -1650,6 +1327,7 @@
         loadLogs(1, searchTerm);
       } catch (error) {
         showError('搜索日志失败: ' + error.message);
+        console.error('搜索日志错误:', error);
       }
     }
     
@@ -1683,6 +1361,7 @@
         }
       } catch (error) {
         showError('删除日志失败: ' + error.message);
+        console.error('删除日志错误:', error);
       }
     }
   </script>
