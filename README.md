@@ -45,19 +45,13 @@ JWT_SECRET=your_jwt_secret_key_here  # 建议修改为随机字符串
 JWT_EXPIRES_IN=24h
 ```
 
-#### 2. 修改管理员密码（两种方式）
+#### 2. 修改管理员密码
 
 **方式一：通过.env文件修改**
 1. 访问 [bcrypt-generator.com](https://bcrypt-generator.com/)
 2. 输入新密码（如`123456`）
 3. 工作因子保持默认`10`
 4. 生成哈希值并替换`.env`文件中`ADMIN_PASSWORD_HASH`的值
-
-**方式二：通过Web后台修改**
-1. 登录系统后台（http://localhost:3000/admin/login.html）
-2. 点击底部导航栏的"系统设置"
-3. 在"管理员密码修改"区域输入新密码
-4. 点击保存按钮（页面底部未显示，推测存在保存功能）
 
 #### 3. 创建Docker Compose配置
 
