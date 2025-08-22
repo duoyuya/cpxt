@@ -22,8 +22,9 @@
       --border-light: #E5E6EB;
       --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       --radius: 12px;
-      --radius-sm: 6px;
+      --radius-sm: 8px; /* 增大边角半径至8px */
       --transition: all 0.3s ease;
+      --input-shadow: 0 2px 5px rgba(0, 0, 0, 0.03); /* 添加输入框阴影 */
     }
     
     * {
@@ -122,11 +123,12 @@
     select, input[type="text"], textarea {
       padding: 12px 15px;
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: 8px; /* 增大边角至8px */
       font-size: 15px;
       transition: var(--transition);
       color: var(--text);
       background-color: #FFF;
+      box-shadow: var(--input-shadow); /* 添加轻微阴影 */
     }
     
     select {
@@ -147,7 +149,7 @@
     }
     
     .plate-prefix {
-      width: 45px;
+      width: 60px;
       background-color: var(--primary-light);
       text-align: center;
       border-right: none;
@@ -156,11 +158,11 @@
       font-weight: 600;
       color: var(--primary-dark);
       font-size: 14px;
-      padding: 12px 5px;
+      padding: x12px 5px;
     }
     
     .plate-suffix {
-      flex: 1;
+      flex: 1;xx
       border-left: none;
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
@@ -170,7 +172,7 @@
     .plate-input-group::after {
       content: '';
       position: absolute;
-      left: 45px;
+      left: 60px;
       top: 10px;
       height: 24px;
       width: 1px;
@@ -189,16 +191,16 @@
       background-color: var(--primary);
       color: white;
       border: none;
-      border-radius: var(--radius-sm);
+      border-radius: 8px; /* 增大边角至8px */xx
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: var(--transition);
+      transition: var(--transition);xx
       display: flex;
-      justify-content: center;
+      justify-content: center;xx
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(22, 93, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(22, 93,x x255,x x0.2);
     }
     
     .btn:hover {
@@ -209,7 +211,7 @@
     
     .btn:active {
       transform: translateY(1px);
-      box-shadow: 0 2px 8px rgba(22, 93, 255, 0.2);
+      box-shadow: 0 x2px 8px rgba(22, 93, 255, 0.2);
     }
     
     .btn i {
@@ -219,7 +221,7 @@
     .message {
       margin-top: 12px;
       padding: 12px 15px;
-      border-radius: var(--radius-sm);
+      border-radius: 8px; /* 增大边角至8px */
       text-align: center;
       font-size: 14px;
       display: none;
@@ -526,9 +528,65 @@
     document.addEventListener('DOMContentLoaded', () => {
       plateSuffix.addEventListener('input', validatePlateFormat);
       phoneInput.addEventListener('input', formatPhoneNumber);
+      
+      // 初始化省份选择
+      if (provinceSelect.options.length <= 1) {
+        initProvinceSelect();
+      }
     });
     
-    // 手机号格式化（添加分隔符）xx
+    // 初始化省份选择
+    function initProvinceSelect() {
+      // 清空并重新添加省份选项
+      provinceSelect.innerHTML = '<option value="">请选择省份</option>';
+      
+      // 获取所有省份的键
+      const provinceCodes = Object.keys(provinceCityData);
+      
+      // 添加省份选项
+      provinceCodes.forEach(code => {
+        // 查找省份名称（使用北京作为示例，实际应从数据中获取）
+        let provinceName = code;
+        if (code === '京') provinceName = '北京市';
+        else if (code === '津') provinceName = '天津市';
+        else if (code === '沪') provinceName = '上海市';
+        else if (code === '渝') provinceName = '重庆市';
+        else if (code === '冀') provinceName = '河北省';
+        else if (code === '晋') provinceName = '山西省';
+        else if (code === '蒙') provinceName = '内蒙古自治区';
+        else if (code === '辽') provinceName = '辽宁省';
+        else if (code === '吉') provinceName = '吉林省';
+        else if (code === '黑') provinceName = '黑龙江省';
+        else if (code === '苏') provinceName = '江苏省';
+        else if (code === '浙') provinceName = '浙江省';
+        else if (code === '皖') provinceName = '安徽省';
+        else if (code === '闽') provinceName = '福建省';
+        else if (code === '赣') provinceName = '江西省';
+        else if (code === '鲁') provinceName = '山东省';
+        else if (code === '豫') provinceName = '河南省';
+        else if (code === '鄂') provinceName = '湖北省';
+        else if (code === '湘') provinceName = '湖南省';
+        else if (code === '粤') provinceName = '广东省';
+        else if (code === '桂') provinceName = '广西壮族自治区';
+        else if (code === '琼') provinceName = '海南省';
+        else if (code === '川') provinceName = '四川省';
+        else if (code === '贵') provinceName = '贵州省';
+        else if (code === '云') provinceName = '云南省';
+        else if (code === '藏') provinceName = '西藏自治区';
+        else if (code === '陕') provinceName = '陕西省';
+        else if (code === '甘') provinceName = '甘肃省';
+        else if (code === '青') provinceName = '青海省';
+        else if (code === '宁') provinceName = '宁夏回族自治区';
+        else if (code === '新') provinceName = '新疆维吾尔自治区';
+        
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = provinceName;
+        provinceSelect.appendChild(option);
+      });
+    }
+    
+    // 手机号格式化（添加分隔符）
     function formatPhoneNumber(e) {
       let value = e.target.value.replace(/\D/g, '');
       
@@ -537,7 +595,7 @@
         value = '1' + value;
       }
       
-      // xx限制长度为11位数字
+      // 限制长度为11位数字
       if (value.length > 11) {
         value = value.slice(0, 11);
       }
@@ -681,6 +739,9 @@
       const suffix = plateSuffix.value;
       let phoneNumber = phoneInput.value.replace(/-/g, '');
       const fullPlate = prefix + suffix;
+      let retryCount = 0;
+      const maxRetries = 2;
+      const timeoutMs = 10000; // 延长超时时间至10秒
       
       if (!validatePlateFormat()) {
         return;
@@ -699,16 +760,29 @@
       updateMessage('', '');
       
       try {
+        // 使用fetch API并设置超时
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        
         const response = await fetch('/api/notify', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             plate: fullPlate,
             phone: phoneNumber
-          })
+          }),
+          signal: controller.signal
         });
         
-        const data = await response.json();
+        clearTimeout(timeoutId);
+        
+        // 无论HTTP状态码如何，尝试解析响应
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          data = { msg: '响应格式错误' };
+        }
         
         if (response.ok) {
           updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
@@ -720,12 +794,24 @@
             plateSuffix.value = '';
             phoneInput.value = '';
             phoneInput.classList.remove('input-success');
-          }, 3000);xx
+          }, 3000);
         } else {
           updateMessage(data.msg || '发送失败，请稍后重试', 'error');
         }
       } catch (error) {
-        updateMessage('网络错误，请检查网络连接', 'error');
+        // 网络错误处理
+        if (error.name === 'AbortError') {
+          updateMessage('请求超时，请检查网络连接', 'error');
+        } else if (retryCount < maxRetries) {
+          // 自动重试
+          retryCount++;
+          updateMessage(`网络异常，正在重试(${retryCount}/${maxRetries})...`, 'info');
+          setTimeout(() => sendNotification(), 1000 * retryCount);
+          return;
+        } else {
+          // 经过重试后仍然失败，给出友好提示
+          updateMessage('网络连接异常，但通知可能已发送成功。如果您收到提醒，则表示发送成功。', 'warning');
+        }
       } finally {
         sendBtn.disabled = false;
         loadingEl.style.display = 'none';
@@ -734,7 +820,7 @@
     }
     
     function updateMessage(text, type) {
-      messageEl.textContent = text;
+      messageEl.textContent = text;xx
       messageEl.className = 'message';
       if (type) messageEl.classList.add(type);
       
