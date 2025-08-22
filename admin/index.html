@@ -4,21 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>车辆挪车通知</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #007bff;
-      --primary-light: #e6f0ff;
-      --primary-dark: #0056b3;
-      --success: #28a745;
-      --danger: #dc3545;
-      --warning: #ffc107;
-      --text: #333;
-      --text-secondary: #6c757d;
-      --bg: #f8f9fa;
-      --card-bg: #fff;
-      --border: #dee2e6;
-      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --primary: #165DFF;
+      --primary-light: #E8F3FF;
+      --primary-dark: #0E42D2;
+      --success: #00B42A;
+      --danger: #F53F3F;
+      --warning: #FF7D00;
+      --text: #1D2129;
+      --text-secondary: #4E5969;
+      --text-placeholder: #86909C;
+      --bg: #F2F3F5;
+      --card-bg: #FFFFFF;
+      --border: #C9CDD4;
+      --border-light: #E5E6EB;
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       --radius: 12px;
+      --radius-sm: 6px;
       --transition: all 0.3s ease;
     }
     
@@ -43,45 +47,140 @@
       background-color: var(--card-bg);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 30px;
+      padding: 20px 15px;
       width: 100%;
       max-width: 400px;
       transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), #4080FF);
     }
     
     .card-header {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-light);
     }
     
     .card-header h2 {
       color: var(--primary);
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .card-header h2 i {
+      font-size: 24px;
     }
     
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      position: relative;
     }
     
-    input[type="text"], textarea {
-      width: 100%;
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .form-label i {
+      font-size: 14px;
+      color: var(--primary);
+    }
+    
+    .select-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .plate-input-group {
+      display: flex;
+      margin-bottom: 5px;
+      position: relative;
+    }
+    
+    select, input[type="text"], textarea {
       padding: 12px 15px;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
       transition: var(--transition);
+      color: var(--text);
+      background-color: #FFF;
     }
     
-    textarea {
-      resize: none;
-      min-height: 100px;
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234E5969' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      padding-right: 40px;
     }
     
-    input[type="text"]:focus, textarea:focus {
+    .select-group select {
+      flex: 1;
+      width: 100%;
+    }
+    
+    .plate-input-group input {
+      padding: 12px;
+    }
+    
+    .plate-prefix {
+      width: 45px;
+      background-color: var(--primary-light);
+      text-align: center;
+      border-right: none;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      font-weight: 600;
+      color: var(--primary-dark);
+      font-size: 14px;
+      padding: 12px 5px;
+    }
+    
+    .plate-suffix {
+      flex: 1;
+      border-left: none;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      padding-left: 12px;
+    }
+    
+    .plate-input-group::after {
+      content: '';
+      position: absolute;
+      left: 45px;
+      top: 10px;
+      height: 24px;
+      width: 1px;
+      background-color: var(--border);
+    }
+    
+    select:focus, input[type="text"]:focus, textarea:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
     }
     
     .btn {
@@ -90,7 +189,7 @@
       background-color: var(--primary);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
@@ -99,37 +198,59 @@
       justify-content: center;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 4px 12px rgba(22, 93, 255, 0.2);
     }
     
     .btn:hover {
       background-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(22, 93, 255, 0.25);
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 8px rgba(22, 93, 255, 0.2);
+    }
+    
+    .btn i {
+      font-size: 18px;
     }
     
     .message {
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 8px;
+      margin-top: 12px;
+      padding: 12px 15px;
+      border-radius: var(--radius-sm);
       text-align: center;
       font-size: 14px;
       display: none;
+      animation: fadeIn 0.3s ease-out;
+      border-color: transparent;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .success {
-      background-color: rgba(40, 167, 69, 0.1);
+      background-color: rgba(0, 180, 42, 0.08);
       color: var(--success);
       display: block;
+      border-color: rgba(0, 180, 42, 0.2);
     }
     
     .error {
-      background-color: rgba(220, 53, 69, 0.1);
+      background-color: rgba(245, 63, 63, 0.08);
       color: var(--danger);
       display: block;
+      border-color: rgba(245, 63, 63, 0.2);
     }
     
     .info {
-      background-color: rgba(255, 193, 7, 0.1);
-      color: #856404;
+      background-color: rgba(255, 125, 0, 0.08);
+      color: var(--warning);
       display: block;
+      border-color: rgba(255, 125, 0, 0.2);
     }
     
     .footer {
@@ -137,6 +258,8 @@
       text-align: center;
       font-size: 13px;
       color: var(--text-secondary);
+      padding-top: 15px;
+      border-top: 1px dashed var(--border-light);
     }
     
     .loading {
@@ -153,401 +276,314 @@
       to { transform: rotate(360deg); }
     }
     
-    /* 虚拟键盘样式 */
-    .keyboard-container {
-      display: none;
-      margin-top: 15px;
-      padding: 10px;
-      background-color: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    
-    .keyboard-row {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-    
-    .keyboard-key {
-      padding: 10px 15px;
-      background-color: var(--border);
-      border: none;
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 14px;
-      cursor: pointer;
+    .input-icon {
+      position: absolute;
+      right: 15px;
+      top: 38px;
+      color: var(--text-placeholder);
+      font-size: 16px;
       transition: var(--transition);
-      min-width: 40px;
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     
-    .keyboard-key:hover {
-      background-color: var(--primary);
-      color: white;
+    input:focus + .input-icon {
+      color: var(--primary);
     }
     
-    .keyboard-key.active {
-      background-color: var(--primary);
-      color: white;
+    .input-success {
+      border-color: var(--success) !important;
     }
     
-    .keyboard-key.delete {
-      background-color: var(--danger);
-      color: white;
+    .input-success + .input-icon {
+      color: var(--success);
     }
     
-    .keyboard-key.clear {
-      background-color: var(--warning);
-      color: var(--text);
-    }
-    
-    .keyboard-section-title {
+    .helper-text {
       font-size: 12px;
-      color: var(--text-secondary);
-      margin: 10px 0 5px 10px;
-      text-align: left;
+      color: var(--text-placeholder);
+      margin-top: 5px;
+      line-height: 1.5;
     }
     
-    .plate-length-indicator {
-      text-align: center;
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--text-secondary);
+    .form-control {
+      position: relative;
+    }
+    
+    .form-control::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--primary);
+      transition: var(--transition);
+    }
+    
+    .form-control:focus-within::after {
+      width: 100%;
+    }
+    
+    @media (max-width: 480px) {
+      .select-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      select, input[type="text"] {
+        padding: 11px 14px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="card-header">
-      <h2>车辆挪车通知</h2>
+      <h2><i class="fas fa-car"></i>车辆挪车通知</h2>
     </div>
     
-    <div class="form-group">
-      <input type="text" id="plateNumber" placeholder="请输入车牌号（支持7-8位）" maxlength="8" autocomplete="off">
-      
-      <!-- 车牌长度指示器 -->
-      <div class="plate-length-indicator">
-        当前长度: <span id="currentLength">0</span>/8位 (支持7-8位车牌号)
+    <div class="form-group form-control">
+      <label class="form-label"><i class="fas fa-map-marker-alt"></i>选择省份和城市</label>
+      <div class="select-group">
+        <select id="provinceSelect" onchange="onProvinceChange()" aria-label="省份选择">
+          <option value="">请选择省份</option>
+        </select>
+        <select id="citySelect" onchange="onCitySelect()" aria-label="城市选择">
+          <option value="">请选择城市</option>
+        </select>
       </div>
-      
-      <!-- 虚拟键盘 -->
-      <div class="keyboard-container" id="plateKeyboard">
-        <div class="keyboard-section-title">省份简称</div>
-        <div class="keyboard-row" id="chineseCharsRow"></div>
-        
-        <div class="keyboard-section-title">字母</div>
-        <div class="keyboard-row" id="lettersRow">
-          <!-- 动态生成字母按键 -->
-        </div>
-        
-        <div class="keyboard-section-title">数字</div>
-        <div class="keyboard-row">
-          <button class="keyboard-key" onclick="appendToPlate('1')">1</button>
-          <button class="keyboard-key" onclick="appendToPlate('2')">2</button>
-          <button class="keyboard-key" onclick="appendToPlate('3')">3</button>
-          <button class="keyboard-key" onclick="appendToPlate('4')">4</button>
-          <button class="keyboard-key" onclick="appendToPlate('5')">5</button>
-          <button class="keyboard-key" onclick="appendToPlate('6')">6</button>
-          <button class="keyboard-key" onclick="appendToPlate('7')">7</button>
-          <button class="keyboard-key" onclick="appendToPlate('8')">8</button>
-          <button class="keyboard-key" onclick="appendToPlate('9')">9</button>
-          <button class="keyboard-key" onclick="appendToPlate('0')">0</button>
-        </div>
-        
-        <div class="keyboard-row">
-          <button class="keyboard-key clear" onclick="clearPlateInput()">清空</button>
-          <button class="keyboard-key delete" onclick="deleteLastChar()">删除</button>
-        </div>
+      <div id="dataLoadStatus" class="helper-text">加载中...</div>
+    </div>
+    
+    <div class="form-group form-control">
+      <label class="form-label"><i class="fas fa-id-card"></i>车牌号</label>
+      <div class="plate-input-group">
+        <input type="text" id="platePrefix" class="plate-prefix" placeholder="省A" readonly aria-label="车牌前缀">
+        <input type="text" id="plateSuffix" class="plate-suffix" placeholder="后5-6位字母或数字" maxlength="6" autocomplete="off" aria-label="车牌后5-6位">
       </div>
+      <div class="helper-text">支持普通车牌(7位)和新能源车牌(8位)，字母请使用大写</div>
     </div>
     
-    <div class="form-group">
-      <input type="text" id="phoneNumber" placeholder="请输入您的手机号（11位数字，必填）" maxlength="11" autocomplete="off" required>
+    <div class="form-group form-control">
+      <label class="form-label"><i class="fas fa-mobile-alt"></i>手机号码</label>
+      <input type="text" id="phoneNumber" placeholder="请输入11位手机号码" maxlength="13" autocomplete="off" required aria-label="手机号码">
+      <i class="fas fa-mobile-alt input-icon"></i>
+      <div class="helper-text">请输入真实有效的手机号码，以便接收通知</div>
     </div>
     
-    <button class="btn" id="sendBtn" onclick="sendNotification()">
+    <button class="btn" id="sendBtn" onclick="sendNotification()" aria-label="发送挪车通知">
       <span class="loading" style="display: none;"></span>
+      <i class="fas fa-paper-plane"></i>
       <span class="text">发送挪车通知</span>
     </button>
     
-    <div class="message" id="message"></div>
+    <div class="message" id="message" role="alert"></div>
     
     <div class="footer">
-      北沐车辆通知系统 © 2025 | 便捷 · 高效
+      <p>北沐车辆通知系统 © 2025</p>
     </div>
   </div>
 
   <script>
-    const plateInput = document.getElementById('plateNumber');
+    const provinceSelect = document.getElementById('provinceSelect');
+    const citySelect = document.getElementById('citySelect');
+    const platePrefix = document.getElementById('platePrefix');
+    const plateSuffix = document.getElementById('plateSuffix');
     const phoneInput = document.getElementById('phoneNumber');
-    const sendBtn = document.getElementById('sendBtn');
-    const messageEl = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');const messageEl = document.getElementById('message');
     const loadingEl = sendBtn.querySelector('.loading');
     const textEl = sendBtn.querySelector('.text');
-    const currentLengthEl = document.getElementById('currentLength');
+    const dataLoadStatus = document.getElementById('dataLoadStatus');
     
-    // 存储车牌数据
-    let plateData = {
-      provinces: [
-        {"name":"北京市","abbr":"京","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","Y"]},
-        {"name":"天津市","abbr":"津","letters":["A","B","C","D","E","F","G","H","J","K","L"]},
-        {"name":"河北省","abbr":"冀","letters":["A","B","C","D","E","F","G","H","J","R","T"]},
-        {"name":"山西省","abbr":"晋","letters":["A","B","C","D","E","F","H","J","K","L","M"]},
-        {"name":"内蒙古自治区","abbr":"蒙","letters":["A","B","C","D","E","F","G","H","J","K","L","M"]},
-        {"name":"辽宁省","abbr":"辽","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","V"]},
-        {"name":"吉林省","abbr":"吉","letters":["A","B","C","D","E","F","G","H","J","K"]},
-        {"name":"黑龙江省","abbr":"黑","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","R"]},
-        {"name":"上海市","abbr":"沪","letters":["A","B","D","E","F","G","H","J","K","L","M","N","R"]},
-        {"name":"江苏省","abbr":"苏","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","U"]},
-        {"name":"浙江省","abbr":"浙","letters":["A","B","C","D","E","F","G","H","J","K","L"]},
-        {"name":"安徽省","abbr":"皖","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S"]},
-        {"name":"福建省","abbr":"闽","letters":["A","B","C","D","E","F","G","H","J","K"]},
-        {"name":"江西省","abbr":"赣","letters":["A","B","C","D","E","F","G","H","J","K","L"]},
-        {"name":"山东省","abbr":"鲁","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S","U","V","Y"]},
-        {"name":"河南省","abbr":"豫","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S","U"]},
-        {"name":"湖北省","abbr":"鄂","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S"]},
-        {"name":"湖南省","abbr":"湘","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","U"]},
-        {"name":"广东省","abbr":"粤","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S","T","U","V","W","X","Y","Z"]},
-        {"name":"广西壮族自治区","abbr":"桂","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","R"]},
-        {"name":"海南省","abbr":"琼","letters":["A","B","C","D","E","F"]},
-        {"name":"重庆市","abbr":"渝","letters":["A","B","C","D","F","G","H"]},
-        {"name":"四川省","abbr":"川","letters":["A","B","C","D","E","F","H","J","K","L","Q","R","S","T","U","V","W"]},
-        {"name":"贵州省","abbr":"贵","letters":["A","B","C","D","E","F","G","H","J"]},
-        {"name":"云南省","abbr":"云","letters":["A","C","D","E","F","G","H","J","K","L","M","N","P","Q","R","S"]},
-        {"name":"西藏自治区","abbr":"藏","letters":["A","B","C","D","E","F","G"]},
-        {"name":"陕西省","abbr":"陕","letters":["A","B","C","D","E","F","G","H","J","K","V"]},
-        {"name":"甘肃省","abbr":"甘","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P"]},
-        {"name":"青海省","abbr":"青","letters":["A","B","C","D","E","F","G","H"]},
-        {"name":"宁夏回族自治区","abbr":"宁","letters":["A","B","C","D","E"]},
-        {"name":"新疆维吾尔自治区","abbr":"新","letters":["A","B","C","D","E","F","G","H","J","K","L","M","N","P","Q","R"]}
-      ]
-    };
+    let plateData = { provinces: [] };
     let selectedProvince = null;
+    let selectedCity = null;
     
-    // 页面加载时初始化
     document.addEventListener('DOMContentLoaded', () => {
-      // 初始化虚拟键盘
-      initKeyboard();
-      
-      // 输入框聚焦时显示键盘
-      plateInput.addEventListener('focus', () => {
-        document.getElementById('plateKeyboard').style.display = 'block';
-      });
-      
-      // 初始化长度显示
-      updatePlateLengthIndicator();
+      loadPlateData();
+      plateSuffix.addEventListener('input', validatePlateFormat);
+      phoneInput.addEventListener('input', formatPhoneNumber);
     });
     
-    // 初始化虚拟键盘
-    function initKeyboard() {
-      // 生成省份简称按键
-      const chineseCharsRow = document.getElementById('chineseCharsRow');
-      chineseCharsRow.innerHTML = '';
+    // 手机号格式化（添加分隔符）
+    function formatPhoneNumber(e) {
+      let value = e.target.value.replace(/\D/g, '');
       
-      // 按省份名称排序
-      plateData.provinces.sort((a, b) => a.name.localeCompare(b.name));
-      
-      // 生成省份按键
-      plateData.provinces.forEach(province => {
-        const button = document.createElement('button');
-        button.className = 'keyboard-key';
-        button.textContent = province.abbr;
-        button.title = province.name;
-        button.onclick = () => {
-          // 清除之前选中的省份
-          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-            btn.classList.remove('active');
-          });
-          
-          // 设置当前选中省份
-          selectedProvince = province;
-          button.classList.add('active');
-          
-          // 更新字母行
-          updateLettersRow();
-          
-          // 清空输入框并填入省份简称
-          plateInput.value = province.abbr;
-          updatePlateLengthIndicator();
-          validatePlateFormat();
-        };
-        chineseCharsRow.appendChild(button);
-      });
-      
-      // 初始化字母行
-      updateLettersRow();
-      
-      // 显示虚拟键盘
-      document.getElementById('plateKeyboard').style.display = 'block';
-    }
-    
-    // 更新字母行
-    function updateLettersRow() {
-      const lettersRow = document.getElementById('lettersRow');
-      lettersRow.innerHTML = '';
-      
-      // 如果已选择省份，显示该省份的字母
-      if (selectedProvince && selectedProvince.letters) {
-        selectedProvince.letters.forEach(letter => {
-          const button = document.createElement('button');
-          button.className = 'keyboard-key';
-          button.textContent = letter;
-          button.onclick = () => appendToPlate(letter);
-          lettersRow.appendChild(button);
+      // 格式化手机号为3-4-4格式
+      if (value.length > 0) {
+        value = value.replace(/^(\d{3})(\d{0,4})(\d{0,4})/, (match, p1, p2, p3) => {
+          let result = p1;
+          if (p2) result += '-' + p2;
+          if (p3) result += '-' + p3;
+          return result;
         });
       }
-    }
-    
-    // 向车牌号输入框添加字符
-    function appendToPlate(char) {
-      const currentValue = plateInput.value;
-      // 限制最大长度为8位
-      if (currentValue.length < 8) {
-        plateInput.value = currentValue + char;
-        updatePlateLengthIndicator();
-        validatePlateFormat();
-      }
-    }
-    
-    // 删除最后一个字符
-    function deleteLastChar() {
-      const currentValue = plateInput.value;
-      if (currentValue.length > 0) {
-        plateInput.value = currentValue.slice(0, -1);
-        updatePlateLengthIndicator();
-        validatePlateFormat();
-        
-        // 如果删除后第一位不是汉字，重置省份选择
-        if (plateInput.value.length === 0 || !/^[\u4e00-\u9fa5]/.test(plateInput.value)) {
-          selectedProvince = null;
-          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-            btn.classList.remove('active');
-          });
-          updateLettersRow();
-        }
-      }
-    }
-    
-    // 清空输入框
-    function clearPlateInput() {
-      plateInput.value = '';
-      selectedProvince = null;
-      document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      updateLettersRow();
-      updatePlateLengthIndicator();
-      validatePlateFormat();
-    }
-    
-    // 更新车牌长度指示器
-    function updatePlateLengthIndicator() {
-      currentLengthEl.textContent = plateInput.value.length;
-    }
-    
-    // 验证车牌号格式（支持7-8位）
-    function validatePlateFormat() {
-      const plateValue = plateInput.value;
-      if (plateValue.length === 0) {
-        updateMessage('', '');
-        return;
-      }
       
-      // 简化版验证：第一位为汉字，后接6-7位字母/数字（总长度7-8位）
-      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+      e.target.value = value;
       
-      if (plateRegex.test(plateValue)) {
-        updateMessage(`车牌号格式正确（${plateValue.length}位）`, 'success');
-      } else if (plateValue.length >= 1 && plateValue.length < 7) {
-        updateMessage(`请继续输入${7 - plateValue.length}位字符（共7-8位）`, 'info');
-      } else if (plateValue.length === 7 || plateValue.length === 8) {
-        updateMessage('车牌号格式不正确（第一位为汉字，后接6-7位字母或数字）', 'error');
-      } else if (plateValue.length > 8) {
-        updateMessage('车牌号最长为8位，请删除多余字符', 'error');
-      }
-    }
-    
-    // 手机号输入处理
-    phoneInput.addEventListener('input', function(e) {
-      this.value = this.value.replace(/[^0-9]/g, '');
-      
-      if (this.value.length > 11) {
-        this.value = this.value.slice(0, 11);
-      }
-      
-      if (this.value.length === 11) {
-        updateMessage(this.value.startsWith('1') ? '手机号格式正确' : '手机号必须以1开头', this.value.startsWith('1') ? 'success' : 'error');
-      } else if (this.value.length > 0) {
-        updateMessage(`请输入完整的11位手机号，已输入${this.value.length}位`, 'info');
+      // 验证手机号格式
+      const phoneRegex = /^1[3-9]\d{2}-\d{4}-\d{4}$/;
+      if (phoneRegex.test(value)) {
+        phoneInput.classList.add('input-success');
+        return true;
       } else {
-        updateMessage('', '');
+        phoneInput.classList.remove('input-success');
+        return false;
       }
-    });
+    }
     
-    // 车牌号输入处理
-    plateInput.addEventListener('input', function(e) {
-      if (this.value.length > 0) {
-        const firstChar = this.value.charAt(0);
-        const restChars = this.value.slice(1).toUpperCase().replace(/[^A-Z0-9]/g, '');
-        this.value = firstChar + restChars;
-      }
+    function loadPlateData() {
+      const paths = ['/data/plates.json', '/cpxt-main/data/plates.json', '/admin/data/plates.json', '/plates.json'];
+      let loaded = false;
       
-      // 限制最大长度为8位
-      if (this.value.length > 8) {
-        this.value = this.value.slice(0, 8);
-      }
+      paths.forEach(path => {
+        if (!loaded) {
+          fetch(path)
+            .then(response => {
+              if (!response.ok) throw new Error('Not found');
+              return response.json();
+            })
+            .then(data => {
+              if (!loaded) {
+                loaded = true;
+                plateData = data;
+                initProvinceSelect();
+                dataLoadStatus.textContent = "请选择省份和城市";
+                dataLoadStatus.style.color = "var(--text-placeholder)";
+              }
+            })
+            .catch(error => {
+              console.log(`尝试加载${path}失败:`, error);
+              dataLoadStatus.textContent = "数据加载失败，请刷新页面重试";
+              dataLoadStatus.style.color = "var(--danger)";
+              updateMessage('车牌数据加载失败，请刷新页面重试', 'error');
+            });
+        }
+      });
+    }
+    
+    function initProvinceSelect() {
+      provinceSelect.innerHTML = '<option value="">请选择省份</option>';
+      plateData.provinces.sort((a, b) => a.name.localeCompare(b.name));
       
-      // 更新长度指示器
-      updatePlateLengthIndicator();
+      plateData.provinces.forEach(province => {
+        const option = document.createElement('option');
+        option.value = province.abbr;
+        option.textContent = province.name;
+        option.dataset.province = JSON.stringify(province);
+        provinceSelect.appendChild(option);
+      });
+    }
+    
+    function onProvinceChange() {
+      const selectedOption = provinceSelect.options[provinceSelect.selectedIndex];
+      citySelect.innerHTML = '<option value="">请选择城市</option>';
+      platePrefix.value = '';
+      plateSuffix.value = '';
+      selectedProvince = null;
+      selectedCity = null;
       
-      // 验证格式
-      validatePlateFormat();
-      
-      // 自动匹配省份简称
-      const firstChar = this.value.charAt(0);
-      if (firstChar) {
-        const matchedProvince = plateData.provinces.find(p => p.abbr === firstChar);
-        if (matchedProvince && matchedProvince !== selectedProvince) {
-          selectedProvince = matchedProvince;
-          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => {
-            btn.classList.toggle('active', btn.textContent === selectedProvince.abbr);
+      if (selectedOption && selectedOption.value) {
+        selectedProvince = JSON.parse(selectedOption.dataset.province);
+        
+        if (selectedProvince.cities && selectedProvince.cities.length > 0) {
+          selectedProvince.cities.sort((a, b) => a.letter.localeCompare(b.letter));
+          
+          selectedProvince.cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.letter;
+            option.textContent = `${city.letter} - ${city.city}`;
+            option.dataset.city = JSON.stringify(city);
+            citySelect.appendChild(option);
           });
-          updateLettersRow();
         }
       }
-    });
+      
+      validatePlateFormat();
+    }
     
-    // 发送通知
-    async function sendNotification() {
-      const plateNumber = plateInput.value.trim();
-      const phoneNumber = phoneInput.value.trim();
+    function onCitySelect() {
+      const selectedOption = citySelect.options[citySelect.selectedIndex];
+      platePrefix.value = '';
+      plateSuffix.value = '';
+      selectedCity = null;
       
-      // 验证车牌号格式（支持7-8位）
-      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
-      
-      if (!plateNumber) {
-        updateMessage('请输入车牌号', 'error');
-        return;
+      if (selectedOption && selectedOption.value && selectedProvince) {
+        selectedCity = JSON.parse(selectedOption.dataset.city);
+        platePrefix.value = selectedProvince.abbr + selectedCity.letter;
       }
       
-      if (!plateRegex.test(plateNumber)) {
-        updateMessage('车牌号格式不正确（第一位为汉字，后接6-7位字母或数字，共7-8位）', 'error');
+      validatePlateFormat();
+    }
+    
+    function validatePlateFormat() {
+      const prefix = platePrefix.value;
+      const suffix = plateSuffix.value;
+      
+      // 过滤非字母数字字符并转为大写
+      plateSuffix.value = suffix.replace(/[^A-Z0-9]/g, '').toUpperCase();
+      
+      if (prefix.length < 2) {
+        updateMessage('请先选择省份和城市', 'info');
+        return false;
+      }
+      
+      if (suffix.length === 0) {
+        updateMessage('请输入后5-6位字母或数字', 'info');
+        return false;
+      }
+      
+      const totalLength = prefix.length + suffix.length;
+      
+      if (totalLength < 7 || totalLength > 8) {
+        updateMessage('车牌号长度不正确（普通车牌7位，新能源车牌8位）', 'error');
+        return false;
+      }
+      
+      // 验证格式：第一位为汉字，后接6-7位字母/数字
+      const plateRegex = /^[\u4e00-\u9fa5][A-Z0-9]{6,7}$/;
+      const fullPlate = prefix + suffix;
+      
+      if (plateRegex.test(fullPlate)) {
+        updateMessage('车牌号格式正确', 'success');
+        return true;
+      } else {
+        updateMessage('车牌号格式不正确（第一位为汉字，后接6-7位字母或数字）', 'error');
+        return false;
+      }
+    }
+    
+    function updateMessage(text, type) {
+      messageEl.textContent = text;
+      messageEl.className = 'message';
+      if (type) messageEl.classList.add(type);
+      
+      if (type === 'info' && text) {
+        setTimeout(() => {
+          if (messageEl.textContent === text) {
+            updateMessage('', '');
+          }
+        }, 5000);
+      }
+    }
+    
+    async function sendNotification() {
+      const prefix = platePrefix.value;
+      const suffix = plateSuffix.value;
+      let phoneNumber = phoneInput.value.replace(/-/g, '');
+      const fullPlate = prefix + suffix;
+      
+      if (!validatePlateFormat()) {
         return;
       }
       
       // 验证手机号
-      if (!phoneNumber || phoneNumber.length !== 11 || !phoneNumber.startsWith('1')) {
+      if (!phoneNumber || phoneNumber.length !== 11 || !/^1[3-9]\d{9}$/.test(phoneNumber)) {
         updateMessage('请输入有效的11位手机号', 'error');
+        phoneInput.focus();
         return;
       }
       
-      // 发送请求
       sendBtn.disabled = true;
       loadingEl.style.display = 'inline-block';
       textEl.textContent = '发送中...';
@@ -558,7 +594,7 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            plate: plateNumber,
+            plate: fullPlate,
             phone: phoneNumber
           })
         });
@@ -567,12 +603,17 @@
         
         if (response.ok) {
           updateMessage('通知发送成功！车主将收到挪车提醒', 'success');
-          plateInput.value = '';
-          phoneInput.value = '';
-          selectedProvince = null;
-          document.querySelectorAll('#chineseCharsRow .keyboard-key').forEach(btn => btn.classList.remove('active'));
-          updateLettersRow();
-          updatePlateLengthIndicator();
+          
+          setTimeout(() => {
+            provinceSelect.value = '';
+            citySelect.innerHTML = '<option value="">请选择城市</option>';
+            platePrefix.value = '';
+            plateSuffix.value = '';
+            phoneInput.value = '';
+            phoneInput.classList.remove('input-success');
+            selectedProvince = null;
+            selectedCity = null;
+          }, 3000);
         } else {
           updateMessage(data.msg || '发送失败，请稍后重试', 'error');
         }
@@ -584,17 +625,6 @@
         textEl.textContent = '发送挪车通知';
       }
     }
-    
-    // 更新消息显示
-    function updateMessage(text, type) {
-      messageEl.textContent = text;
-      messageEl.className = 'message';
-      if (type) messageEl.classList.add(type);
-    }
-    
-    // 回车发送
-    plateInput.addEventListener('keypress', e => e.key === 'Enter' && sendNotification());
-    phoneInput.addEventListener('keypress', e => e.key === 'Enter' && sendNotification());
   </script>
 </body>
 </html>
