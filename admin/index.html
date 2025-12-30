@@ -132,7 +132,6 @@
       transition: var(--transition);
       color: var(--text);
       background: #fff;
-      width: 100%;
     }
     
     input[type="text"]:focus {
@@ -143,8 +142,10 @@
     
     .plate-prefix {
       width: 65px;
+      min-width: 65px;
       background: var(--primary-light);
       text-align: center;
+      border: 1px solid var(--border);
       border-right: none;
       border-radius: var(--radius-sm) 0 0 var(--radius-sm);
       font-weight: 600;
@@ -153,6 +154,7 @@
     
     .plate-suffix {
       flex: 1;
+      border: 1px solid var(--border);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     }
     
@@ -308,7 +310,7 @@
     
     <div class="form-group">
       <label class="form-label"><i class="fas fa-comment"></i> 留言 <span class="optional">（可选）</span></label>
-      <input type="text" id="messageText" placeholder="如：请尽快挪车，谢谢" maxlength="50" autocomplete="off">
+      <input type="text" id="messageText" placeholder="如：请尽快挪车，谢谢" maxlength="50" autocomplete="off" style="width: 100%;">
       <div class="helper-text">可留言给车主，最多50字</div>
     </div>
     
