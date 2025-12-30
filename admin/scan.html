@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>挪车通知</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-light: #eff6ff;
+      --primary-dark: #2563eb;
+      --success: #22c55e;
+      --success-light: #f0fdf4;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --text-placeholder: #94a3b8;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: all 0.2s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid var(--border);
+      animation: fadeInUp 0.5s ease-out;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .card-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .card-header h2 {
+      color: var(--primary);
+      font-size: 22px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .plate-display {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.5s ease-out 0.1s backwards;
+      transition: transform 0.2s ease;
+    }
+    
+    .plate-display:hover {
+      transform: scale(1.02);
+    }
+    
+    .plate-display .label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .plate-display .plate-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      letter-spacing: 2px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s ease-out backwards;
+    }
+    
+    .form-group:nth-child(1) { animation-delay: 0.2s; }
+    .form-group:nth-child(2) { animation-delay: 0.3s; }
+    
+    .form-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .form-label i {
+      color: var(--primary);
+      font-size: 14px;
+    }
+    
+    .form-label .optional {
+      font-size: 12px;
+      color: var(--text-placeholder);
+      font-weight: 400;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      transition: var(--transition);
+      color: var(--text);
+      background: #fff;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .helper-text {
+      font-size: 12px;
+      color: var(--text-placeholder);
+      margin-top: 6px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      animation: fadeInUp 0.5s ease-out 0.4s backwards;
+    }
+    
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn:active {
+      transform: scale(0.98) translateY(0);
+    }
+    
+    .btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .message {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      font-size: 14px;
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .success {
+      background: var(--success-light);
+      color: var(--success);
+      display: block;
+    }
+    
+    .error {
+      background: var(--danger-light);
+      color: var(--danger);
+      display: block;
+    }
+    
+    .loading {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .error-page {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    
+    .error-page i {
+      font-size: 56px;
+      color: var(--danger);
+      margin-bottom: 16px;
+    }
+    
+    .error-page h3 {
+      color: var(--danger);
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+    
+    .error-page p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="mainCard">
+    <div class="card-header">
+      <h2><i class="fas fa-car"></i> 挪车通知</h2>
+    </div>
+    
+    <div id="loadingState" style="text-align: center; padding: 40px;">
+      <div class="loading" style="width: 40px; height: 40px; border-width: 4px; margin: 0 auto 15px;"></div>
+      <p style="color: var(--text-secondary);">加载中...</p>
+    </div>
+    
+    <div id="errorState" class="error-page" style="display: none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <h3>无效的链接</h3>
+      <p id="errorMessage">该链接无效或车牌不存在</p>
+    </div>
+    
+    <div id="formState" style="display: none;">
+      <div class="plate-display">
+        <div class="label">车牌号</div>
+        <div class="plate-number" id="plateNumber">-</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-mobile-alt"></i> 您的手机号</label>
+        <input type="text" id="phoneNumber" placeholder="请输入您的手机号" maxlength="13" autocomplete="off">
+        <div class="helper-text">车主将通过此号码联系您</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-comment"></i> 留言 <span class="optional">（可选）</span></label>
+        <input type="text" id="messageText" placeholder="如：请尽快挪车，谢谢" maxlength="50" autocomplete="off">
+        <div class="helper-text">可留言给车主，最多50字</div>
+      </div>
+      
+      <button class="btn" id="sendBtn" onclick="sendNotification()">
+        <span class="loading" style="display: none;"></span>
+        <i class="fas fa-paper-plane"></i>
+        <span class="text">发送挪车通知</span>
+      </button>
+      
+      <div class="message" id="message"></div>
+    </div>
+    
+    <div class="footer">
+      <p>北沐车辆通知系统 © 2025</p>
+    </div>
+  </div>
+
+  <script>
+    let currentPlate = '';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const plate = urlParams.get('plate');
+      
+      if (!plate) {
+        showError('缺少车牌参数');
+        return;
+      }
+      
+      // 验证车牌是否存在
+      validatePlate(plate);
+      
+      // 绑定手机号输入事件
+      const phoneInput = document.getElementById('phoneNumber');
+      phoneInput.addEventListener('input', formatPhoneNumber);
+    });
+    
+    async function validatePlate(plate) {
+      try {
+        // 直接尝试发送一个空请求来验证车牌是否存在
+        const response = await fetch('/api/check-plate?plate=' + encodeURIComponent(plate));
+        const data = await response.json();
+        
+        if (response.ok && data.exists) {
+          currentPlate = plate;
+          document.getElementById('plateNumber').textContent = plate;
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('formState').style.display = 'block';
+        } else {
+          showError(data.msg || '车牌不存在');
+        }
+      } catch (error) {
+        showError('网络错误，请稍后重试');
+      }
+    }
+    
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMessage').textContent = message;
+    }
+    
+    function formatPhoneNumber() {
+      const phoneInput = document.getElementById('phoneNumber');
+      let value = phoneInput.value.replace(/\D/g, '');
+      
+      if (value.length > 0 && value.charAt(0) !== '1') {
+        value = '1' + value;
+      }
+      
+      if (value.length > 11) {
+        value = value.slice(0, 11);
+      }
+      
+      if (value.length > 0) {
+        value = value.replace(/^(\d{3})(\d{0,4})(\d{0,4})/, (match, p1, p2, p3) => {
+          let result = p1;
+          if (p2) result += '-' + p2;
+          if (p3) result += '-' + p3;
+          return result;
+        });
+      }
+      
+      phoneInput.value = value;
+      validateForm();
+    }
+    
+    function validatePhoneNumber() {
+      const value = document.getElementById('phoneNumber').value.replace(/\D/g, '');
+      return /^1[3-9]\d{9}$/.test(value);
+    }
+    
+    function validateForm() {
+      const sendBtn = document.getElementById('sendBtn');
+      sendBtn.disabled = !validatePhoneNumber();
+    }
+    
+    function showMessage(text, type) {
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = text;
+      messageEl.className = 'message ' + type;
+      messageEl.style.display = 'block';
+    }
+    
+    async function sendNotification() {
+      const phone = document.getElementById('phoneNumber').value.replace(/-/g, '');
+      const message = document.getElementById('messageText').value.trim();
+      const sendBtn = document.getElementById('sendBtn');
+      const loadingEl = sendBtn.querySelector('.loading');
+      const textEl = sendBtn.querySelector('.text');
+      
+      if (!validatePhoneNumber()) {
+        showMessage('请输入有效的11位手机号', 'error');
+        return;
+      }
+      
+      sendBtn.disabled = true;
+      loadingEl.style.display = 'inline-block';
+      textEl.textContent = '发送中...';
+      
+      try {
+        const response = await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plate: currentPlate,
+            phone: phone,
+            message: message || ''
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showMessage('通知发送成功！车主将尽快处理', 'success');
+          document.getElementById('phoneNumber').value = '';
+          document.getElementById('messageText').value = '';
+        } else {
+          showMessage(data.msg || '发送失败，请稍后重试', 'error');
+        }
+      } catch (error) {
+        showMessage('网络错误，请稍后重试', 'error');
+      } finally {
+        sendBtn.disabled = false;
+        loadingEl.style.display = 'none';
+        textEl.textContent = '发送挪车通知';
+      }
+    }
+  </script>
+</body>
+</html>

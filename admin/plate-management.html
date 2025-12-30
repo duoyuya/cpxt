@@ -617,6 +617,29 @@
       .checkbox-group { 
         flex-direction: column; 
         gap: 8px; 
+      }
+      
+      .checkbox-item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
+      
+      .checkbox-item > label {
+        margin: 0;
+        font-weight: normal;
+      }
+      
+      .notification-config-item {
+        width: 100%;
+        margin-top: 8px;
       } 
       
       /* 移动端车牌号输入框调整为垂直排列 */
@@ -739,18 +762,14 @@
         <div class="card-body">
           <div class="form-grid">
             <div class="form-group">
-              <label for="appToken">WxPusher APP Token</label>
-              <input type="text" id="appToken" placeholder="输入WxPusher的APP Token">
-            </div>
-            
-            <div class="form-group">
               <label for="adminPassword">管理员密码修改</label>
-              <input type="password" id="adminPassword" placeholder="输入新密码">
+              <input type="password" id="adminPassword" placeholder="输入新密码（至少6位）">
+              <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">留空则不修改密码</div>
             </div>
           </div>
           
           <div class="message" id="settingsMessage"></div>
-          <button class="btn btn-primary" onclick="saveSystemSettings()"><i>💾</i> 保存所有设置</button>
+          <button class="btn btn-primary" onclick="saveSystemSettings()"><i>💾</i> 保存设置</button>
         </div>
       </div>
     </div>
@@ -844,15 +863,15 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="modalPlateUid">用户UID(不用wxp随便填就行)</label>
-          <input type="text" id="modalPlateUid" placeholder="多个UID用逗号分隔">
-        </div>
-        <div class="form-group">
-          <label>通知渠道配置(链接后不用带/)</label>
+          <label>通知渠道配置</label>
           <div class="checkbox-group" id="notificationChannels">
             <div class="checkbox-item">
               <input type="checkbox" id="channelWxpusher" value="wxpusher">
               <label for="channelWxpusher">WxPusher</label>
+              <div id="wxpusherConfig" class="notification-config-item" style="display: none;">
+                <input type="text" id="wxpusherToken" placeholder="输入WxPusher APP Token" style="margin-bottom: 8px;">
+                <input type="text" id="modalPlateUid" placeholder="输入用户UID（多个用逗号分隔）">
+              </div>
             </div>
             <div class="checkbox-item">
               <input type="checkbox" id="channelWechatWork" value="wechat_work">
@@ -883,6 +902,22 @@
         </div>
         <div class="message" id="modalMessage"></div>
         <button class="btn btn-primary" id="savePlateBtn" onclick="savePlate()"><i>💾</i> 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 二维码弹窗 -->
+  <div id="qrcodeModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="max-width: 400px; width: 100%; text-align: center;">
+      <div class="card-header">
+        <h2>扫码挪车</h2>
+        <button class="btn btn-danger" style="padding: 6px 10px; font-size: 14px;" onclick="closeQRCodeModal()"><i>✕</i></button>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom: 15px; color: var(--text-secondary);">车牌号: <strong id="qrcodePlate" style="color: var(--primary); font-size: 18px;"></strong></p>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">复制链接生成二维码，扫码后输入手机号即可通知车主挪车</p>
+        <input type="text" id="qrcodeLink" readonly style="width: 100%; margin-bottom: 15px; background: var(--bg); cursor: pointer;" onclick="this.select()">
+        <button class="btn btn-primary" onclick="copyQRCodeLink()" style="background: #17a2b8;"><i>📋</i> 复制链接</button>
       </div>
     </div>
   </div>
@@ -1101,7 +1136,8 @@
     document.querySelectorAll('#notificationChannels input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         const channel = this.value;
-        const configId = channel === 'wechat_work' ? 'wechatWorkConfig' : 
+        const configId = channel === 'wxpusher' ? 'wxpusherConfig' :
+                        channel === 'wechat_work' ? 'wechatWorkConfig' : 
                         channel === 'dingtalk' ? 'dingtalkConfig' : 
                         channel === 'bark' ? 'barkConfig' : null;
         
@@ -1290,35 +1326,57 @@
         return `<div class="details-item">${details || '无详情'}</div>`;
       }
       
-      let html = '';
+      // 简化显示，只显示关键信息
+      let html = '<div style="text-align: left; font-size: 12px; line-height: 1.6;">';
       
-      function renderDetails(obj, prefix = '') {
-        let innerHtml = '';
-        
-        for (const [key, value] of Object.entries(obj)) {
-          const newPrefix = prefix ? `${prefix}.${key}` : key;
-          
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>${renderDetails(value, newPrefix)}</div>`;
-          } else if (Array.isArray(value)) {
-            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div>`;
-            innerHtml += '<ul style="margin-left: 15px; padding-left: 0;">';
-            value.forEach((item, index) => {
-              if (typeof item === 'object' && item !== null) {
-                innerHtml += `<li>${newPrefix}[${index}]:${renderDetails(item, `${newPrefix}[${index}]`)}</li>`; } else {
-                innerHtml += `<li>${newPrefix}[${index}]: ${item}</li>`;
-              }
-            });
-            innerHtml += '</ul></div>';
-          } else {
-            innerHtml += `<div class="details-item"><div class="details-label">${newPrefix}:</div> ${value}</div>`;
-          }
-        }
-        
-        return innerHtml;
+      // 显示请求路径
+      if (details.path) {
+        html += `<div><strong>路径:</strong> ${details.path}</div>`;
       }
       
-      html = renderDetails(details);
+      // 显示请求方法
+      if (details.method) {
+        html += `<div><strong>方法:</strong> ${details.method}</div>`;
+      }
+      
+      // 显示状态码
+      if (details.statusCode) {
+        const statusColor = details.statusCode >= 200 && details.statusCode < 300 ? '#28a745' : '#dc3545';
+        html += `<div><strong>状态:</strong> <span style="color: ${statusColor}">${details.statusCode}</span></div>`;
+      }
+      
+      // 显示请求体关键信息
+      if (details.body && typeof details.body === 'object') {
+        const body = details.body;
+        if (body.plate) {
+          html += `<div><strong>车牌:</strong> ${body.plate}</div>`;
+        }
+        if (body.phone) {
+          html += `<div><strong>手机:</strong> ${body.phone}</div>`;
+        }
+        if (body.username) {
+          html += `<div><strong>用户:</strong> ${body.username}</div>`;
+        }
+      }
+      
+      // 显示响应消息
+      if (details.response) {
+        try {
+          const resp = typeof details.response === 'string' ? JSON.parse(details.response) : details.response;
+          if (resp.msg) {
+            html += `<div><strong>结果:</strong> ${resp.msg}</div>`;
+          }
+        } catch (e) {
+          // 忽略解析错误
+        }
+      }
+      
+      // 显示错误信息
+      if (details.error) {
+        html += `<div style="color: #dc3545;"><strong>错误:</strong> ${details.error}</div>`;
+      }
+      
+      html += '</div>';
       return html;
     }
     
@@ -1464,6 +1522,7 @@
               <td class="action-buttons">
                 <button class="action-btn edit-btn" onclick="openEditPlateModal(this)">✏️ 编辑</button>
                 <button class="action-btn delete-btn" onclick="deletePlate('${plate.id}', '${plate.plate}')">🗑️ 删除</button>
+                <button class="action-btn qrcode-btn" onclick="showQRCode('${plate.plate}')" style="background: #17a2b8; color: white;">📱 二维码</button>
               </td>
             `;
             tableBody.appendChild(row);
@@ -1596,7 +1655,6 @@
         document.getElementById('provinceSelect').value = '';
         document.getElementById('cityLetterSelect').innerHTML = '<option value="">请选择字母/城市</option>';
         document.getElementById('remainingNumber').value = '';
-        document.getElementById('modalPlateUid').value = '';
         document.getElementById('modalPlateRemark').value = '';
         document.getElementById('modalMessage').textContent = '';
         document.getElementById('modalMessage').className = 'message';
@@ -1628,36 +1686,62 @@
       });
       document.querySelectorAll('.notification-config-item').forEach(item => {
         item.style.display = 'none';
-        const input = item.querySelector('input');
-        if (input) input.value = '';
+        // 清空所有输入框
+        item.querySelectorAll('input').forEach(input => {
+          input.value = '';
+        });
       });
     }
     
     // 设置通知渠道配置
-    function setNotificationChannels(channels, configs) {
-      // 企业微信配置特殊处理
+    function setNotificationChannels(channels, configs, uids) {
+      // WxPusher配置
+      if (configs.wxpusher_token || channels.includes('wxpusher')) {
+        document.getElementById('channelWxpusher').checked = true;
+        document.getElementById('wxpusherConfig').style.display = 'block';
+        document.getElementById('wxpusherToken').value = configs.wxpusher_token || '';
+        // 设置UID
+        if (uids) {
+          document.getElementById('modalPlateUid').value = Array.isArray(uids) ? uids.join(',') : uids;
+        }
+      }
+      
+      // 企业微信配置
       if (configs.wechat_work_webhook) {
         document.getElementById('channelWechatWork').checked = true;
         document.getElementById('wechatWorkConfig').style.display = 'block';
         document.getElementById('wechatWorkWebhook').value = configs.wechat_work_webhook;
       }
       
-      // 处理其他渠道配置
+      // 钉钉配置
+      if (configs.dingtalk_webhook) {
+        document.getElementById('channelDingtalk').checked = true;
+        document.getElementById('dingtalkConfig').style.display = 'block';
+        document.getElementById('dingtalkWebhook').value = configs.dingtalk_webhook;
+      }
+      
+      // Bark配置
+      if (configs.bark_webhook) {
+        document.getElementById('channelBark').checked = true;
+        document.getElementById('barkConfig').style.display = 'block';
+        document.getElementById('barkWebhook').value = configs.bark_webhook;
+      }
+      
+      // 处理渠道勾选状态
       channels.forEach(channel => { 
-        // 跳过已经处理过的企业微信
-        if (channel === 'wechat_work') return;
-        
-        const checkbox = document.getElementById(`channel${channel.charAt(0).toUpperCase() + channel.slice(1)}`);
-        if (checkbox) {
-          checkbox.checked = true;
-          
-          // 显示对应配置项并填充值
-          if (channel === 'dingtalk') {
-            document.getElementById('dingtalkConfig').style.display = 'block';
-            document.getElementById('dingtalkWebhook').value = configs.dingtalk_webhook || '';
-          } else if (channel === 'bark') {
-            document.getElementById('barkConfig').style.display = 'block';
-            document.getElementById('barkWebhook').value = configs.bark_webhook || '';
+        const checkboxId = channel === 'wechat_work' ? 'channelWechatWork' : 
+                          channel === 'wxpusher' ? 'channelWxpusher' :
+                          channel === 'dingtalk' ? 'channelDingtalk' :
+                          channel === 'bark' ? 'channelBark' : null;
+        if (checkboxId) {
+          document.getElementById(checkboxId).checked = true;
+          // 显示对应配置
+          const configId = channel === 'wxpusher' ? 'wxpusherConfig' :
+                          channel === 'wechat_work' ? 'wechatWorkConfig' :
+                          channel === 'dingtalk' ? 'dingtalkConfig' :
+                          channel === 'bark' ? 'barkConfig' : null;
+          if (configId) {
+            document.getElementById(configId).style.display = 'block';
           }
         }
       });
@@ -1686,7 +1770,6 @@
         
         document.getElementById('plateModalTitle').textContent = '编辑车牌';
         document.getElementById('editPlateId').value = plate.id;
-        document.getElementById('modalPlateUid').value = plate.uids.join(',');
         document.getElementById('modalPlateRemark').value = plate.remark || '';
         document.getElementById('modalMessage').textContent = '';
         
@@ -1722,7 +1805,7 @@
         
         // 重置通知渠道选择并设置复选框状态和配置值
         resetNotificationChannels();
-        setNotificationChannels(plate.notification_channels || [], plate.notification_configs || {});
+        setNotificationChannels(plate.notification_channels || [], plate.notification_configs || {}, plate.uids);
         
         // 显示模态框
         document.getElementById('plateModal').style.display = 'flex';
@@ -1746,6 +1829,38 @@
         showToast('关闭窗口失败: ' + error.message, 'error');
         console.error('关闭窗口错误:', error);
       }
+    }
+    
+    // 二维码相关变量
+    let currentQRCodePlate = '';
+    
+    // 显示二维码弹窗
+    function showQRCode(plate) {
+      currentQRCodePlate = plate;
+      document.getElementById('qrcodePlate').textContent = plate;
+      const scanUrl = window.location.origin + '/admin/scan.html?plate=' + encodeURIComponent(plate);
+      document.getElementById('qrcodeLink').value = scanUrl;
+      document.getElementById('qrcodeModal').style.display = 'flex';
+    }
+    
+    // 关闭二维码弹窗
+    function closeQRCodeModal() {
+      document.getElementById('qrcodeModal').style.display = 'none';
+    }
+    
+    // 复制二维码链接
+    function copyQRCodeLink() {
+      const scanUrl = document.getElementById('qrcodeLink').value;
+      
+      navigator.clipboard.writeText(scanUrl).then(() => {
+        showToast('链接已复制到剪贴板', 'success');
+      }).catch(() => {
+        // 降级方案
+        const input = document.getElementById('qrcodeLink');
+        input.select();
+        document.execCommand('copy');
+        showToast('链接已复制到剪贴板', 'success');
+      });
     }
     
     // 保存车牌（添加或编辑）
@@ -1825,7 +1940,15 @@
         
         // WxPusher配置
         if (document.getElementById('channelWxpusher').checked) {
+          const token = document.getElementById('wxpusherToken').value.trim();
+          if (!token) {
+            messageEl.textContent = '请输入WxPusher APP Token';
+            messageEl.className = 'message error';
+            document.getElementById('wxpusherToken').focus();
+            return;
+          }
           channels.push('wxpusher');
+          configs.wxpusher_token = token;
         }
         
         // 企业微信配置
@@ -2023,22 +2146,9 @@
     
     // 加载系统设置
     async function loadSystemSettings() {
-      try { showLoading();
-        const response = await fetch('/api/system-settings', {
-          headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('加载系统设置失败');
-        }
-        
-        const settings = await response.json();
-        
-        // 填充表单
-        document.getElementById('appToken').value = settings.app_token || '';
-        
+      try { 
+        showLoading();
+        // 系统设置页面只有密码修改，无需加载数据
       } catch (error) {
         showToast('加载系统设置失败: ' + error.message, 'error');
         console.error('加载系统设置错误:', error);
@@ -2051,16 +2161,14 @@
     async function saveSystemSettings() {
       try {
         showLoading();
-        const appToken = document.getElementById('appToken').value.trim();
         const adminPassword = document.getElementById('adminPassword').value.trim();
         const messageEl = document.getElementById('settingsMessage');
         
         const settings = {};
-        if (appToken) settings.app_token = appToken;
         if (adminPassword) settings.admin_password = adminPassword;
         
         if (Object.keys(settings).length === 0) {
-          messageEl.textContent = '没有需要保存的设置'; messageEl.className = 'message info';
+          messageEl.textContent = '请输入新密码'; messageEl.className = 'message info';
           hideLoading();
           return; }
         
@@ -2076,17 +2184,14 @@
         const data = await response.json();
         
         if (response.ok) {
-          messageEl.textContent = '系统设置保存成功';
+          messageEl.textContent = '密码修改成功';
           messageEl.className = 'message success';
-          showToast('系统设置保存成功', 'success');
+          showToast('密码修改成功，请重新登录', 'success');
           
-          // 如果修改了密码，提示重新登录
-          if (adminPassword) {
-            showToast('密码已修改，请重新登录', 'info');
-            setTimeout(() => {
-              logout();
-            }, 2000);
-          }
+          // 修改密码后提示重新登录
+          setTimeout(() => {
+            logout();
+          }, 2000);
         } else {
           messageEl.textContent = data.msg || '保存失败';
           messageEl.className = 'message error';

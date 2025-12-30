@@ -7,35 +7,34 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #165DFF;
-      --primary-light: #E8F3FF;
-      --primary-dark: #0056b3;
-      --success: #28a745;
-      --danger: #dc3545;
-      --warning: #ffc107;
-      --text: #333;
-      --text-secondary: #6c757d;
-      --text-placeholder: #86909C;
-      --bg: #F2F3F5;
-      --card-bg: #FFFFFF;
-      --border: #C9CDD4;
-      --border-light: #E5E6EB;
-      --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-      --radius: 12px;
-      --radius-sm: 8px;
-      --transition: all 0.3s ease;
-      --input-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+      --primary: #3b82f6;
+      --primary-light: #eff6ff;
+      --primary-dark: #2563eb;
+      --success: #22c55e;
+      --success-light: #f0fdf4;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --text-placeholder: #94a3b8;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: all 0.2s ease;
     }
     
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
     }
     
     body {
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -45,37 +44,41 @@
     }
     
     .card {
-      background-color: var(--card-bg);
+      background: var(--card-bg);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 20px 15px;
+      padding: 32px 28px;
       width: 100%;
       max-width: 400px;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
+      border: 1px solid var(--border);
+      animation: fadeInUp 0.5s ease-out;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary), #4080FF);
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
     .card-header {
       text-align: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 28px;
     }
     
     .card-header h2 {
       color: var(--primary);
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 600;
       display: flex;
       align-items: center;
@@ -84,23 +87,26 @@
     }
     
     .card-header h2 i {
-      font-size: 24px;
+      font-size: 26px;
     }
     
     .form-group {
-      margin-bottom: 18px;
-      position: relative;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s ease-out backwards;
     }
     
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.2s; }
+    .form-group:nth-child(3) { animation-delay: 0.3s; }
+    
     .form-label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--text-secondary);
-      font-weight: 500;
       display: flex;
       align-items: center;
       gap: 6px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
     }
     
     .form-label i {
@@ -108,316 +114,211 @@
       color: var(--primary);
     }
     
-    .select-group {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 15px;
+    .form-label .optional {
+      font-size: 12px;
+      color: var(--text-placeholder);
+      font-weight: 400;
     }
     
-    .plate-input-group {
+    .plate-input-group, .phone-input-group {
       display: flex;
-      margin-bottom: 5px;
-      position: relative;
     }
     
-    select, input[type="text"], textarea {
-      padding: 12px 15px;
+    input[type="text"] {
+      padding: 12px 14px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       font-size: 15px;
       transition: var(--transition);
       color: var(--text);
-      background-color: #FFF;
-      box-shadow: var(--input-shadow);
-    }
-    
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234E5969' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      padding-right: 40px;
-    }
-    
-    .select-group select {
-      flex: 1;
+      background: #fff;
       width: 100%;
     }
     
-    .plate-input-group input {
-      padding: 12px;
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     
     .plate-prefix {
-      width: 60px;
-      background-color: var(--primary-light);
+      width: 65px;
+      background: var(--primary-light);
       text-align: center;
       border-right: none;
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
       font-weight: 600;
       color: var(--primary-dark);
-      font-size: 14px;
-      padding: 12px 5px;
     }
     
     .plate-suffix {
       flex: 1;
-      border-left: none;
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-      padding-left: 12px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     }
     
-    .plate-input-group::after {
-      content: '';
-      position: absolute;
-      left: 60px;
-      top: 10px;
-      height: 24px;
-      width: 1px;
-      background-color: var(--border);
+    .phone-prefix {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 12px;
+      background: var(--primary-light);
+      border: 1px solid var(--border);
+      border-right: none;
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+      font-weight: 500;
+      color: var(--primary-dark);
+      font-size: 14px;
     }
     
-    select:focus, input[type="text"]:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+    .phone-prefix i {
+      color: var(--primary);
+      font-size: 13px;
+    }
+    
+    .phone-input {
+      flex: 1;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+    }
+    
+    .helper-text {
+      font-size: 12px;
+      color: var(--text-placeholder);
+      margin-top: 6px;
     }
     
     .btn {
       width: 100%;
       padding: 14px;
-      background-color: var(--primary);
+      background: var(--primary);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: var(--transition);
+      transition: all 0.25s ease;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(22, 93, 255, 0.2);
+      animation: fadeInUp 0.5s ease-out 0.4s backwards;
     }
     
     .btn:hover {
-      background-color: var(--primary-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(22, 93, 255, 0.25);
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
     
     .btn:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 8px rgba(22, 93, 255, 0.2);
+      transform: scale(0.98) translateY(0);
     }
     
     .btn:disabled {
-      background-color: #cccccc;
+      background: #cbd5e1;
       cursor: not-allowed;
-      box-shadow: none;
       transform: none;
-    }
-    
-    .btn i {
-      font-size: 18px;
+      box-shadow: none;
     }
     
     .message {
-      margin-top: 12px;
-      padding: 12px 15px;
-      border-radius: 8px;
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
       text-align: center;
       font-size: 14px;
       display: none;
-      animation: fadeIn 0.3s ease-out;
-      border-color: transparent;
+      animation: slideIn 0.3s ease-out;
     }
     
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
     .success {
-      background-color: rgba(40, 167, 69, 0.1);
+      background: var(--success-light);
       color: var(--success);
       display: block;
-      border-color: rgba(40, 167, 69, 0.2);
     }
     
     .error {
-      background-color: rgba(220, 53, 69, 0.1);
+      background: var(--danger-light);
       color: var(--danger);
       display: block;
-      border-color: rgba(220, 53, 69, 0.2);
-    }
-    
-    .info {
-      background-color: rgba(255, 193, 7, 0.1);
-      color: #856404;
-      display: block;
-      border-color: rgba(255, 193, 7, 0.2);
-    }
-    
-    .footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-secondary);
-      padding-top: 15px;
-      border-top: 1px dashed var(--border-light);
     }
     
     .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
       border-radius: 50%;
       border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
+      animation: spin 0.8s linear infinite;
     }
     
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
     
-    .input-icon {
-      position: absolute;
-      right: 15px;
-      top: 38px;
-      color: var(--text-placeholder);
-      font-size: 16px;
-      transition: var(--transition);
-    }
-    
-    input:focus + .input-icon {
-      color: var(--primary);
-    }
-    
-    .input-success {
-      border-color: var(--success) !important;
-    }
-    
-    .input-success + .input-icon {
-      color: var(--success);
-    }
-    
-    .helper-text {
+    .footer {
+      margin-top: 24px;
+      text-align: center;
       font-size: 12px;
-      color: var(--text-placeholder);
-      margin-top: 5px;
-      line-height: 1.5;
-    }
-    
-    .form-control {
-      position: relative;
-    }
-    
-    .form-control::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background-color: var(--primary);
-      transition: var(--transition);
-    }
-    
-    .form-control:focus-within::after {
-      width: 100%;
+      color: var(--text-secondary);
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
     
     @media (max-width: 480px) {
-      .select-group {
-        flex-direction: column;
-        gap: 10px;
-      }
-      
-      select, input[type="text"] {
-        padding: 11px 14px;
-        font-size: 14px;
-      }
+      .card { padding: 24px 20px; }
+      input[type="text"] { font-size: 14px; }
     }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="card-header">
-      <h2><i class="fas fa-car"></i>车辆挪车通知</h2>
+      <h2><i class="fas fa-car"></i> 车辆挪车通知</h2>
     </div>
     
-    <div class="form-group form-control">
-      <label class="form-label"><i class="fas fa-map-marker-alt"></i>选择省份和城市</label>
-      <div class="select-group">
-        <select id="provinceSelect" aria-label="省份选择">
-          <option value="">请选择省份</option>
-          <option value="京">北京市</option>
-          <option value="津">天津市</option>
-          <option value="冀">河北省</option>
-          <option value="晋">山西省</option>
-          <option value="蒙">内蒙古自治区</option>
-          <option value="辽">辽宁省</option>
-          <option value="吉">吉林省</option>
-          <option value="黑">黑龙江省</option>
-          <option value="沪">上海市</option>
-          <option value="苏">江苏省</option>
-          <option value="浙">浙江省</option>
-          <option value="皖">安徽省</option>
-          <option value="闽">福建省</option>
-          <option value="赣">江西省</option>
-          <option value="鲁">山东省</option>
-          <option value="豫">河南省</option>
-          <option value="鄂">湖北省</option>
-          <option value="湘">湖南省</option>
-          <option value="粤">广东省</option>
-          <option value="桂">广西壮族自治区</option>
-          <option value="琼">海南省</option>
-          <option value="渝">重庆市</option>
-          <option value="川">四川省</option>
-          <option value="贵">贵州省</option>
-          <option value="云">云南省</option>
-          <option value="藏">西藏自治区</option>
-          <option value="陕">陕西省</option>
-          <option value="甘">甘肃省</option>
-          <option value="青">青海省</option>
-          <option value="宁">宁夏回族自治区</option>
-          <option value="新">新疆维吾尔自治区</option>
-        </select>
-        <select id="citySelect" aria-label="城市选择">
-          <option value="">请选择城市</option>
-        </select>
-      </div>
-      <div id="dataLoadStatus" class="helper-text">请选择省份和城市</div>
-    </div>
-    
-    <div class="form-group form-control">
-      <label class="form-label"><i class="fas fa-id-card"></i>车牌号</label>
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-id-card"></i> 车牌号</label>
       <div class="plate-input-group">
-        <input type="text" id="platePrefix" class="plate-prefix" placeholder="省A" readonly aria-label="车牌前缀">
-        <input type="text" id="plateSuffix" class="plate-suffix" placeholder="后5-6位字母或数字" maxlength="6" autocomplete="off" aria-label="车牌后5-6位" oninput="this.value = this.value.toUpperCase()">
+        <input type="text" id="platePrefix" class="plate-prefix" placeholder="京A" maxlength="2" oninput="this.value = this.value.replace(/[a-z]/g, c => c.toUpperCase())">
+        <input type="text" id="plateSuffix" class="plate-suffix" placeholder="后5-6位字母或数字" maxlength="6" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
       </div>
-      <div class="helper-text">支持普通车牌(7位)和新能源车牌(8位)，字母自动转为大写</div>
+      <div class="helper-text">支持普通车牌(7位)和新能源车牌(8位)</div>
     </div>
     
-    <div class="form-group form-control">
-      <label class="form-label"><i class="fas fa-mobile-alt"></i>手机号码</label>
-      <input type="text" id="phoneNumber" placeholder="请输入以1开头的11位手机号" maxlength="13" autocomplete="off" required aria-label="手机号码">
-      <i class="fas fa-mobile-alt input-icon"></i>
-      <div class="helper-text">例如：138-1234-5678，系统将自动格式化</div>
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-mobile-alt"></i> 手机号码</label>
+      <div class="phone-input-group">
+        <span class="phone-prefix"><i class="fas fa-phone"></i> +86</span>
+        <input type="text" id="phoneNumber" class="phone-input" placeholder="请输入11位手机号" maxlength="13" autocomplete="off">
+      </div>
+      <div class="helper-text">车主将通过此号码联系您</div>
     </div>
     
-    <button class="btn" id="sendBtn" aria-label="发送挪车通知">
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-comment"></i> 留言 <span class="optional">（可选）</span></label>
+      <input type="text" id="messageText" placeholder="如：请尽快挪车，谢谢" maxlength="50" autocomplete="off">
+      <div class="helper-text">可留言给车主，最多50字</div>
+    </div>
+    
+    <button class="btn" id="sendBtn">
       <span class="loading" style="display: none;"></span>
       <i class="fas fa-paper-plane"></i>
       <span class="text">发送挪车通知</span>
     </button>
     
-    <div class="message" id="message" role="alert"></div>
+    <div class="message" id="message"></div>
     
     <div class="footer">
       <p>北沐车辆通知系统 © 2025</p>
@@ -428,8 +329,6 @@
     // 页面加载完成后初始化事件监听
     document.addEventListener('DOMContentLoaded', function() {
       // 获取DOM元素
-      const provinceSelect = document.getElementById('provinceSelect');
-      const citySelect = document.getElementById('citySelect');
       const platePrefix = document.getElementById('platePrefix');
       const plateSuffix = document.getElementById('plateSuffix');
       const phoneNumber = document.getElementById('phoneNumber');
@@ -437,49 +336,24 @@
       const messageEl = document.getElementById('message');
       const loadingEl = sendBtn.querySelector('.loading');
       const textEl = sendBtn.querySelector('.text');
-      const dataLoadStatus = document.getElementById('dataLoadStatus');
-      
-      // 2025年最新全国省份和城市数据
-      const provinceCityData = {
-        "京": [{"letter":"A","city":"东城/西城"},{"letter":"C","city":"朝阳区"},{"letter":"E","city":"海淀区"},{"letter":"F","city":"丰台区"},{"letter":"H","city":"石景山区"},{"letter":"J","city":"房山区"},{"letter":"K","city":"通州区"},{"letter":"L","city":"顺义区"},{"letter":"M","city":"昌平区"},{"letter":"N","city":"大兴区"},{"letter":"P","city":"怀柔区"},{"letter":"Q","city":"平谷区"},{"letter":"Y","city":"延庆区"},{"letter":"G","city":"密云区"}],
-        "津": [{"letter":"A","city":"和平/河东/河西"},{"letter":"B","city":"南开/河北/红桥"},{"letter":"C","city":"东丽/西青/津南"},{"letter":"D","city":"北辰/武清"},{"letter":"F","city":"宝坻区"},{"letter":"G","city":"滨海新区"},{"letter":"H","city":"宁河区"},{"letter":"J","city":"静海区"},{"letter":"K","city":"蓟州区"}],
-        "沪": [{"letter":"A","city":"黄浦/徐汇/长宁"},{"letter":"B","city":"静安/普陀"},{"letter":"D","city":"虹口/杨浦"},{"letter":"E","city":"闵行/宝山"},{"letter":"F","city":"嘉定/浦东"},{"letter":"G","city":"金山/松江"},{"letter":"H","city":"青浦"},{"letter":"J","city":"奉贤"},{"letter":"K","city":"崇明"}],
-        "渝": [{"letter":"A","city":"渝中/江北/沙坪坝"},{"letter":"B","city":"南岸/九龙坡/大渡口"},{"letter":"C","city":"永川/江津/合川"},{"letter":"F","city":"万州/梁平/城口"},{"letter":"G","city":"涪陵/垫江/丰都"},{"letter":"H","city":"黔江/酉阳/秀山"},{"letter":"J","city":"石柱/彭水/武隆"}],
-        "琼": [{"letter":"A","city":"海口市"},{"letter":"B","city":"三亚市"},{"letter":"C","city":"琼海市/文昌市/万宁市"},{"letter":"D","city":"五指山市/东方市"},{"letter":"E","city":"洋浦经济开发区"},{"letter":"F","city":"儋州市"}],
-        "冀": [{"letter":"A","city":"石家庄市"},{"letter":"B","city":"唐山市"},{"letter":"C","city":"秦皇岛市"},{"letter":"D","city":"邯郸市"},{"letter":"E","city":"邢台市"},{"letter":"F","city":"保定市"},{"letter":"G","city":"张家口市"},{"letter":"H","city":"承德市"},{"letter":"J","city":"沧州市"},{"letter":"R","city":"廊坊市"},{"letter":"T","city":"衡水市"}],
-        "晋": [{"letter":"A","city":"太原市"},{"letter":"B","city":"大同市"},{"letter":"C","city":"阳泉市"},{"letter":"D","city":"长治市"},{"letter":"E","city":"晋城市"},{"letter":"F","city":"朔州市"},{"letter":"H","city":"忻州市"},{"letter":"J","city":"吕梁市"},{"letter":"K","city":"晋中市"},{"letter":"L","city":"临汾市"},{"letter":"M","city":"运城市"}],
-        "蒙": [{"letter":"A","city":"呼和浩特市"},{"letter":"B","city":"包头市"},{"letter":"C","city":"乌海市"},{"letter":"D","city":"赤峰市"},{"letter":"E","city":"呼伦贝尔市"},{"letter":"F","city":"兴安盟"},{"letter":"G","city":"通辽市"},{"letter":"H","city":"锡林郭勒盟"},{"letter":"J","city":"乌兰察布市"},{"letter":"K","city":"鄂尔多斯市"},{"letter":"L","city":"巴彦淖尔市"},{"letter":"M","city":"阿拉善盟"}],
-        "辽": [{"letter":"A","city":"沈阳市"},{"letter":"B","city":"大连市"},{"letter":"C","city":"鞍山市"},{"letter":"D","city":"抚顺市"},{"letter":"E","city":"本溪市"},{"letter":"F","city":"丹东市"},{"letter":"G","city":"锦州市"},{"letter":"H","city":"营口市"},{"letter":"J","city":"阜新市"},{"letter":"K","city":"辽阳市"},{"letter":"L","city":"盘锦市"},{"letter":"M","city":"铁岭市"},{"letter":"N","city":"朝阳市"},{"letter":"P","city":"葫芦岛市"}],
-        "吉": [{"letter":"A","city":"长春市"},{"letter":"B","city":"吉林市"},{"letter":"C","city":"四平市"},{"letter":"D","city":"辽源市"},{"letter":"E","city":"通化市"},{"letter":"F","city":"白山市"},{"letter":"G","city":"白城市"},{"letter":"H","city":"延边朝鲜族自治州"},{"letter":"J","city":"松原市"}],
-        "黑": [{"letter":"A","city":"哈尔滨市"},{"letter":"B","city":"齐齐哈尔市"},{"letter":"C","city":"牡丹江市"},{"letter":"D","city":"佳木斯市"},{"letter":"E","city":"大庆市"},{"letter":"F","city":"伊春市"},{"letter":"G","city":"鸡西市"},{"letter":"H","city":"鹤岗市"},{"letter":"J","city":"双鸭山市"},{"letter":"K","city":"七台河市"},{"letter":"L","city":"松花江地区"},{"letter":"M","city":"绥化市"},{"letter":"N","city":"黑河市"},{"letter":"P","city":"大兴安岭地区"}],
-        "苏": [{"letter":"A","city":"南京市"},{"letter":"B","city":"无锡市"},{"letter":"C","city":"徐州市"},{"letter":"D","city":"常州市"},{"letter":"E","city":"苏州市"},{"letter":"F","city":"南通市"},{"letter":"G","city":"连云港市"},{"letter":"H","city":"淮安市"},{"letter":"J","city":"盐城市"},{"letter":"K","city":"扬州市"},{"letter":"L","city":"镇江市"},{"letter":"M","city":"泰州市"},{"letter":"N","city":"宿迁市"}],
-        "浙": [{"letter":"A","city":"杭州市"},{"letter":"B","city":"宁波市"},{"letter":"C","city":"温州市"},{"letter":"D","city":"绍兴市"},{"letter":"E","city":"湖州市"},{"letter":"F","city":"嘉兴市"},{"letter":"G","city":"金华市"},{"letter":"H","city":"衢州市"},{"letter":"J","city":"台州市"},{"letter":"K","city":"丽水市"},{"letter":"L","city":"舟山市"}],
-        "皖": [{"letter":"A","city":"合肥市"},{"letter":"B","city":"芜湖市"},{"letter":"C","city":"蚌埠市"},{"letter":"D","city":"淮南市"},{"letter":"E","city":"马鞍山市"},{"letter":"F","city":"淮北市"},{"letter":"G","city":"铜陵市"},{"letter":"H","city":"安庆市"},{"letter":"J","city":"黄山市"},{"letter":"K","city":"阜阳市"},{"letter":"L","city":"宿州市"},{"letter":"M","city":"滁州市"},{"letter":"N","city":"六安市"},{"letter":"P","city":"宣城市"},{"letter":"Q","city":"巢湖市"},{"letter":"R","city":"池州市"},{"letter":"S","city":"亳州市"}],
-        "闽": [{"letter":"A","city":"福州市"},{"letter":"B","city":"莆田市"},{"letter":"C","city":"泉州市"},{"letter":"D","city":"厦门市"},{"letter":"E","city":"漳州市"},{"letter":"F","city":"龙岩市"},{"letter":"G","city":"三明市"},{"letter":"H","city":"南平市"},{"letter":"J","city":"宁德市"},{"letter":"K","city":"平潭综合实验区"}],
-        "赣": [{"letter":"A","city":"南昌市"},{"letter":"B","city":"赣州市"},{"letter":"C","city":"宜春市"},{"letter":"D","city":"吉安市"},{"letter":"E","city":"上饶市"},{"letter":"F","city":"抚州市"},{"letter":"G","city":"九江市"},{"letter":"H","city":"景德镇市"},{"letter":"J","city":"萍乡市"},{"letter":"K","city":"新余市"},{"letter":"L","city":"鹰潭市"}],
-        "鲁": [{"letter":"A","city":"济南市"},{"letter":"B","city":"青岛市"},{"letter":"C","city":"淄博市"},{"letter":"D","city":"枣庄市"},{"letter":"E","city":"东营市"},{"letter":"F","city":"烟台市"},{"letter":"G","city":"潍坊市"},{"letter":"H","city":"济宁市"},{"letter":"J","city":"泰安市"},{"letter":"K","city":"威海市"},{"letter":"L","city":"日照市"},{"letter":"M","city":"滨州市"},{"letter":"N","city":"德州市"},{"letter":"P","city":"聊城市"},{"letter":"Q","city":"临沂市"},{"letter":"R","city":"菏泽市"}],
-        "豫": [{"letter":"A","city":"郑州市"},{"letter":"B","city":"开封市"},{"letter":"C","city":"洛阳市"},{"letter":"D","city":"平顶山市"},{"letter":"E","city":"安阳市"},{"letter":"F","city":"鹤壁市"},{"letter":"G","city":"新乡市"},{"letter":"H","city":"焦作市"},{"letter":"J","city":"濮阳市"},{"letter":"K","city":"许昌市"},{"letter":"L","city":"漯河市"},{"letter":"M","city":"三门峡市"},{"letter":"N","city":"商丘市"},{"letter":"P","city":"周口市"},{"letter":"Q","city":"驻马店市"},{"letter":"R","city":"南阳市"},{"letter":"S","city":"信阳市"},{"letter":"U","city":"济源市"}],
-        "鄂": [{"letter":"A","city":"武汉市"},{"letter":"B","city":"黄石市"},{"letter":"C","city":"十堰市"},{"letter":"D","city":"荆州市"},{"letter":"E","city":"宜昌市"},{"letter":"F","city":"襄阳市"},{"letter":"G","city":"鄂州市"},{"letter":"H","city":"荆门市"},{"letter":"J","city":"黄冈市"},{"letter":"K","city":"孝感市"},{"letter":"L","city":"咸宁市"},{"letter":"M","city":"仙桃市"},{"letter":"N","city":"潜江市"},{"letter":"P","city":"神农架林区"},{"letter":"Q","city":"恩施土家族苗族自治州"},{"letter":"R","city":"天门市"},{"letter":"S","city":"随州市"}],
-        "湘": [{"letter":"A","city":"长沙市"},{"letter":"B","city":"株洲市"},{"letter":"C","city":"湘潭市"},{"letter":"D","city":"衡阳市"},{"letter":"E","city":"邵阳市"},{"letter":"F","city":"岳阳市"},{"letter":"G","city":"张家界市"},{"letter":"H","city":"益阳市"},{"letter":"J","city":"常德市"},{"letter":"K","city":"娄底市"},{"letter":"L","city":"郴州市"},{"letter":"M","city":"永州市"},{"letter":"N","city":"怀化市"},{"letter":"U","city":"湘西土家族苗族自治州"}],
-        "粤": [{"letter":"A","city":"广州市"},{"letter":"B","city":"深圳市"},{"letter":"C","city":"珠海市"},{"letter":"D","city":"汕头市"},{"letter":"E","city":"佛山市"},{"letter":"F","city":"韶关市"},{"letter":"G","city":"湛江市"},{"letter":"H","city":"肇庆市"},{"letter":"J","city":"江门市"},{"letter":"K","city":"茂名市"},{"letter":"L","city":"惠州市"},{"letter":"M","city":"梅州市"},{"letter":"N","city":"汕尾市"},{"letter":"P","city":"河源市"},{"letter":"Q","city":"阳江市"},{"letter":"R","city":"清远市"},{"letter":"S","city":"东莞市"},{"letter":"T","city":"中山市"},{"letter":"U","city":"潮州市"},{"letter":"V","city":"揭阳市"},{"letter":"W","city":"云浮市"}],
-        "桂": [{"letter":"A","city":"南宁市"},{"letter":"B","city":"柳州市"},{"letter":"C","city":"桂林市"},{"letter":"D","city":"梧州市"},{"letter":"E","city":"北海市"},{"letter":"F","city":"崇左市"},{"letter":"G","city":"来宾市"},{"letter":"H","city":"桂林地区"},{"letter":"J","city":"贺州市"},{"letter":"K","city":"玉林市"},{"letter":"L","city":"百色市"},{"letter":"M","city":"河池市"},{"letter":"N","city":"钦州市"},{"letter":"P","city":"防城港市"}],
-        "川": [{"letter":"A","city":"成都市"},{"letter":"B","city":"绵阳市"},{"letter":"C","city":"自贡市"},{"letter":"D","city":"攀枝花市"},{"letter":"E","city":"泸州市"},{"letter":"F","city":"德阳市"},{"letter":"H","city":"广元市"},{"letter":"J","city":"遂宁市"},{"letter":"K","city":"内江市"},{"letter":"L","city":"乐山市"},{"letter":"M","city":"资阳市"},{"letter":"Q","city":"宜宾市"},{"letter":"R","city":"南充市"},{"letter":"S","city":"达州市"},{"letter":"T","city":"雅安市"},{"letter":"U","city":"阿坝藏族羌族自治州"},{"letter":"V","city":"甘孜藏族自治州"},{"letter":"W","city":"凉山彝族自治州"},{"letter":"X","city":"广安市"},{"letter":"Y","city":"巴中市"},{"letter":"Z","city":"眉山市"}],
-        "贵": [{"letter":"A","city":"贵阳市"},{"letter":"B","city":"六盘水市"},{"letter":"C","city":"遵义市"},{"letter":"D","city":"铜仁市"},{"letter":"E","city":"黔西南布依族苗族自治州"},{"letter":"F","city":"毕节市"},{"letter":"G","city":"安顺市"},{"letter":"H","city":"黔东南苗族侗族自治州"},{"letter":"J","city":"黔南布依族苗族自治州"}],
-        "云": [{"letter":"A","city":"昆明市"},{"letter":"C","city":"昭通市"},{"letter":"D","city":"曲靖市"},{"letter":"E","city":"楚雄彝族自治州"},{"letter":"F","city":"玉溪市"},{"letter":"G","city":"红河哈尼族彝族自治州"},{"letter":"H","city":"文山壮族苗族自治州"},{"letter":"J","city":"普洱市"},{"letter":"K","city":"西双版纳傣族自治州"},{"letter":"L","city":"大理白族自治州"},{"letter":"M","city":"保山市"},{"letter":"N","city":"德宏傣族景颇族自治州"},{"letter":"P","city":"丽江市"},{"letter":"Q","city":"怒江傈僳族自治州"},{"letter":"R","city":"迪庆藏族自治州"},{"letter":"S","city":"临沧市"}],
-        "藏": [{"letter":"A","city":"拉萨市"},{"letter":"B","city":"昌都市"},{"letter":"C","city":"山南市"},{"letter":"D","city":"日喀则市"},{"letter":"E","city":"那曲市"},{"letter":"F","city":"阿里地区"},{"letter":"G","city":"林芝市"}],
-        "陕": [{"letter":"A","city":"西安市"},{"letter":"B","city":"铜川市"},{"letter":"C","city":"宝鸡市"},{"letter":"D","city":"咸阳市"},{"letter":"E","city":"渭南市"},{"letter":"F","city":"汉中市"},{"letter":"G","city":"安康市"},{"letter":"H","city":"商洛市"},{"letter":"J","city":"延安市"},{"letter":"K","city":"榆林市"}],
-        "甘": [{"letter":"A","city":"兰州市"},{"letter":"B","city":"嘉峪关市"},{"letter":"C","city":"金昌市"},{"letter":"D","city":"白银市"},{"letter":"E","city":"天水市"},{"letter":"F","city":"酒泉市"},{"letter":"G","city":"张掖市"},{"letter":"H","city":"武威市"},{"letter":"J","city":"定西市"},{"letter":"K","city":"陇南市"},{"letter":"L","city":"平凉市"},{"letter":"M","city":"庆阳市"},{"letter":"N","city":"临夏回族自治州"},{"letter":"P","city":"甘南藏族自治州"}],
-        "青": [{"letter":"A","city":"西宁市"},{"letter":"B","city":"海东市"},{"letter":"C","city":"海北藏族自治州"},{"letter":"D","city":"黄南藏族自治州"},{"letter":"E","city":"海南藏族自治州"},{"letter":"F","city":"果洛藏族自治州"},{"letter":"G","city":"玉树藏族自治州"},{"letter":"H","city":"海西蒙古族藏族自治州"}],
-        "宁": [{"letter":"A","city":"银川市"},{"letter":"B","city":"石嘴山市"},{"letter":"C","city":"吴忠市"},{"letter":"D","city":"固原市"}],
-        "新": [{"letter":"A","city":"乌鲁木齐市"},{"letter":"B","city":"昌吉回族自治州"},{"letter":"C","city":"石河子市"},{"letter":"D","city":"奎屯市"},{"letter":"E","city":"博尔塔拉蒙古自治州"},{"letter":"F","city":"伊犁哈萨克自治州"},{"letter":"G","city":"塔城地区"},{"letter":"H","city":"阿勒泰地区"},{"letter":"J","city":"克拉玛依市"},{"letter":"K","city":"吐鲁番市"},{"letter":"L","city":"哈密市"},{"letter":"M","city":"巴音郭楞蒙古自治州"},{"letter":"N","city":"阿克苏地区"},{"letter":"P","city":"克孜勒苏柯尔克孜自治州"},{"letter":"Q","city":"喀什地区"},{"letter":"R","city":"和田地区"}]
-      };
       
       // 绑定事件监听器
-      provinceSelect.addEventListener('change', onProvinceChange);
-      citySelect.addEventListener('change', onCitySelect);
+      platePrefix.addEventListener('input', onPlatePrefixInput);
       plateSuffix.addEventListener('input', validatePlateFormat);
       phoneNumber.addEventListener('input', formatPhoneNumber);
       sendBtn.addEventListener('click', sendNotification);
+      
+      // 车牌前缀输入处理
+      function onPlatePrefixInput() {
+        // 自动转大写（针对字母部分）
+        let value = platePrefix.value;
+        // 第一位保持原样（汉字），第二位转大写
+        if (value.length > 1) {
+          value = value.charAt(0) + value.substring(1).toUpperCase();
+        }
+        platePrefix.value = value;
+        validateForm();
+      }
       
       // 手机号格式化（添加分隔符）
       function formatPhoneNumber() {
@@ -516,59 +390,6 @@
         return phoneRegex.test(value);
       }
       
-      function onProvinceChange() {
-        const selectedProvince = provinceSelect.value;
-        
-        // 清空城市选择
-        citySelect.innerHTML = '<option value="">请选择城市</option>';
-        platePrefix.value = '';
-        
-        if (selectedProvince) {
-          // 显示省份名称
-          const provinceName = provinceSelect.options[provinceSelect.selectedIndex].text;
-          dataLoadStatus.textContent = `已选择: ${provinceName}`;
-          
-          // 加载城市数据
-          const cities = provinceCityData[selectedProvince] || [];
-          if (cities.length > 0) {
-            cities.forEach(city => {
-              const option = document.createElement('option');
-              option.value = city.letter;
-              option.textContent = `${city.letter} - ${city.city}`;
-              citySelect.appendChild(option);
-            });
-          } else {
-            // 如果没有城市数据，添加默认城市选项
-            for (let i = 65; i <= 90; i++) {
-              const letter = String.fromCharCode(i);
-              if (letter !== 'I' && letter !== 'O') { // 排除I和O
-                const option = document.createElement('option');
-                option.value = letter;
-                option.textContent = `${letter} - 市辖区`;
-                citySelect.appendChild(option);
-              }
-            }
-          }
-        } else {
-          dataLoadStatus.textContent = "请选择省份和城市";
-        }
-        
-        validateForm();
-      }
-      
-      function onCitySelect() {
-        const selectedProvince = provinceSelect.value;
-        const selectedLetter = citySelect.value;
-        
-        if (selectedProvince && selectedLetter) {
-          platePrefix.value = selectedProvince + selectedLetter;
-        } else {
-          platePrefix.value = '';
-        }
-        
-        validateForm();
-      }
-      
       function validatePlateFormat() {
         const prefix = platePrefix.value;
         const suffix = plateSuffix.value;
@@ -576,8 +397,14 @@
         // 自动转为大写
         plateSuffix.value = suffix.toUpperCase();
         
-        // 检查前缀是否已选择
+        // 检查前缀是否已输入（需要2位：汉字+字母）
         if (prefix.length < 2) {
+          return false;
+        }
+        
+        // 验证前缀格式：第一位汉字，第二位大写字母
+        const prefixRegex = /^[\u4e00-\u9fa5][A-Z]$/;
+        if (!prefixRegex.test(prefix)) {
           return false;
         }
         
@@ -596,8 +423,8 @@
         
         // 验证格式：第一位为汉字，后接6位(普通)或7位(新能源)字母/数字
         const plateRegex = totalLength === 7 
-          ? /^[\u4e00-\u9fa5][A-Z0-9]{6}$/  // 普通车牌：汉字+6位字符
-          : /^[\u4e00-\u9fa5][A-Z0-9]{7}$/; // 新能源车牌：汉字+7位字符
+          ? /^[\u4e00-\u9fa5][A-Z][A-Z0-9]{5}$/  // 普通车牌：汉字+字母+5位字符
+          : /^[\u4e00-\u9fa5][A-Z][A-Z0-9]{6}$/; // 新能源车牌：汉字+字母+6位字符
           
         const fullPlate = prefix + suffix;
         return plateRegex.test(fullPlate);
@@ -617,7 +444,9 @@
           const totalLength = prefix.length + suffix.length;
           
           if (prefix.length < 2) {
-            showMessage('请先选择省份和城市', 'error');
+            showMessage('请输入车牌前缀（如：京A、粤B）', 'error');
+          } else if (!/^[\u4e00-\u9fa5][A-Z]$/.test(prefix)) {
+            showMessage('车牌前缀格式错误（第一位汉字，第二位大写字母）', 'error');
           } else if (suffix.length === 0) {
             showMessage('请输入车牌号后5-6位', 'error');
           } else if (totalLength !== 7 && totalLength !== 8) {
@@ -648,6 +477,7 @@
         const prefix = platePrefix.value;
         const suffix = plateSuffix.value;
         let phone = phoneNumber.value.replace(/-/g, '');
+        const message = document.getElementById('messageText').value.trim();
         const fullPlate = prefix + suffix;
         
         // 再次验证表单
@@ -669,7 +499,8 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
               plate: fullPlate,
-              phone: phone
+              phone: phone,
+              message: message || ''
             })
           });
           
@@ -680,11 +511,10 @@
             
             // 重置表单
             setTimeout(() => {
-              provinceSelect.value = '';
-              citySelect.innerHTML = '<option value="">请选择城市</option>';
               platePrefix.value = '';
               plateSuffix.value = '';
               phoneNumber.value = '';
+              document.getElementById('messageText').value = '';
               sendBtn.disabled = true;
               loadingEl.style.display = 'none';
               textEl.textContent = '发送挪车通知';

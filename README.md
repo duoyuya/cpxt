@@ -46,10 +46,8 @@ JWT_EXPIRES_IN=24h
 ```
 
 #### 2. 修改管理员密码
-**方式一：通过.env文件修改**
-1. 在设置直接修改
 
-**方式二：通过.env文件修改**
+**方式一：通过.env文件修改**
 1. 访问 [bcrypt-generator.com](https://bcrypt-generator.com/)
 2. 输入新密码（如`123456`）
 3. 工作因子保持默认`10`
